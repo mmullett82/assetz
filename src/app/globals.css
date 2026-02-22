@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Brand palette */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-900: #1e3a5f;
+
+  /* Status colors (Red/Yellow/Green — measured against due date) */
+  --color-status-green: #22c55e;
+  --color-status-yellow: #eab308;
+  --color-status-red: #ef4444;
+
+  /* App shell dark surface */
+  --color-shell-900: #0f172a;
+  --color-shell-800: #1e293b;
+  --color-shell-700: #334155;
+  --color-shell-400: #94a3b8;
+  --color-shell-100: #f1f5f9;
+}
+
+/* Mobile-first base — used on manufacturing floor */
+html {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* Prevent pull-to-refresh on iOS PWA */
+  overscroll-behavior-y: none;
+}
+
+body {
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Larger tap targets for gloved hands on the shop floor (min 44px) */
+button,
+[role="button"],
+a {
+  touch-action: manipulation;
+}
