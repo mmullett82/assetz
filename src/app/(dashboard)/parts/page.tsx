@@ -163,13 +163,6 @@ function PartsPageContent() {
         </div>
       )}
 
-      {/* Status tabs */}
-      <StatusTabBar
-        tabs={partStatusTabs}
-        activeValue={activeStatusTab}
-        onChange={handleStatusTab}
-      />
-
       {/* Search + controls row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -187,6 +180,13 @@ function PartsPageContent() {
           <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={false} />
         </div>
       </div>
+
+      {/* Status tabs */}
+      <StatusTabBar
+        tabs={partStatusTabs}
+        activeValue={activeStatusTab}
+        onChange={handleStatusTab}
+      />
 
       {/* Filter bar */}
       <FilterBar

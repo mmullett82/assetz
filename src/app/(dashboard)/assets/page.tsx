@@ -118,13 +118,6 @@ export default function AssetsPage() {
         </Link>
       </div>
 
-      {/* Status tabs */}
-      <StatusTabBar
-        tabs={ASSET_STATUS_TABS}
-        activeValue={activeStatusTab}
-        onChange={handleStatusTab}
-      />
-
       {/* Search + controls row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -142,6 +135,13 @@ export default function AssetsPage() {
           <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={false} />
         </div>
       </div>
+
+      {/* Status tabs */}
+      <StatusTabBar
+        tabs={ASSET_STATUS_TABS}
+        activeValue={activeStatusTab}
+        onChange={handleStatusTab}
+      />
 
       {/* Filter bar */}
       <FilterBar

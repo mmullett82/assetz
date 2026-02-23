@@ -146,6 +146,12 @@ export default function PMPage() {
         </Link>
       </div>
 
+      {/* Sort + view controls */}
+      <div className="flex justify-end gap-2">
+        <SortDropdown options={SORT_OPTIONS} value={sortState} onChange={setSortState} />
+        <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={true} />
+      </div>
+
       {/* Status tabs */}
       <StatusTabBar
         tabs={PM_DUE_STATUS_TABS}
@@ -153,20 +159,14 @@ export default function PMPage() {
         onChange={handleStatusTab}
       />
 
-      {/* Controls row */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <FilterBar
-          attributes={PM_FILTER_ATTRIBUTES}
-          activeFilters={activeFilters}
-          onAddFilter={addFilter}
-          onRemoveFilter={removeFilter}
-          onClearAll={() => setFilters([])}
-        />
-        <div className="flex items-center gap-2">
-          <SortDropdown options={SORT_OPTIONS} value={sortState} onChange={setSortState} />
-          <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={true} />
-        </div>
-      </div>
+      {/* Filter bar */}
+      <FilterBar
+        attributes={PM_FILTER_ATTRIBUTES}
+        activeFilters={activeFilters}
+        onAddFilter={addFilter}
+        onRemoveFilter={removeFilter}
+        onClearAll={() => setFilters([])}
+      />
 
       {/* Results */}
       {isLoading ? (

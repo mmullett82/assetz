@@ -171,13 +171,6 @@ function WorkOrdersPageContent() {
         </div>
       )}
 
-      {/* Status tabs */}
-      <StatusTabBar
-        tabs={WO_STATUS_TABS}
-        activeValue={activeStatusTab}
-        onChange={handleStatusTab}
-      />
-
       {/* Search + controls row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -195,6 +188,13 @@ function WorkOrdersPageContent() {
           <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={true} />
         </div>
       </div>
+
+      {/* Status tabs */}
+      <StatusTabBar
+        tabs={WO_STATUS_TABS}
+        activeValue={activeStatusTab}
+        onChange={handleStatusTab}
+      />
 
       {/* Filter bar */}
       <FilterBar
