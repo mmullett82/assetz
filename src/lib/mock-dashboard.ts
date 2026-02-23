@@ -13,7 +13,7 @@ export const MOCK_KPIS: DashboardKPIs = {
   work_orders_due_today:         0,
   work_orders_completed_this_week: 2,
   assets_down:                   1,    // Rover CNC is down
-  total_assets:                  7,
+  total_assets:                  9,
   pm_compliance_rate:            78,   // Below 90% target — needs attention
   mean_time_to_repair:           3.2,  // hours
   parts_low_stock:               2,
