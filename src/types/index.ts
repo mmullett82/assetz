@@ -426,3 +426,23 @@ export interface FloorPlanZone {
   color?: string
   polygon_points: { x: number; y: number }[]
 }
+
+// ─── List View Types ───────────────────────────────────────────────────────────
+
+export type ListViewMode = 'panel' | 'table' | 'calendar'
+export type SortDirection = 'asc' | 'desc'
+export interface SortState { field: string; direction: SortDirection }
+export type FilterOperator = 'eq' | 'date_range' | 'boolean'
+export interface FilterAttribute {
+  key: string
+  label: string
+  operator: FilterOperator
+  options?: { value: string; label: string }[]
+}
+export interface ActiveFilter {
+  key: string
+  label: string
+  value: string
+  displayValue: string
+}
+export interface SavedFilter { id: string; label: string; filters: ActiveFilter[] }

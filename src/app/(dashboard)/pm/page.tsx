@@ -1,48 +1,92 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Plus, CalendarClock, LayoutList, Table2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Plus, CalendarClock, ArrowLeft } from 'lucide-react'
 import { usePMSchedules } from '@/hooks/usePMSchedules'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 import PMTable from '@/components/pm/PMTable'
-import PMCard from '@/components/pm/PMCard'
+import PMPanelDetail from '@/components/pm/PMPanelDetail'
 import CompleteModal from '@/components/pm/CompleteModal'
+import PMFrequencyBadge from '@/components/pm/PMFrequencyBadge'
+import DueStatusBadge from '@/components/ui/DueStatusBadge'
+import CalendarView, { type CalendarItem } from '@/components/ui/CalendarView'
 import EmptyState from '@/components/ui/EmptyState'
-import type { PMSchedule, DueStatus } from '@/types'
-import { calculateNextDue } from '@/lib/pm-utils'
+import ViewToggle from '@/components/ui/ViewToggle'
+import FilterBar from '@/components/ui/FilterBar'
+import SortDropdown from '@/components/ui/SortDropdown'
+import DotsMenu from '@/components/ui/DotsMenu'
+import { PM_FILTER_ATTRIBUTES } from '@/lib/filter-config'
+import { calculateNextDue, daysUntilDue } from '@/lib/pm-utils'
+import { MOCK_ASSETS } from '@/lib/mock-data'
+import type { ListViewMode, SortState, ActiveFilter, PMSchedule } from '@/types'
 
-type ViewMode = 'table' | 'cards'
-type StatusFilter = DueStatus | ''
+const DEFAULT_SORT: SortState = { field: 'next_due_at', direction: 'asc' }
 
-const STATUS_FILTERS: { value: StatusFilter; label: string; color: string }[] = [
-  { value: '',       label: 'All',        color: '' },
-  { value: 'red',    label: 'Overdue',    color: 'text-red-600' },
-  { value: 'yellow', label: 'Due Soon',   color: 'text-yellow-600' },
-  { value: 'green',  label: 'On Schedule',color: 'text-green-600' },
+const SORT_OPTIONS = [
+  { field: 'next_due_at',       label: 'Next Due'   },
+  { field: 'title',             label: 'Title'      },
+  { field: 'frequency',         label: 'Frequency'  },
+  { field: 'last_completed_at', label: 'Last Done'  },
 ]
 
+function applyFilters(pms: PMSchedule[], filters: ActiveFilter[]): PMSchedule[] {
+  if (filters.length === 0) return pms
+  return pms.filter((pm) =>
+    filters.every((f) => {
+      if (f.key === 'is_active') {
+        return f.value === 'true' ? pm.is_active : !pm.is_active
+      }
+      const val = (pm as unknown as Record<string, unknown>)[f.key]
+      return String(val) === f.value
+    })
+  )
+}
+
+function applySort(pms: PMSchedule[], sort: SortState): PMSchedule[] {
+  return [...pms].sort((a, b) => {
+    const av = String((a as unknown as Record<string, unknown>)[sort.field] ?? '')
+    const bv = String((b as unknown as Record<string, unknown>)[sort.field] ?? '')
+    const cmp = av.localeCompare(bv)
+    return sort.direction === 'asc' ? cmp : -cmp
+  })
+}
+
 export default function PMPage() {
-  const [statusFilter, setStatus]   = useState<StatusFilter>('')
-  const [viewMode,     setViewMode] = useState<ViewMode>('table')
-  const [completing,   setCompleting] = useState<PMSchedule | null>(null)
+  const router = useRouter()
+  const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('pm-view', 'panel')
+  const [sortState, setSortState]     = useLocalStorage<SortState>('pm-sort', DEFAULT_SORT)
+  const [activeFilters, setFilters]   = useState<ActiveFilter[]>([])
+  const [selectedId, setSelectedId]   = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [completing, setCompleting]   = useState<PMSchedule | null>(null)
 
-  const { pmSchedules, total, isLoading, mutate } = usePMSchedules()
+  const { pmSchedules, isLoading, mutate } = usePMSchedules()
 
-  // Apply status filter client-side (mock data is already sorted by due status)
-  const filtered = statusFilter
-    ? pmSchedules.filter((pm) => pm.due_status === statusFilter)
-    : pmSchedules
+  const filtered = useMemo(() => applyFilters(pmSchedules, activeFilters), [pmSchedules, activeFilters])
+  const sorted   = useMemo(() => applySort(filtered, sortState), [filtered, sortState])
 
-  // Counts for filter badges
-  const countByStatus = (s: StatusFilter) =>
-    s ? pmSchedules.filter((pm) => pm.due_status === s).length : pmSchedules.length
+  const calendarItems: CalendarItem[] = sorted
+    .filter((pm) => pm.next_due_at)
+    .map((pm) => ({
+      id:        pm.id,
+      title:     pm.title,
+      dueDate:   pm.next_due_at!,
+      isOverdue: (daysUntilDue(pm.next_due_at) ?? 0) < 0,
+      href:      `/pm/${pm.id}`,
+    }))
+
+  function addFilter(f: ActiveFilter) {
+    setFilters((prev) => [...prev.filter((x) => x.key !== f.key), f])
+  }
+  function removeFilter(key: string) {
+    setFilters((prev) => prev.filter((f) => f.key !== key))
+  }
 
   async function handleComplete(data: { completedAt: string; notes: string; actualHours: string }) {
     if (!completing) return
-
     const nextDue = calculateNextDue(data.completedAt, completing.frequency, completing.interval_value)
-
-    // Optimistic update
     await mutate(
       (prev) => {
         if (!prev) return prev
@@ -62,9 +106,6 @@ export default function PMPage() {
       },
       { revalidate: false }
     )
-
-    // TODO: await apiClient.pmSchedules.complete(completing.id, data.completedAt)
-
     setCompleting(null)
   }
 
@@ -75,7 +116,7 @@ export default function PMPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">PM Schedules</h1>
           <p className="text-sm text-slate-500">
-            {isLoading ? 'Loading…' : `${total} schedule${total !== 1 ? 's' : ''}`}
+            {isLoading ? 'Loading…' : `${sorted.length} schedule${sorted.length !== 1 ? 's' : ''}`}
           </p>
         </div>
         <Link
@@ -87,55 +128,18 @@ export default function PMPage() {
         </Link>
       </div>
 
-      {/* Status filters + view toggle */}
+      {/* Controls row */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex gap-1.5 flex-wrap">
-          {STATUS_FILTERS.map((f) => {
-            const count = countByStatus(f.value)
-            return (
-              <button
-                key={f.value}
-                type="button"
-                onClick={() => setStatus(f.value)}
-                className={[
-                  'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors min-h-[40px]',
-                  statusFilter === f.value
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:bg-slate-100',
-                ].join(' ')}
-              >
-                <span className={statusFilter !== f.value ? f.color : ''}>{f.label}</span>
-                {count > 0 && (
-                  <span className={[
-                    'rounded-full px-1.5 py-0.5 text-[11px] font-bold leading-none',
-                    statusFilter === f.value ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600',
-                  ].join(' ')}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* View toggle — desktop */}
-        <div className="hidden sm:flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1">
-          <button
-            type="button"
-            onClick={() => setViewMode('table')}
-            aria-label="Table view"
-            className={['flex items-center justify-center rounded-md p-2 transition-colors', viewMode === 'table' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-slate-700'].join(' ')}
-          >
-            <Table2 className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('cards')}
-            aria-label="Card view"
-            className={['flex items-center justify-center rounded-md p-2 transition-colors', viewMode === 'cards' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-slate-700'].join(' ')}
-          >
-            <LayoutList className="h-4 w-4" />
-          </button>
+        <FilterBar
+          attributes={PM_FILTER_ATTRIBUTES}
+          activeFilters={activeFilters}
+          onAddFilter={addFilter}
+          onRemoveFilter={removeFilter}
+          onClearAll={() => setFilters([])}
+        />
+        <div className="flex items-center gap-2">
+          <SortDropdown options={SORT_OPTIONS} value={sortState} onChange={setSortState} />
+          <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={true} />
         </div>
       </div>
 
@@ -146,13 +150,13 @@ export default function PMPage() {
             <div key={i} className="h-24 rounded-xl bg-slate-100 animate-pulse" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <EmptyState
           icon={<CalendarClock className="h-12 w-12" />}
           title="No PM schedules found"
-          description={statusFilter ? 'No schedules in this category.' : 'Add your first PM schedule to get started.'}
+          description={activeFilters.length > 0 ? 'Try adjusting your filters.' : 'Add your first PM schedule to get started.'}
           action={
-            !statusFilter ? (
+            activeFilters.length === 0 ? (
               <Link
                 href="/pm/new"
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
@@ -163,24 +167,98 @@ export default function PMPage() {
             ) : undefined
           }
         />
+      ) : viewMode === 'panel' ? (
+        /* ── Panel view ── */
+        <div className="flex border border-slate-200 rounded-xl overflow-hidden bg-white h-[calc(100vh-18rem)] min-h-[400px]">
+          {/* Left pane */}
+          <div className={[
+            'shrink-0 border-r border-slate-200 overflow-y-auto',
+            selectedId ? 'hidden sm:flex flex-col w-80' : 'w-full sm:w-80 flex flex-col',
+          ].join(' ')}>
+            {sorted.map((pm) => {
+              const asset = MOCK_ASSETS.find((a) => a.id === pm.asset_id)
+              return (
+                <button
+                  key={pm.id}
+                  type="button"
+                  onClick={() => setSelectedId(pm.id)}
+                  className={[
+                    'w-full text-left px-4 py-3 border-b border-slate-100 border-l-2 hover:bg-slate-50 transition-colors',
+                    selectedId === pm.id ? 'bg-blue-50 border-l-blue-500' : 'border-l-transparent',
+                  ].join(' ')}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate text-slate-900">{pm.title}</p>
+                      <p className="text-xs text-slate-500 truncate mt-0.5">{asset?.name ?? pm.asset_id}</p>
+                      <div className="flex gap-1 mt-1.5 flex-wrap">
+                        <PMFrequencyBadge frequency={pm.frequency} intervalValue={pm.interval_value} />
+                        {pm.due_status && <DueStatusBadge status={pm.due_status} />}
+                      </div>
+                    </div>
+                    <DotsMenu
+                      size="sm"
+                      align="left"
+                      items={[
+                        { label: 'Edit',        onClick: () => router.push(`/pm/${pm.id}/edit`) },
+                        { label: 'View Detail', onClick: () => router.push(`/pm/${pm.id}`) },
+                        { separator: true, label: 'Complete', onClick: () => setCompleting(pm) },
+                        { label: 'Delete',      onClick: () => console.log('TODO'), destructive: true },
+                      ]}
+                    />
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Right pane */}
+          <div className={[
+            'flex-1 overflow-y-auto',
+            selectedId ? 'block' : 'hidden sm:flex items-center justify-center',
+          ].join(' ')}>
+            {selectedId ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(null)}
+                  className="sm:hidden flex items-center gap-1.5 m-4 text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </button>
+                <PMPanelDetail
+                  pmId={selectedId}
+                  onEdit={() => router.push(`/pm/${selectedId}/edit`)}
+                  onClose={() => setSelectedId(null)}
+                />
+              </>
+            ) : (
+              <div className="text-center px-6">
+                <CalendarClock className="h-10 w-10 text-slate-200 mx-auto mb-3" />
+                <p className="text-sm font-medium text-slate-400">Select a PM schedule</p>
+                <p className="text-xs text-slate-300 mt-1">Choose from the list on the left.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : viewMode === 'table' ? (
+        /* ── Table view ── */
+        <PMTable
+          pmSchedules={sorted}
+          onComplete={setCompleting}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+        />
       ) : (
-        <>
-          {/* Desktop table */}
-          <div className={viewMode === 'table' ? 'hidden sm:block' : 'hidden'}>
-            <PMTable pmSchedules={filtered} onComplete={setCompleting} />
-          </div>
-          {/* Mobile / card view */}
-          <div className={viewMode === 'cards' ? 'block' : 'block sm:hidden'}>
-            <div className="space-y-3">
-              {filtered.map((pm) => (
-                <PMCard key={pm.id} pm={pm} onComplete={setCompleting} />
-              ))}
-            </div>
-          </div>
-        </>
+        /* ── Calendar view ── */
+        <CalendarView
+          items={calendarItems}
+          onItemClick={setSelectedId}
+        />
       )}
 
-      {/* Completion modal */}
+      {/* Completion modal (table view) */}
       {completing && (
         <CompleteModal
           pm={completing}

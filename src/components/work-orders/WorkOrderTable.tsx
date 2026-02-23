@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Edit, Eye, Cpu, Copy, Trash2 } from 'lucide-react'
@@ -10,7 +10,7 @@ import WorkOrderPriorityBadge from './WorkOrderPriorityBadge'
 import DueStatusBadge from '@/components/ui/DueStatusBadge'
 import { computeDueStatus, formatDate } from '@/lib/due-status'
 import { MOCK_ASSETS } from '@/lib/mock-data'
-import ContextMenu, { type ContextMenuItem } from '@/components/ui/ContextMenu'
+import DotsMenu from '@/components/ui/DotsMenu'
 import ColumnChooser, { type ColumnDef } from '@/components/ui/ColumnChooser'
 import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 
@@ -34,61 +34,44 @@ const COLUMN_DEFAULTS: Record<WOCol, boolean> = {
   due:       true,
 }
 
-type CtxState = { items: ContextMenuItem[]; x: number; y: number } | null
+interface WorkOrderTableProps {
+  workOrders: WorkOrder[]
+  selectedIds?: Set<string>
+  onSelectionChange?: (ids: Set<string>) => void
+}
 
-export default function WorkOrderTable({ workOrders }: { workOrders: WorkOrder[] }) {
+export default function WorkOrderTable({ workOrders, selectedIds = new Set(), onSelectionChange }: WorkOrderTableProps) {
   const router = useRouter()
-  const [ctx, setCtx] = useState<CtxState>(null)
   const [visibility, setColumn] = useColumnVisibility('wo-columns', COLUMN_DEFAULTS)
+  const headerCheckRef = useRef<HTMLInputElement>(null)
 
   function resetColumns() {
     COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
   }
 
-  const openCtx = useCallback((e: React.MouseEvent, wo: WorkOrder) => {
-    e.preventDefault()
-    setCtx({
-      x: e.clientX,
-      y: e.clientY,
-      items: [
-        {
-          label: 'Edit',
-          icon: <Edit className="h-4 w-4" />,
-          onClick: () => router.push(`/work-orders/${wo.id}/edit`),
-        },
-        {
-          label: 'View Detail',
-          icon: <Eye className="h-4 w-4" />,
-          onClick: () => router.push(`/work-orders/${wo.id}`),
-        },
-        {
-          separator: true,
-          label: 'Show Asset',
-          icon: <Cpu className="h-4 w-4" />,
-          onClick: () => router.push(`/assets/${wo.asset_id}`),
-        },
-        {
-          label: 'Duplicate',
-          icon: <Copy className="h-4 w-4" />,
-          onClick: () => console.log('TODO: duplicate WO', wo.id),
-        },
-        {
-          separator: true,
-          label: 'Delete',
-          icon: <Trash2 className="h-4 w-4" />,
-          onClick: () => console.log('TODO: delete WO', wo.id),
-          destructive: true,
-        },
-      ],
-    })
-  }, [router])
+  const allSelected  = workOrders.length > 0 && workOrders.every((w) => selectedIds.has(w.id))
+  const someSelected = workOrders.some((w) => selectedIds.has(w.id)) && !allSelected
+
+  if (headerCheckRef.current) {
+    headerCheckRef.current.indeterminate = someSelected
+  }
+
+  function toggleAll() {
+    if (!onSelectionChange) return
+    onSelectionChange(allSelected ? new Set() : new Set(workOrders.map((w) => w.id)))
+  }
+
+  function toggleOne(id: string) {
+    if (!onSelectionChange) return
+    const next = new Set(selectedIds)
+    next.has(id) ? next.delete(id) : next.add(id)
+    onSelectionChange(next)
+  }
 
   if (workOrders.length === 0) return null
 
   return (
     <>
-      {ctx && <ContextMenu items={ctx.items} position={{ x: ctx.x, y: ctx.y }} onClose={() => setCtx(null)} />}
-
       {/* Column chooser toolbar */}
       <div className="flex justify-end mb-2">
         <ColumnChooser
@@ -103,6 +86,16 @@ export default function WorkOrderTable({ workOrders }: { workOrders: WorkOrder[]
         <table className="min-w-full divide-y divide-slate-100 text-sm">
           <thead>
             <tr className="bg-slate-50">
+              <th scope="col" className="w-10 px-3 py-3">
+                <input
+                  ref={headerCheckRef}
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                  aria-label="Select all"
+                />
+              </th>
               {visibility.wo_number && (
                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">WO #</th>
               )}
@@ -121,7 +114,7 @@ export default function WorkOrderTable({ workOrders }: { workOrders: WorkOrder[]
               {visibility.due && (
                 <th scope="col" className="hidden sm:table-cell px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Due</th>
               )}
-              <th scope="col" className="px-4 py-3"><span className="sr-only">View</span></th>
+              <th scope="col" className="px-4 py-3"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -133,11 +126,17 @@ export default function WorkOrderTable({ workOrders }: { workOrders: WorkOrder[]
                 : undefined
 
               return (
-                <tr
-                  key={wo.id}
-                  className="hover:bg-slate-50 transition-colors"
-                  onContextMenu={(e) => openCtx(e, wo)}
-                >
+                <tr key={wo.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="w-10 px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(wo.id)}
+                      onChange={() => toggleOne(wo.id)}
+                      className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                      aria-label={`Select ${wo.title}`}
+                    />
+                  </td>
+
                   {visibility.wo_number && (
                     <td className="px-4 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">
                       {wo.work_order_number}
@@ -189,12 +188,40 @@ export default function WorkOrderTable({ workOrders }: { workOrders: WorkOrder[]
                   )}
 
                   <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/work-orders/${wo.id}`}
-                      className="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
-                    >
-                      View →
-                    </Link>
+                    <DotsMenu
+                      size="sm"
+                      align="right"
+                      items={[
+                        {
+                          label: 'Edit',
+                          icon: <Edit className="h-4 w-4" />,
+                          onClick: () => router.push(`/work-orders/${wo.id}/edit`),
+                        },
+                        {
+                          label: 'View Detail',
+                          icon: <Eye className="h-4 w-4" />,
+                          onClick: () => router.push(`/work-orders/${wo.id}`),
+                        },
+                        {
+                          separator: true,
+                          label: 'Show Asset',
+                          icon: <Cpu className="h-4 w-4" />,
+                          onClick: () => router.push(`/assets/${wo.asset_id}`),
+                        },
+                        {
+                          label: 'Duplicate',
+                          icon: <Copy className="h-4 w-4" />,
+                          onClick: () => console.log('TODO: duplicate WO', wo.id),
+                        },
+                        {
+                          separator: true,
+                          label: 'Delete',
+                          icon: <Trash2 className="h-4 w-4" />,
+                          onClick: () => console.log('TODO: delete WO', wo.id),
+                          destructive: true,
+                        },
+                      ]}
+                    />
                   </td>
                 </tr>
               )

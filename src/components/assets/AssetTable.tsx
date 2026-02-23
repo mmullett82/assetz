@@ -3,14 +3,14 @@
  */
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Edit, Eye, CalendarClock, ClipboardList, Package, Copy, Trash2 } from 'lucide-react'
 import type { Asset } from '@/types'
 import AssetStatusBadge from '@/components/ui/AssetStatusBadge'
 import DependencyBadge from './DependencyBadge'
-import ContextMenu, { type ContextMenuItem } from '@/components/ui/ContextMenu'
+import DotsMenu from '@/components/ui/DotsMenu'
 import ColumnChooser, { type ColumnDef } from '@/components/ui/ColumnChooser'
 import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 
@@ -36,78 +36,47 @@ const COLUMN_DEFAULTS: Record<AssetCol, boolean> = {
 
 interface AssetTableProps {
   assets: Asset[]
+  selectedIds?: Set<string>
+  onSelectionChange?: (ids: Set<string>) => void
 }
 
-type CtxState = { items: ContextMenuItem[]; x: number; y: number } | null
-
-export default function AssetTable({ assets }: AssetTableProps) {
+export default function AssetTable({ assets, selectedIds = new Set(), onSelectionChange }: AssetTableProps) {
   const router = useRouter()
-  const [ctx, setCtx] = useState<CtxState>(null)
   const [visibility, setColumn] = useColumnVisibility('assets-columns', COLUMN_DEFAULTS)
+  const headerCheckRef = useRef<HTMLInputElement>(null)
 
   function resetColumns() {
     COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
   }
 
-  const openCtx = useCallback((e: React.MouseEvent, asset: Asset) => {
-    e.preventDefault()
-    setCtx({
-      x: e.clientX,
-      y: e.clientY,
-      items: [
-        {
-          label: 'Edit',
-          icon: <Edit className="h-4 w-4" />,
-          onClick: () => router.push(`/assets/${asset.id}/edit`),
-        },
-        {
-          label: 'View Detail',
-          icon: <Eye className="h-4 w-4" />,
-          onClick: () => router.push(`/assets/${asset.id}`),
-        },
-        {
-          separator: true,
-          label: 'Create Work Order',
-          icon: <ClipboardList className="h-4 w-4" />,
-          onClick: () => console.log('TODO: create WO for', asset.id),
-        },
-        {
-          label: 'Create PM',
-          icon: <CalendarClock className="h-4 w-4" />,
-          onClick: () => console.log('TODO: create PM for', asset.id),
-        },
-        {
-          label: 'Show Work Orders',
-          icon: <ClipboardList className="h-4 w-4" />,
-          onClick: () => router.push(`/work-orders?asset_id=${asset.id}`),
-        },
-        {
-          label: 'Show Parts',
-          icon: <Package className="h-4 w-4" />,
-          onClick: () => router.push(`/parts?asset_id=${asset.id}`),
-        },
-        {
-          separator: true,
-          label: 'Duplicate',
-          icon: <Copy className="h-4 w-4" />,
-          onClick: () => console.log('TODO: duplicate', asset.id),
-        },
-        {
-          label: 'Delete',
-          icon: <Trash2 className="h-4 w-4" />,
-          onClick: () => console.log('TODO: delete', asset.id),
-          destructive: true,
-        },
-      ],
-    })
-  }, [router])
+  // Selection helpers
+  const allSelected = assets.length > 0 && assets.every((a) => selectedIds.has(a.id))
+  const someSelected = assets.some((a) => selectedIds.has(a.id)) && !allSelected
+
+  if (headerCheckRef.current) {
+    headerCheckRef.current.indeterminate = someSelected
+  }
+
+  function toggleAll() {
+    if (!onSelectionChange) return
+    if (allSelected) {
+      onSelectionChange(new Set())
+    } else {
+      onSelectionChange(new Set(assets.map((a) => a.id)))
+    }
+  }
+
+  function toggleOne(id: string) {
+    if (!onSelectionChange) return
+    const next = new Set(selectedIds)
+    next.has(id) ? next.delete(id) : next.add(id)
+    onSelectionChange(next)
+  }
 
   if (assets.length === 0) return null
 
   return (
     <>
-      {ctx && <ContextMenu items={ctx.items} position={{ x: ctx.x, y: ctx.y }} onClose={() => setCtx(null)} />}
-
       {/* Column chooser toolbar */}
       <div className="flex justify-end mb-2">
         <ColumnChooser
@@ -122,6 +91,16 @@ export default function AssetTable({ assets }: AssetTableProps) {
         <table className="min-w-full divide-y divide-slate-100 text-sm">
           <thead>
             <tr className="bg-slate-50">
+              <th scope="col" className="w-10 px-3 py-3">
+                <input
+                  ref={headerCheckRef}
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                  aria-label="Select all"
+                />
+              </th>
               {visibility.name && (
                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Asset
@@ -153,7 +132,7 @@ export default function AssetTable({ assets }: AssetTableProps) {
                 </th>
               )}
               <th scope="col" className="px-4 py-3">
-                <span className="sr-only">View</span>
+                <span className="sr-only">Actions</span>
               </th>
             </tr>
           </thead>
@@ -162,8 +141,16 @@ export default function AssetTable({ assets }: AssetTableProps) {
               <tr
                 key={asset.id}
                 className="hover:bg-slate-50 transition-colors"
-                onContextMenu={(e) => openCtx(e, asset)}
               >
+                <td className="w-10 px-3 py-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(asset.id)}
+                    onChange={() => toggleOne(asset.id)}
+                    className="h-4 w-4 rounded border-slate-300 accent-blue-600 cursor-pointer"
+                    aria-label={`Select ${asset.name}`}
+                  />
+                </td>
                 {visibility.name && (
                   <td className="px-4 py-3">
                     <Link
@@ -207,12 +194,50 @@ export default function AssetTable({ assets }: AssetTableProps) {
                   </td>
                 )}
                 <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/assets/${asset.id}`}
-                    className="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
-                  >
-                    View →
-                  </Link>
+                  <DotsMenu
+                    size="sm"
+                    align="right"
+                    items={[
+                      {
+                        label: 'Edit',
+                        icon: <Edit className="h-4 w-4" />,
+                        onClick: () => router.push(`/assets/${asset.id}/edit`),
+                      },
+                      {
+                        label: 'View Detail',
+                        icon: <Eye className="h-4 w-4" />,
+                        onClick: () => router.push(`/assets/${asset.id}`),
+                      },
+                      {
+                        separator: true,
+                        label: 'Create Work Order',
+                        icon: <ClipboardList className="h-4 w-4" />,
+                        onClick: () => console.log('TODO: create WO for', asset.id),
+                      },
+                      {
+                        label: 'Create PM',
+                        icon: <CalendarClock className="h-4 w-4" />,
+                        onClick: () => console.log('TODO: create PM for', asset.id),
+                      },
+                      {
+                        label: 'Show Parts',
+                        icon: <Package className="h-4 w-4" />,
+                        onClick: () => router.push(`/parts?asset_id=${asset.id}`),
+                      },
+                      {
+                        separator: true,
+                        label: 'Duplicate',
+                        icon: <Copy className="h-4 w-4" />,
+                        onClick: () => console.log('TODO: duplicate', asset.id),
+                      },
+                      {
+                        label: 'Delete',
+                        icon: <Trash2 className="h-4 w-4" />,
+                        onClick: () => console.log('TODO: delete', asset.id),
+                        destructive: true,
+                      },
+                    ]}
+                  />
                 </td>
               </tr>
             ))}
