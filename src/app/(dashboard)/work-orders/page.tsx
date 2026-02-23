@@ -98,7 +98,7 @@ function WorkOrdersPageContent() {
   const assetIdFilter = searchParams.get('asset_id')
   const assetName = assetIdFilter ? (MOCK_ASSETS.find((a) => a.id === assetIdFilter)?.name ?? assetIdFilter) : null
 
-  const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('work-orders-view', 'panel')
+  const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('work-orders-view', 'table')
   const [sortState, setSortState]     = useLocalStorage<SortState>('work-orders-sort', DEFAULT_SORT)
   const [search, setSearch]           = useState('')
   const [activeFilters, setFilters]   = useState<ActiveFilter[]>([])

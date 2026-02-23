@@ -66,7 +66,7 @@ function PartsPageContent() {
   const assetIdFilter = searchParams.get('asset_id')
   const assetName = assetIdFilter ? (MOCK_ASSETS.find((a) => a.id === assetIdFilter)?.name ?? assetIdFilter) : null
 
-  const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('parts-view', 'panel')
+  const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('parts-view', 'table')
   const [sortState, setSortState]     = useLocalStorage<SortState>('parts-sort', DEFAULT_SORT)
   const [search, setSearch]           = useState('')
   const [activeFilters, setFilters]   = useState<ActiveFilter[]>([])

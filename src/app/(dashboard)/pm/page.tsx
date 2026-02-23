@@ -63,7 +63,7 @@ function applySort(pms: PMSchedule[], sort: SortState): PMSchedule[] {
 
 export default function PMPage() {
   const router = useRouter()
-  const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('pm-view', 'panel')
+  const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('pm-view', 'table')
   const [sortState, setSortState]     = useLocalStorage<SortState>('pm-sort', DEFAULT_SORT)
   const [activeFilters, setFilters]   = useState<ActiveFilter[]>([])
   const [selectedId, setSelectedId]   = useState<string | null>(null)

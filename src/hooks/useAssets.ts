@@ -5,7 +5,7 @@ import type { Asset, PaginatedResponse } from '@/types'
 import apiClient, { type AssetsQuery } from '@/lib/api-client'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true' || process.env.NODE_ENV === 'development'
+const USE_MOCK = true // always use mock data until backend is connected
 
 function mockFetcher(query?: AssetsQuery): PaginatedResponse<Asset> {
   let data = [...MOCK_ASSETS]

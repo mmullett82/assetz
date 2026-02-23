@@ -5,7 +5,7 @@ import type { WorkOrder, PaginatedResponse } from '@/types'
 import apiClient, { type WorkOrdersQuery } from '@/lib/api-client'
 import { MOCK_WORK_ORDERS } from '@/lib/mock-work-orders'
 
-const USE_MOCK = process.env.NODE_ENV === 'development'
+const USE_MOCK = true // always use mock data until backend is connected
 
 function mockFetcher(query?: WorkOrdersQuery): PaginatedResponse<WorkOrder> {
   let data = [...MOCK_WORK_ORDERS]

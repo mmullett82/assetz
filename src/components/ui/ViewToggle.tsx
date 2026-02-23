@@ -11,8 +11,8 @@ interface ViewToggleProps {
 
 export default function ViewToggle({ mode, onChange, showCalendar = false }: ViewToggleProps) {
   const buttons: { key: ListViewMode; icon: React.ReactNode; label: string }[] = [
-    { key: 'panel',    icon: <LayoutPanelLeft className="h-4 w-4" />, label: 'Panel view'    },
     { key: 'table',    icon: <Table2 className="h-4 w-4" />,          label: 'Table view'    },
+    { key: 'panel',    icon: <LayoutPanelLeft className="h-4 w-4" />, label: 'Panel view'    },
     ...(showCalendar
       ? [{ key: 'calendar' as ListViewMode, icon: <CalendarDays className="h-4 w-4" />, label: 'Calendar view' }]
       : []),

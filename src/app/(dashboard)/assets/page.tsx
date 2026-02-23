@@ -69,7 +69,7 @@ function applySort(assets: Asset[], sort: SortState): Asset[] {
 
 export default function AssetsPage() {
   const router = useRouter()
-  const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('assets-view', 'panel')
+  const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('assets-view', 'table')
   const [sortState, setSortState]     = useLocalStorage<SortState>('assets-sort', DEFAULT_SORT)
   const [search, setSearch]           = useState('')
   const [activeFilters, setFilters]   = useState<ActiveFilter[]>([])
