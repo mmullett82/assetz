@@ -5,7 +5,7 @@ import type { Asset } from '@/types'
 import apiClient from '@/lib/api-client'
 import { getMockAsset } from '@/lib/mock-data'
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true' || process.env.NODE_ENV === 'development'
+const USE_MOCK = true // always use mock data until backend is connected
 
 export function useAsset(id: string | null) {
   const { data, error, isLoading, mutate } = useSWR<Asset>(

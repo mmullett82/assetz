@@ -6,7 +6,7 @@ import apiClient from '@/lib/api-client'
 import { getMockPMSchedule } from '@/lib/mock-pm-schedules'
 import { pmDueStatus } from '@/lib/pm-utils'
 
-const USE_MOCK = process.env.NODE_ENV === 'development'
+const USE_MOCK = true // always use mock data until backend is connected
 
 export function usePMSchedule(id: string | null) {
   const { data, error, isLoading, mutate } = useSWR<PMSchedule>(

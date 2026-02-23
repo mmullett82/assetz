@@ -5,7 +5,7 @@ import type { Part } from '@/types'
 import apiClient from '@/lib/api-client'
 import { getMockPart } from '@/lib/mock-parts'
 
-const USE_MOCK = process.env.NODE_ENV === 'development'
+const USE_MOCK = true // always use mock data until backend is connected
 
 export function usePart(id: string | null) {
   const { data, error, isLoading, mutate } = useSWR<Part>(

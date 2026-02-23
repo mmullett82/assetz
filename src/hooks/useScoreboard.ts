@@ -5,7 +5,7 @@ import useSWR from 'swr'
 import type { TechnicianScore, TeamSummary } from '@/lib/mock-scoreboard'
 import { MOCK_TECH_SCORES, MOCK_TEAM_SUMMARY } from '@/lib/mock-scoreboard'
 
-const USE_MOCK = process.env.NODE_ENV === 'development'
+const USE_MOCK = true // always use mock data until backend is connected
 
 interface ScoreboardData {
   scores: TechnicianScore[]
