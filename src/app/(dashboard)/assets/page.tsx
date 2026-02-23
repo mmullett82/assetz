@@ -16,9 +16,18 @@ import FilterBar from '@/components/ui/FilterBar'
 import SortDropdown from '@/components/ui/SortDropdown'
 import DotsMenu from '@/components/ui/DotsMenu'
 import { ASSET_FILTER_ATTRIBUTES, ASSET_SAVED_FILTERS } from '@/lib/filter-config'
+import StatusTabBar, { type TabDef } from '@/components/ui/StatusTabBar'
 import type { ListViewMode, SortState, ActiveFilter, Asset } from '@/types'
 
 const DEFAULT_SORT: SortState = { field: 'name', direction: 'asc' }
+
+const ASSET_STATUS_TABS: TabDef[] = [
+  { value: null,             label: 'All'           },
+  { value: 'operational',    label: 'Operational'   },
+  { value: 'maintenance',    label: 'Maintenance'   },
+  { value: 'down',           label: 'Down'          },
+  { value: 'decommissioned', label: 'Decommissioned'},
+]
 
 const SORT_OPTIONS = [
   { field: 'name',       label: 'Name'         },
@@ -73,11 +82,21 @@ export default function AssetsPage() {
   const filtered = useMemo(() => applyFilters(searched, activeFilters), [searched, activeFilters])
   const sorted   = useMemo(() => applySort(filtered, sortState), [filtered, sortState])
 
+  const activeStatusTab = activeFilters.find((f) => f.key === 'status')?.value ?? null
+
   function addFilter(f: ActiveFilter) {
     setFilters((prev) => [...prev.filter((x) => x.key !== f.key), f])
   }
   function removeFilter(key: string) {
     setFilters((prev) => prev.filter((f) => f.key !== key))
+  }
+  function handleStatusTab(value: string | null) {
+    if (value === null) {
+      removeFilter('status')
+    } else {
+      const tab = ASSET_STATUS_TABS.find((t) => t.value === value)
+      addFilter({ key: 'status', label: 'Status', value, displayValue: tab?.label ?? value })
+    }
   }
 
   return (
@@ -98,6 +117,13 @@ export default function AssetsPage() {
           Add Asset
         </Link>
       </div>
+
+      {/* Status tabs */}
+      <StatusTabBar
+        tabs={ASSET_STATUS_TABS}
+        activeValue={activeStatusTab}
+        onChange={handleStatusTab}
+      />
 
       {/* Search + controls row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

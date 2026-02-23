@@ -20,9 +20,17 @@ import DotsMenu from '@/components/ui/DotsMenu'
 import { PM_FILTER_ATTRIBUTES } from '@/lib/filter-config'
 import { calculateNextDue, daysUntilDue } from '@/lib/pm-utils'
 import { MOCK_ASSETS } from '@/lib/mock-data'
+import StatusTabBar, { type TabDef } from '@/components/ui/StatusTabBar'
 import type { ListViewMode, SortState, ActiveFilter, PMSchedule } from '@/types'
 
 const DEFAULT_SORT: SortState = { field: 'next_due_at', direction: 'asc' }
+
+const PM_DUE_STATUS_TABS: TabDef[] = [
+  { value: null,     label: 'All'          },
+  { value: 'red',    label: 'Overdue',     labelClass: 'text-red-600'    },
+  { value: 'yellow', label: 'Due Soon',    labelClass: 'text-amber-600'  },
+  { value: 'green',  label: 'On Schedule', labelClass: 'text-green-600'  },
+]
 
 const SORT_OPTIONS = [
   { field: 'next_due_at',       label: 'Next Due'   },
@@ -77,11 +85,21 @@ export default function PMPage() {
       href:      `/pm/${pm.id}`,
     }))
 
+  const activeStatusTab = activeFilters.find((f) => f.key === 'due_status')?.value ?? null
+
   function addFilter(f: ActiveFilter) {
     setFilters((prev) => [...prev.filter((x) => x.key !== f.key), f])
   }
   function removeFilter(key: string) {
     setFilters((prev) => prev.filter((f) => f.key !== key))
+  }
+  function handleStatusTab(value: string | null) {
+    if (value === null) {
+      removeFilter('due_status')
+    } else {
+      const tab = PM_DUE_STATUS_TABS.find((t) => t.value === value)
+      addFilter({ key: 'due_status', label: 'Due Status', value, displayValue: tab?.label ?? value })
+    }
   }
 
   async function handleComplete(data: { completedAt: string; notes: string; actualHours: string }) {
@@ -127,6 +145,13 @@ export default function PMPage() {
           Add Schedule
         </Link>
       </div>
+
+      {/* Status tabs */}
+      <StatusTabBar
+        tabs={PM_DUE_STATUS_TABS}
+        activeValue={activeStatusTab}
+        onChange={handleStatusTab}
+      />
 
       {/* Controls row */}
       <div className="flex items-center justify-between gap-3 flex-wrap">

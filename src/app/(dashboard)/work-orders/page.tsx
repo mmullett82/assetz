@@ -20,9 +20,19 @@ import DotsMenu from '@/components/ui/DotsMenu'
 import { WO_FILTER_ATTRIBUTES, WO_SAVED_FILTERS } from '@/lib/filter-config'
 import { computeDueStatus } from '@/lib/due-status'
 import { MOCK_ASSETS } from '@/lib/mock-data'
+import StatusTabBar, { type TabDef } from '@/components/ui/StatusTabBar'
 import type { ListViewMode, SortState, ActiveFilter, WorkOrder } from '@/types'
 
 const DEFAULT_SORT: SortState = { field: 'due_date', direction: 'asc' }
+
+const WO_STATUS_TABS: TabDef[] = [
+  { value: null,          label: 'All'         },
+  { value: 'open',        label: 'Open'        },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'on_hold',     label: 'On Hold'     },
+  { value: 'completed',   label: 'Completed'   },
+  { value: 'cancelled',   label: 'Cancelled'   },
+]
 
 const SORT_OPTIONS = [
   { field: 'due_date',  label: 'Due Date'   },
@@ -117,11 +127,21 @@ export default function WorkOrdersPage() {
       href:      `/work-orders/${wo.id}`,
     }))
 
+  const activeStatusTab = activeFilters.find((f) => f.key === 'status')?.value ?? null
+
   function addFilter(f: ActiveFilter) {
     setFilters((prev) => [...prev.filter((x) => x.key !== f.key), f])
   }
   function removeFilter(key: string) {
     setFilters((prev) => prev.filter((f) => f.key !== key))
+  }
+  function handleStatusTab(value: string | null) {
+    if (value === null) {
+      removeFilter('status')
+    } else {
+      const tab = WO_STATUS_TABS.find((t) => t.value === value)
+      addFilter({ key: 'status', label: 'Status', value, displayValue: tab?.label ?? value })
+    }
   }
 
   return (
@@ -150,6 +170,13 @@ export default function WorkOrdersPage() {
           <Link href="/work-orders" className="ml-auto text-blue-500 hover:text-blue-700 font-medium">Clear ×</Link>
         </div>
       )}
+
+      {/* Status tabs */}
+      <StatusTabBar
+        tabs={WO_STATUS_TABS}
+        activeValue={activeStatusTab}
+        onChange={handleStatusTab}
+      />
 
       {/* Search + controls row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

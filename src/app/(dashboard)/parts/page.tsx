@@ -17,6 +17,7 @@ import FilterBar from '@/components/ui/FilterBar'
 import SortDropdown from '@/components/ui/SortDropdown'
 import DotsMenu from '@/components/ui/DotsMenu'
 import { PART_FILTER_ATTRIBUTES, PART_SAVED_FILTERS } from '@/lib/filter-config'
+import StatusTabBar, { type TabDef } from '@/components/ui/StatusTabBar'
 import type { ListViewMode, SortState, ActiveFilter, Part } from '@/types'
 
 const DEFAULT_SORT: SortState = { field: 'name', direction: 'asc' }
@@ -85,11 +86,35 @@ export default function PartsPage() {
   const filtered = useMemo(() => applyFilters(searched, activeFilters), [searched, activeFilters])
   const sorted   = useMemo(() => applySort(filtered, sortState), [filtered, sortState])
 
+  const partCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: assetFiltered.length }
+    assetFiltered.forEach((p) => { counts[p.status] = (counts[p.status] ?? 0) + 1 })
+    return counts
+  }, [assetFiltered])
+
+  const partStatusTabs = useMemo((): TabDef[] => [
+    { value: null,           label: 'All',          count: partCounts.all                    },
+    { value: 'in_stock',     label: 'In Stock',     count: partCounts['in_stock'] ?? 0       },
+    { value: 'low_stock',    label: 'Low Stock',    count: partCounts['low_stock'] ?? 0      },
+    { value: 'out_of_stock', label: 'Out of Stock', count: partCounts['out_of_stock'] ?? 0   },
+    { value: 'on_order',     label: 'On Order',     count: partCounts['on_order'] ?? 0       },
+  ], [partCounts])
+
+  const activeStatusTab = activeFilters.find((f) => f.key === 'status')?.value ?? null
+
   function addFilter(f: ActiveFilter) {
     setFilters((prev) => [...prev.filter((x) => x.key !== f.key), f])
   }
   function removeFilter(key: string) {
     setFilters((prev) => prev.filter((f) => f.key !== key))
+  }
+  function handleStatusTab(value: string | null) {
+    if (value === null) {
+      removeFilter('status')
+    } else {
+      const tab = partStatusTabs.find((t) => t.value === value)
+      addFilter({ key: 'status', label: 'Status', value, displayValue: tab?.label ?? value })
+    }
   }
 
   async function handleReserve(data: { workOrderId: string; quantity: number }) {
@@ -137,6 +162,13 @@ export default function PartsPage() {
           <Link href="/parts" className="ml-auto text-blue-500 hover:text-blue-700 font-medium">Clear ×</Link>
         </div>
       )}
+
+      {/* Status tabs */}
+      <StatusTabBar
+        tabs={partStatusTabs}
+        activeValue={activeStatusTab}
+        onChange={handleStatusTab}
+      />
 
       {/* Search + controls row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
