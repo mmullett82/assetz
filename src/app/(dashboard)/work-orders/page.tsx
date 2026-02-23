@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Plus, ClipboardList, ArrowLeft } from 'lucide-react'
@@ -92,7 +92,7 @@ function applySort(wos: WorkOrder[], sort: SortState): WorkOrder[] {
   })
 }
 
-export default function WorkOrdersPage() {
+function WorkOrdersPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const assetIdFilter = searchParams.get('asset_id')
@@ -324,5 +324,13 @@ export default function WorkOrdersPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function WorkOrdersPage() {
+  return (
+    <Suspense>
+      <WorkOrdersPageContent />
+    </Suspense>
   )
 }

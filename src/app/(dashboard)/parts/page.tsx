@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Plus, Package, ArrowLeft } from 'lucide-react'
@@ -60,7 +60,7 @@ function applySort(parts: Part[], sort: SortState): Part[] {
   })
 }
 
-export default function PartsPage() {
+function PartsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const assetIdFilter = searchParams.get('asset_id')
@@ -322,5 +322,13 @@ export default function PartsPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function PartsPage() {
+  return (
+    <Suspense>
+      <PartsPageContent />
+    </Suspense>
   )
 }
