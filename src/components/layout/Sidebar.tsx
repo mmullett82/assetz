@@ -13,6 +13,8 @@ import {
   Settings,
   X,
   Zap,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -29,9 +31,11 @@ const NAV_ITEMS = [
 interface SidebarProps {
   isOpen: boolean
   onClose: () => void
+  collapsed: boolean
+  onCollapseToggle: () => void
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, collapsed, onCollapseToggle }: SidebarProps) {
   const pathname = usePathname()
 
   return (
@@ -48,30 +52,43 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar panel */}
       <aside
         className={[
-          'fixed inset-y-0 left-0 z-30 flex w-64 flex-col',
-          'bg-slate-900 transition-transform duration-200 ease-in-out',
+          'fixed inset-y-0 left-0 z-30 flex flex-col',
+          'bg-slate-900 transition-all duration-200 ease-in-out',
           // Desktop: always visible; mobile: slide in/out
           'lg:static lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full',
+          // Collapsed vs expanded width
+          collapsed ? 'w-16' : 'w-64',
         ].join(' ')}
       >
         {/* Logo / brand */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-700">
-          <Link href="/dashboard" className="flex items-center gap-2 min-h-0">
-            <Zap className="h-6 w-6 text-blue-400" aria-hidden="true" />
-            <span className="text-xl font-bold tracking-tight text-white">
-              assetZ
-            </span>
-          </Link>
-          {/* Close button — mobile only */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="lg:hidden rounded-md p-1 text-slate-400 hover:text-white"
-            aria-label="Close navigation"
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
+        <div className={[
+          'flex h-16 items-center border-b border-slate-700',
+          collapsed ? 'justify-center px-2' : 'justify-between px-4',
+        ].join(' ')}>
+          {collapsed ? (
+            <Link href="/dashboard" aria-label="assetZ home">
+              <Zap className="h-6 w-6 text-blue-400" aria-hidden="true" />
+            </Link>
+          ) : (
+            <>
+              <Link href="/dashboard" className="flex items-center gap-2 min-h-0">
+                <Zap className="h-6 w-6 text-blue-400" aria-hidden="true" />
+                <span className="text-xl font-bold tracking-tight text-white">
+                  assetZ
+                </span>
+              </Link>
+              {/* Close button — mobile only */}
+              <button
+                type="button"
+                onClick={onClose}
+                className="lg:hidden rounded-md p-1 text-slate-400 hover:text-white"
+                aria-label="Close navigation"
+              >
+                <X className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Nav links */}
@@ -88,9 +105,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <Link
                     href={href}
                     onClick={onClose}
+                    title={collapsed ? label : undefined}
                     className={[
-                      'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
+                      'flex items-center rounded-lg px-3 py-2.5 text-sm font-medium',
                       'min-h-[44px] transition-colors',
+                      collapsed ? 'justify-center gap-0' : 'gap-3',
                       isActive
                         ? 'bg-blue-600 text-white'
                         : 'text-slate-400 hover:bg-slate-800 hover:text-white',
@@ -98,7 +117,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     aria-current={isActive ? 'page' : undefined}
                   >
                     <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                    {label}
+                    {!collapsed && label}
                   </Link>
                 </li>
               )
@@ -106,9 +125,31 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </ul>
         </nav>
 
-        {/* Footer */}
-        <div className="border-t border-slate-700 px-4 py-3">
-          <p className="text-xs text-slate-500">chaiT · assetZ v0.1</p>
+        {/* Footer + collapse toggle */}
+        <div className="border-t border-slate-700 px-2 py-3 space-y-2">
+          {!collapsed && (
+            <p className="px-2 text-xs text-slate-500">chaiT · assetZ v0.1</p>
+          )}
+          {/* Collapse toggle — desktop only */}
+          <button
+            type="button"
+            onClick={onCollapseToggle}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={[
+              'hidden lg:flex w-full items-center rounded-lg px-3 py-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors',
+              collapsed ? 'justify-center' : 'justify-between',
+            ].join(' ')}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <>
+                <span className="text-xs">Collapse</span>
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              </>
+            )}
+          </button>
         </div>
       </aside>
     </>

@@ -14,7 +14,7 @@ export type WorkOrderStatus = 'open' | 'in_progress' | 'on_hold' | 'completed' |
 
 export type WorkOrderPriority = 'low' | 'medium' | 'high' | 'critical'
 
-export type WorkOrderType = 'corrective' | 'preventive' | 'inspection' | 'project' | 'safety'
+export type WorkOrderType = 'corrective' | 'preventive' | 'inspection' | 'project' | 'safety' | 'breakdown'
 
 export type PMFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'semiannual' | 'annual' | 'meter_based'
 
@@ -114,6 +114,45 @@ export interface Asset {
   meter_unit?: string         // hours, cycles, etc.
   last_meter_update?: string
 
+  // Purchase Information
+  purchase_price?: number
+  purchase_date?: string
+  purchase_invoice_number?: string
+  expected_life_years?: number
+  replacement_cost?: number
+  salvage_value?: number
+
+  // Warranty
+  warranty_title?: string
+  warranty_expiration_date?: string
+  warranty_vendor?: string
+
+  // Dates
+  date_of_manufacture?: string
+  date_placed_in_service?: string
+  date_removed?: string
+  out_of_service_begin?: string
+  out_of_service_end?: string
+
+  // Condition Assessment
+  current_condition?: string        // key matching settings conditions list
+  condition_date?: string
+  estimated_replace_date?: string
+  assessment_note?: string
+
+  // Safety & Procedures
+  safety_note?: string
+  training_note?: string
+  shutdown_procedure_note?: string
+  loto_procedure_note?: string
+  emergency_note?: string
+
+  // Assignment & IDs
+  assigned_to_id?: string           // primary technician
+  emergency_contact_id?: string
+  tag_number?: string               // physical tag
+  rfid?: string
+
   created_at: string
   updated_at: string
 }
@@ -152,6 +191,14 @@ export interface WorkOrder {
 
   // Associated PM schedule if this is a preventive WO
   pm_schedule_id?: string
+
+  // Origin tracking
+  origin_type?: 'manual' | 'pm_generated' | 'request'
+  originated_date?: string
+  originator_id?: string
+  assigned_date?: string
+  completed_datetime?: string
+  action_taken?: string
 
   comments?: WorkOrderComment[]
   photos?: WorkOrderPhoto[]
@@ -214,6 +261,21 @@ export interface PMSchedule {
   due_status?: DueStatus
 
   is_active: boolean
+
+  // Schedule type
+  pm_type?: 'time_based' | 'meter_based' | 'time_meter_override'
+  expected_completion_days?: number
+  expected_completion_hours?: number
+  wo_creation_time?: string          // e.g. "08:00"
+  default_wo_status?: WorkOrderStatus
+  default_problem_code?: string
+  default_cause_code?: string
+  end_condition?: 'none' | 'occurrences' | 'date'
+  end_occurrences?: number
+  end_date?: string
+  skip_if_open?: boolean
+  required_parts?: { part_id: string; quantity: number }[]
+
   created_at: string
   updated_at: string
 }
@@ -245,6 +307,14 @@ export interface Part {
 
   // Compatible assets (many-to-many)
   compatible_assets?: string[]
+
+  // Extended inventory fields
+  alternate_part_number?: string
+  manufacturer_barcode?: string
+  par_quantity?: number              // ideal stock level
+  min_level?: number
+  max_level?: number
+  quantity_on_back_order?: number
 
   created_at: string
   updated_at: string

@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { MOCK_ASSETS } from '@/lib/mock-data'
+import { MOCK_USERS } from '@/lib/mock-settings'
 
 type WOFormData = {
   title: string
@@ -20,6 +21,14 @@ type WOFormData = {
   failure_code: string
   cause_code: string
   remedy: string
+  // Origin tracking (read-only display in edit mode)
+  origin_type: 'manual' | 'pm_generated' | 'request'
+  originated_date: string
+  originator_id: string
+  assigned_date: string
+  // Completion
+  completed_datetime: string
+  action_taken: string
 }
 
 const DEFAULT: WOFormData = {
@@ -34,6 +43,12 @@ const DEFAULT: WOFormData = {
   failure_code: '',
   cause_code: '',
   remedy: '',
+  origin_type: 'manual',
+  originated_date: '',
+  originator_id: '',
+  assigned_date: '',
+  completed_datetime: '',
+  action_taken: '',
 }
 
 function woToFormData(wo: WorkOrder): WOFormData {
@@ -49,7 +64,19 @@ function woToFormData(wo: WorkOrder): WOFormData {
     failure_code:    wo.failure_code ?? '',
     cause_code:      wo.cause_code ?? '',
     remedy:          wo.remedy ?? '',
+    origin_type:     wo.origin_type ?? 'manual',
+    originated_date: wo.originated_date ?? '',
+    originator_id:   wo.originator_id ?? '',
+    assigned_date:   wo.assigned_date ?? '',
+    completed_datetime: wo.completed_datetime ?? '',
+    action_taken:    wo.action_taken ?? '',
   }
+}
+
+const ORIGIN_TYPE_LABELS: Record<string, string> = {
+  manual:       'Manual',
+  pm_generated: 'PM Generated',
+  request:      'Work Request',
 }
 
 interface WorkOrderFormProps {
@@ -98,10 +125,45 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
     }
   }
 
-  const isCompleted = form.status === 'completed'
+  const originator = MOCK_USERS.find((u) => u.id === form.originator_id)
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6 max-w-2xl">
+
+      {/* Origin Information — edit mode only (read-only display) */}
+      {isEditing && (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Origin Information</p>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <div>
+              <span className="text-slate-500">Origin Type</span>
+              <div className="mt-0.5">
+                <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                  {ORIGIN_TYPE_LABELS[form.origin_type] ?? form.origin_type}
+                </span>
+              </div>
+            </div>
+            {form.originated_date && (
+              <div>
+                <span className="text-slate-500">Originated</span>
+                <p className="mt-0.5 text-slate-800 font-medium">{form.originated_date}</p>
+              </div>
+            )}
+            {originator && (
+              <div>
+                <span className="text-slate-500">Originator</span>
+                <p className="mt-0.5 text-slate-800 font-medium">{originator.full_name}</p>
+              </div>
+            )}
+            {form.assigned_date && (
+              <div>
+                <span className="text-slate-500">Assigned Date</span>
+                <p className="mt-0.5 text-slate-800 font-medium">{form.assigned_date}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Core details */}
       <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
@@ -140,6 +202,7 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
               { value: 'inspection',  label: 'Inspection'  },
               { value: 'project',     label: 'Project'     },
               { value: 'safety',      label: 'Safety'      },
+              { value: 'breakdown',   label: 'Breakdown'   },
             ]}
           />
           <Select
@@ -241,6 +304,36 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
           />
         </div>
       </fieldset>
+
+      {/* Action Taken — edit mode only */}
+      {isEditing && (
+        <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+          <legend className="text-sm font-semibold text-slate-700 px-1">Action Taken</legend>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Completed Date &amp; Time
+            </label>
+            <input
+              type="datetime-local"
+              value={form.completed_datetime}
+              onChange={(e) => set('completed_datetime', e.target.value)}
+              className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Action Taken</label>
+            <textarea
+              value={form.action_taken}
+              onChange={(e) => set('action_taken', e.target.value)}
+              rows={4}
+              placeholder="Describe what was done to resolve the issue…"
+              className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            />
+          </div>
+        </fieldset>
+      )}
 
       {/* Actions */}
       <div className="flex items-center gap-3">

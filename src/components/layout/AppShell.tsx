@@ -10,12 +10,26 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('sidebar-collapsed') === 'true'
+  })
+
+  function handleCollapseToggle() {
+    setCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem('sidebar-collapsed', String(next))
+      return next
+    })
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        collapsed={collapsed}
+        onCollapseToggle={handleCollapseToggle}
       />
 
       {/* Main column: header + scrollable content */}

@@ -6,6 +6,7 @@ import type { Part, PartStatus } from '@/types'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
+import { Camera, Paperclip } from 'lucide-react'
 
 type PartFormData = {
   part_number: string
@@ -14,46 +15,64 @@ type PartFormData = {
   manufacturer: string
   vendor: string
   vendor_part_number: string
+  alternate_part_number: string
+  manufacturer_barcode: string
   unit_of_measure: string
   unit_cost: string
   quantity_on_hand: string
   reorder_point: string
   reorder_quantity: string
+  par_quantity: string
+  min_level: string
+  max_level: string
+  quantity_on_back_order: string
   location: string
   status: PartStatus
 }
 
 const DEFAULT: PartFormData = {
-  part_number:       '',
-  name:              '',
-  description:       '',
-  manufacturer:      '',
-  vendor:            '',
-  vendor_part_number: '',
-  unit_of_measure:   '',
-  unit_cost:         '',
-  quantity_on_hand:  '0',
-  reorder_point:     '',
-  reorder_quantity:  '',
-  location:          '',
-  status:            'in_stock',
+  part_number:           '',
+  name:                  '',
+  description:           '',
+  manufacturer:          '',
+  vendor:                '',
+  vendor_part_number:    '',
+  alternate_part_number: '',
+  manufacturer_barcode:  '',
+  unit_of_measure:       '',
+  unit_cost:             '',
+  quantity_on_hand:      '0',
+  reorder_point:         '',
+  reorder_quantity:      '',
+  par_quantity:          '',
+  min_level:             '',
+  max_level:             '',
+  quantity_on_back_order: '',
+  location:              '',
+  status:                'in_stock',
 }
 
 function partToFormData(part: Part): PartFormData {
   return {
-    part_number:        part.part_number,
-    name:               part.name,
-    description:        part.description ?? '',
-    manufacturer:       part.manufacturer ?? '',
-    vendor:             part.vendor ?? '',
-    vendor_part_number: part.vendor_part_number ?? '',
-    unit_of_measure:    part.unit_of_measure,
-    unit_cost:          part.unit_cost?.toString() ?? '',
-    quantity_on_hand:   part.quantity_on_hand.toString(),
-    reorder_point:      part.reorder_point?.toString() ?? '',
-    reorder_quantity:   part.reorder_quantity?.toString() ?? '',
-    location:           part.location ?? '',
-    status:             part.status,
+    part_number:           part.part_number,
+    name:                  part.name,
+    description:           part.description ?? '',
+    manufacturer:          part.manufacturer ?? '',
+    vendor:                part.vendor ?? '',
+    vendor_part_number:    part.vendor_part_number ?? '',
+    alternate_part_number: part.alternate_part_number ?? '',
+    manufacturer_barcode:  part.manufacturer_barcode ?? '',
+    unit_of_measure:       part.unit_of_measure,
+    unit_cost:             part.unit_cost?.toString() ?? '',
+    quantity_on_hand:      part.quantity_on_hand.toString(),
+    reorder_point:         part.reorder_point?.toString() ?? '',
+    reorder_quantity:      part.reorder_quantity?.toString() ?? '',
+    par_quantity:          part.par_quantity?.toString() ?? '',
+    min_level:             part.min_level?.toString() ?? '',
+    max_level:             part.max_level?.toString() ?? '',
+    quantity_on_back_order: part.quantity_on_back_order?.toString() ?? '',
+    location:              part.location ?? '',
+    status:                part.status,
   }
 }
 
@@ -168,6 +187,25 @@ export default function PartForm({ part }: PartFormProps) {
           onChange={(e) => set('vendor_part_number', e.target.value)}
           placeholder="e.g. STL-250190"
         />
+
+        <Input
+          label="Alternate Part #"
+          value={form.alternate_part_number}
+          onChange={(e) => set('alternate_part_number', e.target.value)}
+          placeholder="e.g. ALT-250190"
+          hint="Equivalent part from different manufacturer"
+        />
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Manufacturer Barcode</label>
+          <input
+            type="text"
+            value={form.manufacturer_barcode}
+            onChange={(e) => set('manufacturer_barcode', e.target.value)}
+            placeholder="e.g. 012345678901"
+            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-mono text-slate-900 placeholder:text-slate-400 placeholder:font-sans focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
       </fieldset>
 
       {/* Inventory */}
@@ -225,6 +263,47 @@ export default function PartForm({ part }: PartFormProps) {
         </div>
 
         <Input
+          label="PAR Quantity"
+          type="number"
+          min="0"
+          step="1"
+          value={form.par_quantity}
+          onChange={(e) => set('par_quantity', e.target.value)}
+          placeholder="—"
+          hint="Ideal stock level (Periodic Automatic Replenishment)"
+        />
+
+        <div className="grid grid-cols-3 gap-4">
+          <Input
+            label="Min Level"
+            type="number"
+            min="0"
+            step="1"
+            value={form.min_level}
+            onChange={(e) => set('min_level', e.target.value)}
+            placeholder="—"
+          />
+          <Input
+            label="Max Level"
+            type="number"
+            min="0"
+            step="1"
+            value={form.max_level}
+            onChange={(e) => set('max_level', e.target.value)}
+            placeholder="—"
+          />
+          <Input
+            label="On Backorder"
+            type="number"
+            min="0"
+            step="1"
+            value={form.quantity_on_back_order}
+            onChange={(e) => set('quantity_on_back_order', e.target.value)}
+            placeholder="0"
+          />
+        </div>
+
+        <Input
           label="Location"
           value={form.location}
           onChange={(e) => set('location', e.target.value)}
@@ -247,6 +326,34 @@ export default function PartForm({ part }: PartFormProps) {
           </div>
         </fieldset>
       )}
+
+      {/* Photos (placeholder) */}
+      <div className="rounded-xl border-2 border-dashed border-slate-200 p-8 text-center bg-white">
+        <Camera className="mx-auto h-10 w-10 text-slate-300 mb-3" aria-hidden="true" />
+        <p className="text-sm font-medium text-slate-600 mb-1">Upload photos</p>
+        <p className="text-xs text-slate-400 mb-4">JPG, PNG up to 10MB</p>
+        <button
+          type="button"
+          onClick={() => console.log('TODO: photo upload')}
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+        >
+          Choose Files
+        </button>
+      </div>
+
+      {/* Documents (placeholder) */}
+      <div className="rounded-xl border-2 border-dashed border-slate-200 p-8 text-center bg-white">
+        <Paperclip className="mx-auto h-10 w-10 text-slate-300 mb-3" aria-hidden="true" />
+        <p className="text-sm font-medium text-slate-600 mb-1">Attach documents</p>
+        <p className="text-xs text-slate-400 mb-4">PDF, DOCX, XLSX</p>
+        <button
+          type="button"
+          onClick={() => console.log('TODO: document upload')}
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+        >
+          Attach Files
+        </button>
+      </div>
 
       {/* Actions */}
       <div className="flex items-center gap-3">

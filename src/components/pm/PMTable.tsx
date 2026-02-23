@@ -1,114 +1,228 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
-import { CheckCircle2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { CheckCircle2, Edit, Eye, Cpu, Copy, Trash2, Zap } from 'lucide-react'
 import type { PMSchedule } from '@/types'
 import DueStatusBadge from '@/components/ui/DueStatusBadge'
 import PMFrequencyBadge from './PMFrequencyBadge'
 import { daysUntilDue, formatDueDate } from '@/lib/pm-utils'
 import { MOCK_ASSETS } from '@/lib/mock-data'
+import ContextMenu, { type ContextMenuItem } from '@/components/ui/ContextMenu'
+import ColumnChooser, { type ColumnDef } from '@/components/ui/ColumnChooser'
+import { useColumnVisibility } from '@/hooks/useColumnVisibility'
+
+type PMCol = 'title' | 'asset' | 'frequency' | 'next_due' | 'last_done' | 'status'
+
+const COLUMN_DEFS: ColumnDef<PMCol>[] = [
+  { key: 'title',     label: 'Schedule',   required: true },
+  { key: 'asset',     label: 'Asset',      required: true },
+  { key: 'frequency', label: 'Frequency',  required: true },
+  { key: 'next_due',  label: 'Next Due',   required: true },
+  { key: 'status',    label: 'Status',     required: true },
+  { key: 'last_done', label: 'Last Done'                  },
+]
+
+const COLUMN_DEFAULTS: Record<PMCol, boolean> = {
+  title:     true,
+  asset:     true,
+  frequency: true,
+  next_due:  true,
+  status:    true,
+  last_done: true,
+}
 
 interface PMTableProps {
   pmSchedules: PMSchedule[]
   onComplete: (pm: PMSchedule) => void
 }
 
+type CtxState = { items: ContextMenuItem[]; x: number; y: number } | null
+
 export default function PMTable({ pmSchedules, onComplete }: PMTableProps) {
+  const router = useRouter()
+  const [ctx, setCtx] = useState<CtxState>(null)
+  const [visibility, setColumn] = useColumnVisibility('pm-columns', COLUMN_DEFAULTS)
+
+  function resetColumns() {
+    COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
+  }
+
+  const openCtx = useCallback((e: React.MouseEvent, pm: PMSchedule) => {
+    e.preventDefault()
+    setCtx({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: 'Edit',
+          icon: <Edit className="h-4 w-4" />,
+          onClick: () => router.push(`/pm/${pm.id}/edit`),
+        },
+        {
+          label: 'View Detail',
+          icon: <Eye className="h-4 w-4" />,
+          onClick: () => router.push(`/pm/${pm.id}`),
+        },
+        {
+          separator: true,
+          label: 'Generate WO Now',
+          icon: <Zap className="h-4 w-4" />,
+          onClick: () => console.log('TODO: generate WO for PM', pm.id),
+        },
+        {
+          label: 'Show Asset',
+          icon: <Cpu className="h-4 w-4" />,
+          onClick: () => router.push(`/assets/${pm.asset_id}`),
+        },
+        {
+          label: 'Duplicate',
+          icon: <Copy className="h-4 w-4" />,
+          onClick: () => console.log('TODO: duplicate PM', pm.id),
+        },
+        {
+          separator: true,
+          label: 'Delete',
+          icon: <Trash2 className="h-4 w-4" />,
+          onClick: () => console.log('TODO: delete PM', pm.id),
+          destructive: true,
+        },
+      ],
+    })
+  }, [router])
+
   if (pmSchedules.length === 0) return null
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-      <table className="min-w-full divide-y divide-slate-100 text-sm">
-        <thead>
-          <tr className="bg-slate-50">
-            {['Schedule', 'Asset', 'Frequency', 'Next Due', 'Last Done', 'Status', ''].map((h) => (
-              <th
-                key={h}
-                scope="col"
-                className={[
-                  'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500',
-                  h === 'Asset'    ? 'hidden md:table-cell' : '',
-                  h === 'Last Done'? 'hidden lg:table-cell' : '',
-                ].join(' ')}
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {pmSchedules.map((pm) => {
-            const asset = MOCK_ASSETS.find((a) => a.id === pm.asset_id)
-            const days  = daysUntilDue(pm.next_due_at)
+    <>
+      {ctx && <ContextMenu items={ctx.items} position={{ x: ctx.x, y: ctx.y }} onClose={() => setCtx(null)} />}
 
-            return (
-              <tr key={pm.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3 max-w-xs">
-                  <Link
-                    href={`/pm/${pm.id}`}
-                    className="font-semibold text-slate-900 hover:text-blue-600 transition-colors line-clamp-2"
-                  >
-                    {pm.title}
-                  </Link>
-                  {pm.estimated_hours && (
-                    <p className="text-xs text-slate-400 mt-0.5">~{pm.estimated_hours}h</p>
-                  )}
-                </td>
+      {/* Column chooser toolbar */}
+      <div className="flex justify-end mb-2">
+        <ColumnChooser
+          columns={COLUMN_DEFS}
+          visibility={visibility}
+          onChange={setColumn}
+          onReset={resetColumns}
+        />
+      </div>
 
-                <td className="hidden md:table-cell px-4 py-3 text-slate-600 whitespace-nowrap">
-                  {asset?.name ?? '—'}
-                </td>
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <table className="min-w-full divide-y divide-slate-100 text-sm">
+          <thead>
+            <tr className="bg-slate-50">
+              {visibility.title && (
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Schedule</th>
+              )}
+              {visibility.asset && (
+                <th scope="col" className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Asset</th>
+              )}
+              {visibility.frequency && (
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Frequency</th>
+              )}
+              {visibility.next_due && (
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Next Due</th>
+              )}
+              {visibility.last_done && (
+                <th scope="col" className="hidden lg:table-cell px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Last Done</th>
+              )}
+              {visibility.status && (
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
+              )}
+              <th scope="col" className="px-4 py-3"><span className="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {pmSchedules.map((pm) => {
+              const asset = MOCK_ASSETS.find((a) => a.id === pm.asset_id)
+              const days  = daysUntilDue(pm.next_due_at)
 
-                <td className="px-4 py-3">
-                  <PMFrequencyBadge frequency={pm.frequency} intervalValue={pm.interval_value} />
-                </td>
-
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {pm.next_due_at ? (
-                    <div>
-                      <p className="text-xs text-slate-700 font-medium">
-                        {formatDueDate(pm.next_due_at)}
-                      </p>
-                      {days !== null && (
-                        <p className={[
-                          'text-xs',
-                          days < 0 ? 'text-red-600 font-semibold'
-                          : days < 3 ? 'text-yellow-600 font-medium'
-                          : 'text-slate-400',
-                        ].join(' ')}>
-                          {days < 0
-                            ? `${Math.abs(days)}d overdue`
-                            : days === 0 ? 'Due today'
-                            : `${days}d`}
-                        </p>
+              return (
+                <tr
+                  key={pm.id}
+                  className="hover:bg-slate-50 transition-colors"
+                  onContextMenu={(e) => openCtx(e, pm)}
+                >
+                  {visibility.title && (
+                    <td className="px-4 py-3 max-w-xs">
+                      <Link
+                        href={`/pm/${pm.id}`}
+                        className="font-semibold text-slate-900 hover:text-blue-600 transition-colors line-clamp-2"
+                      >
+                        {pm.title}
+                      </Link>
+                      {pm.estimated_hours && (
+                        <p className="text-xs text-slate-400 mt-0.5">~{pm.estimated_hours}h</p>
                       )}
-                    </div>
-                  ) : '—'}
-                </td>
+                    </td>
+                  )}
 
-                <td className="hidden lg:table-cell px-4 py-3 text-xs text-slate-400 whitespace-nowrap">
-                  {pm.last_completed_at ? formatDueDate(pm.last_completed_at) : 'Never'}
-                </td>
+                  {visibility.asset && (
+                    <td className="hidden md:table-cell px-4 py-3 text-slate-600 whitespace-nowrap">
+                      {asset?.name ?? '—'}
+                    </td>
+                  )}
 
-                <td className="px-4 py-3">
-                  {pm.due_status && <DueStatusBadge status={pm.due_status} />}
-                </td>
+                  {visibility.frequency && (
+                    <td className="px-4 py-3">
+                      <PMFrequencyBadge frequency={pm.frequency} intervalValue={pm.interval_value} />
+                    </td>
+                  )}
 
-                <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => onComplete(pm)}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition-colors whitespace-nowrap min-h-[36px]"
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    Complete
-                  </button>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+                  {visibility.next_due && (
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {pm.next_due_at ? (
+                        <div>
+                          <p className="text-xs text-slate-700 font-medium">
+                            {formatDueDate(pm.next_due_at)}
+                          </p>
+                          {days !== null && (
+                            <p className={[
+                              'text-xs',
+                              days < 0 ? 'text-red-600 font-semibold'
+                              : days < 3 ? 'text-yellow-600 font-medium'
+                              : 'text-slate-400',
+                            ].join(' ')}>
+                              {days < 0
+                                ? `${Math.abs(days)}d overdue`
+                                : days === 0 ? 'Due today'
+                                : `${days}d`}
+                            </p>
+                          )}
+                        </div>
+                      ) : '—'}
+                    </td>
+                  )}
+
+                  {visibility.last_done && (
+                    <td className="hidden lg:table-cell px-4 py-3 text-xs text-slate-400 whitespace-nowrap">
+                      {pm.last_completed_at ? formatDueDate(pm.last_completed_at) : 'Never'}
+                    </td>
+                  )}
+
+                  {visibility.status && (
+                    <td className="px-4 py-3">
+                      {pm.due_status && <DueStatusBadge status={pm.due_status} />}
+                    </td>
+                  )}
+
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => onComplete(pm)}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition-colors whitespace-nowrap min-h-[36px]"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Complete
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   )
 }
