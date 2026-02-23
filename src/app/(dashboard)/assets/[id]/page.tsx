@@ -11,13 +11,19 @@ import {
   Info,
   Gauge,
   AlertTriangle,
+  Package,
 } from 'lucide-react'
 import { useAsset } from '@/hooks/useAsset'
 import AssetStatusBadge from '@/components/ui/AssetStatusBadge'
 import DependencyBadge from '@/components/assets/DependencyBadge'
 import BarcodeDisplay from '@/components/assets/BarcodeDisplay'
+import PartStockBadge, { availableQty } from '@/components/parts/PartStockBadge'
+import WorkOrderStatusBadge from '@/components/work-orders/WorkOrderStatusBadge'
+import WorkOrderPriorityBadge from '@/components/work-orders/WorkOrderPriorityBadge'
 import { dependencyCodeLabel } from '@/lib/asset-id'
 import { MOCK_ASSETS } from '@/lib/mock-data'
+import { MOCK_PARTS } from '@/lib/mock-parts'
+import { MOCK_WORK_ORDERS } from '@/lib/mock-work-orders'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -246,6 +252,88 @@ export default function AssetDetailPage({ params }: Props) {
               </Link>
             </div>
           </Section>
+
+          {/* Associated Parts */}
+          {(() => {
+            const assetParts = MOCK_PARTS.filter((p) => p.compatible_assets?.includes(asset.id))
+            return (
+              <Section title="Associated Parts" icon={<Package className="h-4 w-4" />}>
+                {assetParts.length === 0 ? (
+                  <p className="text-sm text-slate-400 italic py-2">No parts linked to this asset.</p>
+                ) : (
+                  <ul className="divide-y divide-slate-100">
+                    {assetParts.map((p) => {
+                      const avail = availableQty(p)
+                      return (
+                        <li key={p.id} className="flex items-center justify-between gap-2 py-2.5">
+                          <div className="min-w-0 flex-1">
+                            <Link
+                              href={`/parts/${p.id}`}
+                              className="text-sm font-medium text-blue-600 hover:underline truncate block"
+                            >
+                              {p.name}
+                            </Link>
+                            <p className="text-xs text-slate-400 font-mono mt-0.5">{p.part_number}</p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <PartStockBadge status={p.status} />
+                            <span className="text-xs text-slate-400">{avail} avail</span>
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+                <Link
+                  href={`/parts?asset_id=${asset.id}`}
+                  className="block mt-2 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                >
+                  View All Parts →
+                </Link>
+              </Section>
+            )
+          })()}
+
+          {/* Recent Work Orders */}
+          {(() => {
+            const assetWOs = MOCK_WORK_ORDERS
+              .filter((wo) => wo.asset_id === asset.id)
+              .sort((a, b) => b.created_at.localeCompare(a.created_at))
+              .slice(0, 5)
+            return (
+              <Section title="Recent Work Orders" icon={<ClipboardList className="h-4 w-4" />}>
+                {assetWOs.length === 0 ? (
+                  <p className="text-sm text-slate-400 italic py-2">No work orders for this asset.</p>
+                ) : (
+                  <ul className="divide-y divide-slate-100">
+                    {assetWOs.map((wo) => (
+                      <li key={wo.id} className="flex items-center justify-between gap-2 py-2.5">
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            href={`/work-orders/${wo.id}`}
+                            className="text-sm font-medium text-blue-600 hover:underline truncate block"
+                          >
+                            {wo.title}
+                          </Link>
+                          <p className="text-xs text-slate-400 font-mono mt-0.5">{wo.work_order_number}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <WorkOrderStatusBadge status={wo.status} />
+                          <WorkOrderPriorityBadge priority={wo.priority} />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Link
+                  href={`/work-orders?asset_id=${asset.id}`}
+                  className="block mt-2 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                >
+                  View All Work Orders →
+                </Link>
+              </Section>
+            )
+          })()}
 
           {/* Timestamps */}
           <div className="text-xs text-slate-400 space-y-1 px-1">

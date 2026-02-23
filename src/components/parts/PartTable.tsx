@@ -253,14 +253,24 @@ export default function PartTable({ parts, onReserve, selectedIds = new Set(), o
                           },
                           {
                             separator: true,
-                            label: 'Show Compatible Assets',
+                            label: 'View Associated Assets',
                             icon: <Cpu className="h-4 w-4" />,
-                            onClick: () => console.log('TODO: show compatible assets for', part.id),
+                            onClick: () => router.push(`/assets?part_id=${part.id}`),
                           },
                           {
-                            label: 'Reserve',
+                            label: 'View Work Orders',
                             icon: <BookMarked className="h-4 w-4" />,
+                            onClick: () => router.push(`/work-orders?part_id=${part.id}`),
+                          },
+                          {
+                            separator: true,
+                            label: 'Reserve Stock',
+                            icon: <BookmarkPlus className="h-4 w-4" />,
                             onClick: () => avail > 0 ? onReserve(part) : undefined,
+                          },
+                          {
+                            label: 'Duplicate',
+                            onClick: () => console.log('TODO: duplicate', part.id),
                           },
                           {
                             separator: true,

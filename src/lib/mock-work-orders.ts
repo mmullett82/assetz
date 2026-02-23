@@ -3,7 +3,7 @@
  * Covers all statuses and priority levels.
  */
 
-import type { WorkOrder, WorkOrderComment } from '@/types'
+import type { WorkOrder, WorkOrderComment, LaborEntry } from '@/types'
 
 // Relative to Feb 21 2026 (today in this project)
 const T = (offset: string) => {
@@ -12,6 +12,55 @@ const T = (offset: string) => {
   const ms = parseInt(n) * (unit === 'd' ? 86400000 : unit === 'h' ? 3600000 : 60000)
   d.setTime(d.getTime() + (sign === '+' ? ms : -ms))
   return d.toISOString()
+}
+
+export const MOCK_LABOR_ENTRIES: Record<string, LaborEntry[]> = {
+  'wo-002': [
+    {
+      id: 'le-001',
+      work_order_id: 'wo-002',
+      user_id: 'usr-tech1',
+      user: { id: 'usr-tech1', full_name: 'Jake Morrison', role: 'technician' },
+      hours: 1.5,
+      date: '2026-02-20',
+      notes: 'Inspected feed rollers, confirmed top roller wear exceeds tolerance',
+      created_at: T('-1d'),
+    },
+    {
+      id: 'le-002',
+      work_order_id: 'wo-002',
+      user_id: 'usr-tech1',
+      user: { id: 'usr-tech1', full_name: 'Jake Morrison', role: 'technician' },
+      hours: 0.5,
+      date: '2026-02-21',
+      notes: 'Ordered replacement roller, documented failure mode',
+      created_at: T('-2h'),
+    },
+  ],
+  'wo-007': [
+    {
+      id: 'le-003',
+      work_order_id: 'wo-007',
+      user_id: 'usr-tech1',
+      user: { id: 'usr-tech1', full_name: 'Jake Morrison', role: 'technician' },
+      hours: 2.5,
+      date: '2026-02-11',
+      notes: 'Diagnosed belt slippage, replaced drive belt (P/N KSR-BELT-SK25) and tensioner. Plant pressure restored to 115 PSI.',
+      created_at: T('-10d'),
+    },
+  ],
+  'wo-005': [
+    {
+      id: 'le-004',
+      work_order_id: 'wo-005',
+      user_id: 'usr-tech2',
+      user: { id: 'usr-tech2', full_name: 'Sara Chen', role: 'technician' },
+      hours: 0.75,
+      date: '2026-02-19',
+      notes: 'Swapped all intake filter panels, disposed of old filters per VOC protocol',
+      created_at: T('-3d'),
+    },
+  ],
 }
 
 export const MOCK_COMMENTS: Record<string, WorkOrderComment[]> = {
@@ -88,6 +137,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     estimated_hours: 3,
     actual_hours: 2,
     comments: MOCK_COMMENTS['wo-002'],
+    labor_entries: MOCK_LABOR_ENTRIES['wo-002'],
     created_at: T('-1d'),
     updated_at: T('-1h'),
   },
@@ -154,7 +204,10 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     completed_at: T('-2d'),
     estimated_hours: 1,
     actual_hours: 0.75,
+    action_taken: 'Replaced all 6 intake filter panels (24×24×2 MERV-8). Disposed of old filters per VOC protocol. Spray booth returned to service.',
+    root_cause: 'lack_of_pm',
     pm_schedule_id: 'pm-002',
+    labor_entries: MOCK_LABOR_ENTRIES['wo-005'],
     created_at: T('-7d'),
     updated_at: T('-2d'),
   },
@@ -193,6 +246,8 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     failure_code: 'MECH',
     cause_code: 'WEAR',
     remedy: 'Replaced drive belt (P/N KSR-BELT-SK25) and tensioner. Plant pressure restored to 115 PSI.',
+    action_taken: 'Replaced drive belt (P/N KSR-BELT-SK25) and tensioner assembly. Retensioned and ran unit under load for 30 min. Plant pressure restored to 115 PSI. Belt life was 18,000h against rated 12,000h.',
+    root_cause: 'end_of_life',
     requested_by_id: 'usr-mgr1',
     assigned_to_id: 'usr-tech1',
     due_date: T('-8d'),
@@ -200,6 +255,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     completed_at: T('-8d'),
     estimated_hours: 2,
     actual_hours: 2.5,
+    labor_entries: MOCK_LABOR_ENTRIES['wo-007'],
     created_at: T('-10d'),
     updated_at: T('-8d'),
   },

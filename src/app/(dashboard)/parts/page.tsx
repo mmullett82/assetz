@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Plus, Package, ArrowLeft } from 'lucide-react'
 import { useParts } from '@/hooks/useParts'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { MOCK_ASSETS } from '@/lib/mock-data'
 import PartTable from '@/components/parts/PartTable'
 import PartPanelDetail from '@/components/parts/PartPanelDetail'
 import PartStockBadge, { availableQty } from '@/components/parts/PartStockBadge'
@@ -60,6 +61,10 @@ function applySort(parts: Part[], sort: SortState): Part[] {
 
 export default function PartsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const assetIdFilter = searchParams.get('asset_id')
+  const assetName = assetIdFilter ? (MOCK_ASSETS.find((a) => a.id === assetIdFilter)?.name ?? assetIdFilter) : null
+
   const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('parts-view', 'panel')
   const [sortState, setSortState]     = useLocalStorage<SortState>('parts-sort', DEFAULT_SORT)
   const [search, setSearch]           = useState('')
@@ -70,7 +75,13 @@ export default function PartsPage() {
 
   const { parts, isLoading, mutate } = useParts()
 
-  const searched = useMemo(() => parts.filter((p) => matchesSearch(p, search)), [parts, search])
+  const assetFiltered = useMemo(() =>
+    assetIdFilter
+      ? parts.filter((p) => p.compatible_assets?.includes(assetIdFilter))
+      : parts,
+    [parts, assetIdFilter]
+  )
+  const searched = useMemo(() => assetFiltered.filter((p) => matchesSearch(p, search)), [assetFiltered, search])
   const filtered = useMemo(() => applyFilters(searched, activeFilters), [searched, activeFilters])
   const sorted   = useMemo(() => applySort(filtered, sortState), [filtered, sortState])
 
@@ -118,6 +129,14 @@ export default function PartsPage() {
           Add Part
         </Link>
       </div>
+
+      {/* Asset filter banner */}
+      {assetIdFilter && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+          <span className="text-blue-700">Filtered by asset: <strong>{assetName}</strong></span>
+          <Link href="/parts" className="ml-auto text-blue-500 hover:text-blue-700 font-medium">Clear ×</Link>
+        </div>
+      )}
 
       {/* Search + controls row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -209,8 +228,11 @@ export default function PartsPage() {
                       items={[
                         { label: 'Edit',        onClick: () => router.push(`/parts/${part.id}/edit`) },
                         { label: 'View Detail', onClick: () => router.push(`/parts/${part.id}`) },
-                        { separator: true, label: 'Reserve',  onClick: () => avail > 0 ? setReserving(part) : undefined },
-                        { label: 'Delete',      onClick: () => console.log('TODO'), destructive: true },
+                        { separator: true, label: 'View Associated Assets', onClick: () => router.push(`/assets?part_id=${part.id}`) },
+                        { label: 'View Work Orders', onClick: () => router.push(`/work-orders?part_id=${part.id}`) },
+                        { separator: true, label: 'Reserve Stock', onClick: () => avail > 0 ? setReserving(part) : undefined },
+                        { label: 'Duplicate',   onClick: () => console.log('TODO: duplicate', part.id) },
+                        { separator: true, label: 'Delete', onClick: () => console.log('TODO: delete', part.id), destructive: true },
                       ]}
                     />
                   </div>

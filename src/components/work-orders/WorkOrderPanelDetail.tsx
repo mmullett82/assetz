@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Pencil, AlertTriangle, Clock, User } from 'lucide-react'
+import { X, Pencil, AlertTriangle, Clock, User, Info } from 'lucide-react'
 import Link from 'next/link'
 import { useWorkOrder } from '@/hooks/useWorkOrder'
 import StatusWorkflow from './StatusWorkflow'
@@ -31,6 +31,7 @@ interface WorkOrderPanelDetailProps {
 export default function WorkOrderPanelDetail({ workOrderId, onEdit, onClose }: WorkOrderPanelDetailProps) {
   const { workOrder: wo, isLoading, error, mutate } = useWorkOrder(workOrderId)
   const [isUpdating, setUpdating] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   if (isLoading) {
     return (
@@ -56,6 +57,16 @@ export default function WorkOrderPanelDetail({ workOrderId, onEdit, onClose }: W
   const dueStatus = wo.due_date ? computeDueStatus(wo.due_date, wo.completed_at) : undefined
 
   async function handleTransition(next: WorkOrderStatus) {
+    if (next === 'completed') {
+      const missingItems: string[] = []
+      if (!wo!.action_taken?.trim()) missingItems.push('corrective action notes')
+      if (!wo!.labor_entries?.length) missingItems.push('labor entries')
+      if (missingItems.length > 0) {
+        setValidationError(`Open the full detail page to log labor before completing.`)
+        return
+      }
+    }
+    setValidationError(null)
     setUpdating(true)
     try {
       await new Promise((r) => setTimeout(r, 500))
@@ -181,6 +192,14 @@ export default function WorkOrderPanelDetail({ workOrderId, onEdit, onClose }: W
           onTransition={handleTransition}
           isUpdating={isUpdating}
         />
+
+        {/* Completion validation hint */}
+        {validationError && (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
+            <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+            {validationError}
+          </div>
+        )}
 
         {/* Comments */}
         <CommentThread

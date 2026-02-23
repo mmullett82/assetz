@@ -29,6 +29,7 @@ type WOFormData = {
   // Completion
   completed_datetime: string
   action_taken: string
+  root_cause: string
 }
 
 const DEFAULT: WOFormData = {
@@ -49,6 +50,7 @@ const DEFAULT: WOFormData = {
   assigned_date: '',
   completed_datetime: '',
   action_taken: '',
+  root_cause: '',
 }
 
 function woToFormData(wo: WorkOrder): WOFormData {
@@ -70,6 +72,7 @@ function woToFormData(wo: WorkOrder): WOFormData {
     assigned_date:   wo.assigned_date ?? '',
     completed_datetime: wo.completed_datetime ?? '',
     action_taken:    wo.action_taken ?? '',
+    root_cause:      wo.root_cause ?? '',
   }
 }
 
@@ -331,6 +334,23 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
               placeholder="Describe what was done to resolve the issue…"
               className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Root Cause</label>
+            <select
+              value={form.root_cause ?? ''}
+              onChange={(e) => set('root_cause', e.target.value)}
+              className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select root cause…</option>
+              <option value="operator_error">Operator Error</option>
+              <option value="lack_of_pm">Lack of PM</option>
+              <option value="end_of_life">End of Life</option>
+              <option value="material_defect">Material Defect</option>
+              <option value="unknown">Unknown</option>
+              <option value="other">Other</option>
+            </select>
           </div>
         </fieldset>
       )}

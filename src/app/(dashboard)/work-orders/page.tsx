@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Plus, ClipboardList, ArrowLeft } from 'lucide-react'
 import { useWorkOrders } from '@/hooks/useWorkOrders'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
@@ -84,6 +84,10 @@ function applySort(wos: WorkOrder[], sort: SortState): WorkOrder[] {
 
 export default function WorkOrdersPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const assetIdFilter = searchParams.get('asset_id')
+  const assetName = assetIdFilter ? (MOCK_ASSETS.find((a) => a.id === assetIdFilter)?.name ?? assetIdFilter) : null
+
   const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('work-orders-view', 'panel')
   const [sortState, setSortState]     = useLocalStorage<SortState>('work-orders-sort', DEFAULT_SORT)
   const [search, setSearch]           = useState('')
@@ -93,7 +97,13 @@ export default function WorkOrdersPage() {
 
   const { workOrders, isLoading } = useWorkOrders()
 
-  const searched = useMemo(() => workOrders.filter((w) => matchesSearch(w, search)), [workOrders, search])
+  const assetFiltered = useMemo(() =>
+    assetIdFilter
+      ? workOrders.filter((wo) => wo.asset_id === assetIdFilter)
+      : workOrders,
+    [workOrders, assetIdFilter]
+  )
+  const searched = useMemo(() => assetFiltered.filter((w) => matchesSearch(w, search)), [assetFiltered, search])
   const filtered = useMemo(() => applyFilters(searched, activeFilters), [searched, activeFilters])
   const sorted   = useMemo(() => applySort(filtered, sortState), [filtered, sortState])
 
@@ -132,6 +142,14 @@ export default function WorkOrdersPage() {
           New WO
         </Link>
       </div>
+
+      {/* Asset filter banner */}
+      {assetIdFilter && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+          <span className="text-blue-700">Filtered by asset: <strong>{assetName}</strong></span>
+          <Link href="/work-orders" className="ml-auto text-blue-500 hover:text-blue-700 font-medium">Clear ×</Link>
+        </div>
+      )}
 
       {/* Search + controls row */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

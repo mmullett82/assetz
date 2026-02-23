@@ -199,6 +199,8 @@ export interface WorkOrder {
   assigned_date?: string
   completed_datetime?: string
   action_taken?: string
+  root_cause?: 'operator_error' | 'lack_of_pm' | 'end_of_life' | 'material_defect' | 'unknown' | 'other'
+  labor_entries?: LaborEntry[]
 
   comments?: WorkOrderComment[]
   photos?: WorkOrderPhoto[]
@@ -446,3 +448,16 @@ export interface ActiveFilter {
   displayValue: string
 }
 export interface SavedFilter { id: string; label: string; filters: ActiveFilter[] }
+
+// ─── Labor Entry ──────────────────────────────────────────────────────────────
+
+export interface LaborEntry {
+  id: string
+  work_order_id: string
+  user_id: string
+  user: { id: string; full_name: string; role: string }
+  hours: number
+  date: string          // ISO date string
+  notes?: string
+  created_at: string
+}

@@ -4,17 +4,19 @@ import { use, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft, Pencil, Clock, User, Wrench,
-  AlertTriangle, Camera, Package,
+  AlertTriangle, Camera, Package, CheckCircle,
 } from 'lucide-react'
 import { useWorkOrder } from '@/hooks/useWorkOrder'
 import StatusWorkflow from '@/components/work-orders/StatusWorkflow'
 import CommentThread from '@/components/work-orders/CommentThread'
+import LaborLog from '@/components/work-orders/LaborLog'
+import CompletionSummaryModal from '@/components/work-orders/CompletionSummaryModal'
 import WorkOrderPriorityBadge from '@/components/work-orders/WorkOrderPriorityBadge'
 import WorkOrderStatusBadge from '@/components/work-orders/WorkOrderStatusBadge'
 import DueStatusBadge from '@/components/ui/DueStatusBadge'
 import { computeDueStatus, dueDateLabel, formatDate } from '@/lib/due-status'
 import { MOCK_ASSETS } from '@/lib/mock-data'
-import type { WorkOrderStatus, WorkOrderComment } from '@/types'
+import type { WorkOrderStatus, WorkOrderComment, LaborEntry } from '@/types'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -26,12 +28,24 @@ const TYPE_LABELS: Record<string, string> = {
   inspection:  'Inspection',
   project:     'Project',
   safety:      'Safety',
+  breakdown:   'Breakdown',
+}
+
+const ROOT_CAUSE_LABELS: Record<string, string> = {
+  operator_error:  'Operator Error',
+  lack_of_pm:      'Lack of PM',
+  end_of_life:     'End of Life',
+  material_defect: 'Material Defect',
+  unknown:         'Unknown',
+  other:           'Other',
 }
 
 export default function WorkOrderDetailPage({ params }: Props) {
   const { id } = use(params)
   const { workOrder: wo, isLoading, error, mutate } = useWorkOrder(id)
   const [isUpdating, setUpdating] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [showCompletionModal, setShowCompletionModal] = useState(false)
 
   if (isLoading) {
     return (
@@ -62,11 +76,23 @@ export default function WorkOrderDetailPage({ params }: Props) {
     : undefined
 
   async function handleTransition(next: WorkOrderStatus) {
+    if (next === 'completed') {
+      // Validation before allowing completion
+      const missingItems: string[] = []
+      if (!wo!.action_taken?.trim()) missingItems.push('corrective action / resolution notes')
+      if (!wo!.labor_entries?.length) missingItems.push('at least one labor entry')
+      if (missingItems.length > 0) {
+        setValidationError(`Cannot mark complete — missing: ${missingItems.join(', ')}.`)
+        return
+      }
+      setValidationError(null)
+      setShowCompletionModal(true)
+      return
+    }
+    setValidationError(null)
     setUpdating(true)
     try {
-      // TODO: await apiClient.workOrders.updateStatus(wo.id, next)
       await new Promise((r) => setTimeout(r, 500))
-      // Optimistic update — mutate with new status
       await mutate(
         (prev) => prev ? { ...prev, status: next } : prev,
         { revalidate: false }
@@ -76,8 +102,21 @@ export default function WorkOrderDetailPage({ params }: Props) {
     }
   }
 
+  async function handleConfirmComplete() {
+    setUpdating(true)
+    try {
+      await new Promise((r) => setTimeout(r, 500))
+      await mutate(
+        (prev) => prev ? { ...prev, status: 'completed', completed_at: new Date().toISOString() } : prev,
+        { revalidate: false }
+      )
+      setShowCompletionModal(false)
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   async function handleAddComment(body: string) {
-    // TODO: await apiClient.workOrders.addComment(wo.id, body)
     await new Promise((r) => setTimeout(r, 400))
     const newComment: WorkOrderComment = {
       id: `cmt-${Date.now()}`,
@@ -95,6 +134,37 @@ export default function WorkOrderDetailPage({ params }: Props) {
     }
     await mutate(
       (prev) => prev ? { ...prev, comments: [...(prev.comments ?? []), newComment] } : prev,
+      { revalidate: false }
+    )
+  }
+
+  async function handleAddLaborEntry(entry: Omit<LaborEntry, 'id' | 'work_order_id' | 'user' | 'created_at'>) {
+    // Find user name for optimistic display
+    const { MOCK_USERS } = await import('@/lib/mock-settings')
+    const user = MOCK_USERS.find((u) => u.id === entry.user_id)
+    const newEntry: LaborEntry = {
+      id: `le-${Date.now()}`,
+      work_order_id: wo!.id,
+      user_id: entry.user_id,
+      user: { id: entry.user_id, full_name: user?.full_name ?? 'Technician', role: user?.role ?? 'technician' },
+      hours: entry.hours,
+      date: entry.date,
+      notes: entry.notes,
+      created_at: new Date().toISOString(),
+    }
+    await mutate(
+      (prev) => prev
+        ? { ...prev, labor_entries: [...(prev.labor_entries ?? []), newEntry] }
+        : prev,
+      { revalidate: false }
+    )
+  }
+
+  async function handleDeleteLaborEntry(entryId: string) {
+    await mutate(
+      (prev) => prev
+        ? { ...prev, labor_entries: (prev.labor_entries ?? []).filter((e) => e.id !== entryId) }
+        : prev,
       { revalidate: false }
     )
   }
@@ -208,6 +278,14 @@ export default function WorkOrderDetailPage({ params }: Props) {
         )}
       </div>
 
+      {/* Validation error banner */}
+      {validationError && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {validationError}
+        </div>
+      )}
+
       {/* Two-column layout */}
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Left: workflow + comments */}
@@ -225,8 +303,28 @@ export default function WorkOrderDetailPage({ params }: Props) {
           />
         </div>
 
-        {/* Right: photos + parts */}
+        {/* Right: corrective action + photos + parts + labor + timestamps */}
         <div className="space-y-5">
+          {/* Corrective Action / Resolution */}
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <h3 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-slate-400" />
+              Corrective Action / Resolution
+            </h3>
+            {wo.action_taken ? (
+              <p className="text-sm text-slate-600">{wo.action_taken}</p>
+            ) : (
+              <p className="text-sm text-slate-400 italic">
+                Not yet recorded.{isActive && ' Required before closing.'}
+              </p>
+            )}
+            {wo.root_cause && (
+              <p className="mt-2 text-xs text-slate-500">
+                Root cause: <strong className="text-slate-700">{ROOT_CAUSE_LABELS[wo.root_cause] ?? wo.root_cause}</strong>
+              </p>
+            )}
+          </div>
+
           {/* Photos */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-3">
             <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -297,6 +395,14 @@ export default function WorkOrderDetailPage({ params }: Props) {
             )}
           </div>
 
+          {/* Labor log */}
+          <LaborLog
+            entries={wo.labor_entries ?? []}
+            onAdd={handleAddLaborEntry}
+            onDelete={handleDeleteLaborEntry}
+            isCompleted={!isActive}
+          />
+
           {/* Timestamps */}
           <div className="space-y-1 px-1 text-xs text-slate-400">
             <p>Created: {formatDate(wo.created_at)}</p>
@@ -305,6 +411,15 @@ export default function WorkOrderDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Completion confirmation modal */}
+      {showCompletionModal && wo && (
+        <CompletionSummaryModal
+          workOrder={wo}
+          onConfirm={handleConfirmComplete}
+          onCancel={() => setShowCompletionModal(false)}
+        />
+      )}
     </div>
   )
 }
