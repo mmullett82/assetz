@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Printer, RefreshCw, Shield } from 'lucide-react'
+import { ArrowLeft, Printer, RefreshCw, Shield, Tv2 } from 'lucide-react'
 import { useScoreboard } from '@/hooks/useScoreboard'
 import KPICard from '@/components/dashboard/KPICard'
 import TechnicianTable from '@/components/scoreboard/TechnicianTable'
@@ -73,6 +73,15 @@ export default function ScoreboardPage() {
               </button>
             ))}
           </div>
+
+          {/* TV Mode button */}
+          <Link
+            href="/kiosk/scoreboard"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
+          >
+            <Tv2 className="h-4 w-4" />
+            TV Mode
+          </Link>
 
           {/* Print button */}
           <button
