@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Map, Wifi, WifiOff } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import Link from 'next/link'
+import { Map, Wifi, WifiOff, Pencil } from 'lucide-react'
 import type { Asset, AssetStatus } from '@/types'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import { useWebSocket } from '@/hooks/useWebSocket'
+import { PUBLISHED_KEY } from '@/lib/builder-state'
 import FloorPlanViewer from '@/components/floor-plan/FloorPlanViewer'
 import AssetDetailPanel from '@/components/floor-plan/AssetDetailPanel'
 
@@ -16,6 +18,16 @@ function statusCount(assets: Asset[], statuses: Record<string, AssetStatus>, sta
 
 export default function FloorPlanPage() {
   const assets = MOCK_ASSETS   // TODO: swap for useAssets() once backend is live
+
+  const [hasPublished, setHasPublished] = useState(false)
+
+  // Check if a published builder map exists
+  useEffect(() => {
+    try {
+      const published = localStorage.getItem(PUBLISHED_KEY)
+      setHasPublished(!!published)
+    } catch { /* ignore */ }
+  }, [])
 
   const [liveStatuses, setLiveStatuses] = useState<Record<string, AssetStatus>>({})
   const [selectedId,   setSelectedId]   = useState<string | null>(null)
@@ -110,6 +122,15 @@ export default function FloorPlanPage() {
             : <><WifiOff className="h-3 w-3" aria-hidden="true" /> Mock</>
           }
         </div>
+
+        {/* Edit Map button */}
+        <Link
+          href="/floor-plan/builder"
+          className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+        >
+          <Pencil className="h-3 w-3" aria-hidden="true" />
+          {hasPublished ? 'Edit Map' : 'Build Map'}
+        </Link>
       </div>
 
       {/* Canvas + detail panel */}
