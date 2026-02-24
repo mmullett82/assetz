@@ -15,6 +15,7 @@ import {
   Zap,
   PanelLeft,
   PanelLeftOpen,
+  Upload,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { href: '/parts',        label: 'Parts & Inventory',icon: Package         },
   { href: '/floor-plan',   label: 'Floor Plan',       icon: Map             },
   { href: '/reports',      label: 'Reports',          icon: BarChart2       },
+  { href: '/import',       label: 'Import',           icon: Upload          },
   { href: '/settings',     label: 'Settings',         icon: Settings        },
 ] as const
 

@@ -449,6 +449,27 @@ export interface ActiveFilter {
 }
 export interface SavedFilter { id: string; label: string; filters: ActiveFilter[] }
 
+// ─── Import / Migration ───────────────────────────────────────────────────────
+
+export type ImportEntityType = 'assets' | 'work_orders' | 'pm_schedules' | 'parts' | 'locations' | 'users'
+export type ImportPlatform = 'maintainx' | 'asset_essentials' | 'upkeep' | 'fiix' | 'limble'
+
+export interface FieldMapping {
+  sourceColumn: string
+  sampleValue: string
+  targetField: string | null
+  skip: boolean
+  confidence: 'auto' | 'suggested' | 'none'
+  required: boolean
+}
+
+export interface ImportValidationRow {
+  rowIndex: number
+  data: Record<string, string>
+  errors: string[]
+  warnings: string[]
+}
+
 // ─── Labor Entry ──────────────────────────────────────────────────────────────
 
 export interface LaborEntry {
