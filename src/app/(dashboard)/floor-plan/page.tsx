@@ -1,59 +1,24 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Map, Wifi, WifiOff, Pencil } from 'lucide-react'
-import type { Asset, AssetStatus } from '@/types'
-import { MOCK_ASSETS } from '@/lib/mock-data'
-import { useWebSocket } from '@/hooks/useWebSocket'
-import { PUBLISHED_KEY } from '@/lib/builder-state'
-import FloorPlanViewer from '@/components/floor-plan/FloorPlanViewer'
-import AssetDetailPanel from '@/components/floor-plan/AssetDetailPanel'
+import FacilityMap from '@/components/floor-plan/FacilityMap'
+import DxfAssetPanel, { type DxfAsset } from '@/components/floor-plan/DxfAssetPanel'
 
-type StatusFilter = AssetStatus | ''
-
-function statusCount(assets: Asset[], statuses: Record<string, AssetStatus>, status: AssetStatus) {
-  return assets.filter((a) => (statuses[a.id] ?? a.status) === status).length
-}
+type StatusFilter = 'operational' | 'maintenance' | 'down' | 'decommissioned' | ''
 
 export default function FloorPlanPage() {
-  const assets = MOCK_ASSETS   // TODO: swap for useAssets() once backend is live
-
-  const [hasPublished, setHasPublished] = useState(false)
-
-  // Check if a published builder map exists
-  useEffect(() => {
-    try {
-      const published = localStorage.getItem(PUBLISHED_KEY)
-      setHasPublished(!!published)
-    } catch { /* ignore */ }
-  }, [])
-
-  const [liveStatuses, setLiveStatuses] = useState<Record<string, AssetStatus>>({})
-  const [selectedId,   setSelectedId]   = useState<string | null>(null)
+  const [selectedPin, setSelectedPin] = useState<DxfAsset | null>(null)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('')
-  const [showFeeds,    setShowFeeds]    = useState(true)
-  const [showDepends,  setShowDepends]  = useState(true)
 
-  useWebSocket<{ asset_id: string; status: AssetStatus }>(
-    'asset.status_changed',
-    useCallback((evt) => {
-      setLiveStatuses((prev) => ({ ...prev, [evt.payload.asset_id]: evt.payload.status }))
-    }, [])
-  )
-
-  const wsConnected  = false  // TODO: expose from wsManager when backend is live
-  const selectedAsset = selectedId ? assets.find((a) => a.id === selectedId) ?? null : null
-
-  const downCount        = statusCount(assets, liveStatuses, 'down')
-  const maintenanceCount = statusCount(assets, liveStatuses, 'maintenance')
-  const operationalCount = statusCount(assets, liveStatuses, 'operational')
+  const wsConnected = false  // TODO: wire when backend is live
 
   const STATUS_CHIPS: { value: StatusFilter; label: string; dot: string }[] = [
-    { value: '',            label: `All (${assets.length})`,            dot: 'bg-slate-400'  },
-    { value: 'operational', label: `Operational (${operationalCount})`, dot: 'bg-green-500'  },
-    { value: 'maintenance', label: `Maintenance (${maintenanceCount})`, dot: 'bg-yellow-500' },
-    { value: 'down',        label: `Down (${downCount})`,               dot: 'bg-red-500'    },
+    { value: '',            label: 'All',           dot: 'bg-slate-400'  },
+    { value: 'operational', label: 'Operational',   dot: 'bg-green-500'  },
+    { value: 'maintenance', label: 'Maintenance',   dot: 'bg-yellow-500' },
+    { value: 'down',        label: 'Down',          dot: 'bg-red-500'    },
   ]
 
   return (
@@ -68,7 +33,7 @@ export default function FloorPlanPage() {
           <span className="hidden sm:inline text-xs text-slate-400">— SOLLiD Cabinetry, Main Plant B1</span>
         </div>
 
-        {/* Status chips */}
+        {/* Status filter chips */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {STATUS_CHIPS.map((chip) => (
             <button
@@ -90,28 +55,6 @@ export default function FloorPlanPage() {
 
         <div className="flex-1" />
 
-        {/* Line toggles */}
-        <div className="flex items-center gap-4 text-xs">
-          <label className="flex items-center gap-1.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={showFeeds}
-              onChange={(e) => setShowFeeds(e.target.checked)}
-              className="accent-blue-600"
-            />
-            <span className="text-slate-600">Feeds</span>
-          </label>
-          <label className="flex items-center gap-1.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={showDepends}
-              onChange={(e) => setShowDepends(e.target.checked)}
-              className="accent-red-600"
-            />
-            <span className="text-slate-600">Depends On</span>
-          </label>
-        </div>
-
         {/* Live / mock indicator */}
         <div className={[
           'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
@@ -129,32 +72,29 @@ export default function FloorPlanPage() {
           className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
         >
           <Pencil className="h-3 w-3" aria-hidden="true" />
-          {hasPublished ? 'Edit Map' : 'Build Map'}
+          Map Builder
         </Link>
       </div>
 
       {/* Canvas + detail panel */}
       <div className="flex flex-1 min-h-0 relative overflow-hidden">
 
-        {/* SVG viewer */}
-        <div className="flex-1 min-w-0 p-3">
-          <FloorPlanViewer
-            assets={assets}
-            liveStatuses={liveStatuses}
-            selectedId={selectedId}
+        {/* DXF facility map */}
+        <div className="flex-1 min-w-0 p-2">
+          <FacilityMap
             statusFilter={statusFilter}
-            showFeeds={showFeeds}
-            showDepends={showDepends}
-            onSelect={setSelectedId}
+            selectedPinNumber={selectedPin?.assetNumber ?? null}
+            onSelectPin={(pin) => setSelectedPin(
+              pin?.assetNumber === selectedPin?.assetNumber ? null : pin
+            )}
           />
         </div>
 
-        {/* Detail panel — fixed to right side of canvas area */}
-        {selectedAsset && (
-          <AssetDetailPanel
-            asset={selectedAsset}
-            liveStatus={liveStatuses[selectedAsset.id]}
-            onClose={() => setSelectedId(null)}
+        {/* Asset detail panel */}
+        {selectedPin && (
+          <DxfAssetPanel
+            asset={selectedPin}
+            onClose={() => setSelectedPin(null)}
           />
         )}
       </div>
@@ -183,33 +123,20 @@ export default function FloorPlanPage() {
         <span className="hidden sm:inline h-3.5 w-px bg-slate-200" />
 
         <div className="hidden sm:flex items-center gap-1.5">
-          {/* Dashed blue = feeds */}
-          <svg width="26" height="6" aria-hidden="true" className="shrink-0 overflow-visible">
-            <defs>
-              <marker id="l-feeds" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto">
-                <path d="M0,0 L0,5 L5,2.5 z" fill="#3b82f6" />
-              </marker>
-            </defs>
-            <line x1="0" y1="3" x2="20" y2="3" stroke="#3b82f6" strokeWidth="2" strokeDasharray="5 3" markerEnd="url(#l-feeds)" />
-          </svg>
-          Feeds
+          <span className="h-3 w-5 rounded-sm bg-blue-100 border border-blue-300 shrink-0" />
+          CNC
         </div>
-
         <div className="hidden sm:flex items-center gap-1.5">
-          {/* Solid red = depends on */}
-          <svg width="26" height="6" aria-hidden="true" className="shrink-0 overflow-visible">
-            <defs>
-              <marker id="l-depends" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto">
-                <path d="M0,0 L0,5 L5,2.5 z" fill="#ef4444" />
-              </marker>
-            </defs>
-            <line x1="0" y1="3" x2="20" y2="3" stroke="#ef4444" strokeWidth="2" markerEnd="url(#l-depends)" />
-          </svg>
-          Depends On
+          <span className="h-3 w-5 rounded-sm bg-yellow-100 border border-yellow-300 shrink-0" />
+          Edge Bander
+        </div>
+        <div className="hidden sm:flex items-center gap-1.5">
+          <span className="h-3 w-5 rounded-sm bg-orange-100 border border-orange-300 shrink-0" />
+          Panel Saw
         </div>
 
         <span className="ml-auto hidden md:inline text-slate-400">
-          Scroll to zoom · Drag to pan · Click asset to select
+          Scroll to zoom · Drag to pan · Click pin to select · 107 DXF assets
         </span>
       </div>
     </div>
