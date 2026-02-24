@@ -23,6 +23,8 @@ export const MOCK_DEPARTMENTS: Department[] = [
   { id: 'dep-join', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Joinery',   code: 'JOIN', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
 ]
 
+// facility_asset_id format: [Company]-[Building]-[Dept]-[SystemType]-[UnitType]-[DepCode][Group]-[Seq]
+// Multi-word UnitType values use underscores within the field (e.g. EDGE_BANDER, BEAM_SAW, AUTO_SPRAYBOOTH)
 export const MOCK_ASSETS: Asset[] = [
   {
     id: 'ast-001',

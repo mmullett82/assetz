@@ -1,5 +1,5 @@
 # assetZ Product Backlog
-## Last Updated: February 22, 2026
+## Last Updated: February 23, 2026
 
 ---
 
@@ -151,34 +151,70 @@
 ### Self-Service Map Builder ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Upload floor plan image (JPG, PNG, PDF) | 🔴 | Per building/floor |
-| 2 | Draw department zones on floor plan (polygon drawing tool) | 🔴 | Click to place vertices, close shape, name zone |
-| 3 | Drag & drop asset pins onto floor plan | 🔴 | Select from asset list, drag to position on map |
-| 4 | Snap-to-grid option for clean alignment | 🔴 | Toggle grid overlay on/off |
-| 5 | Label placement tool (department names, area labels) | 🔴 | Text overlay on map |
-| 6 | Draw walls/barriers (line drawing tool) | 🔴 | Visual representation of physical layout |
-| 7 | Draw production flow paths (directional arrows) | 🔴 | Show material movement through facility |
-| 8 | Pin customization (icon shape by asset category, size by criticality) | 🔴 | CNC = one icon, conveyor = another, etc. |
-| 9 | Undo/redo for all map edits | 🔴 | Essential for builder usability |
-| 10 | Save draft / publish workflow | 🔴 | Work in progress without affecting live map |
-| 11 | Multi-floor builder (add floors, name them, navigate between) | 🔴 | Building > Floor > Map |
+| 1 | Upload floor plan image (JPG, PNG, PDF) | 🟢 | JPG/PNG background image upload — per building/floor |
+| 2 | Draw department zones on floor plan (polygon drawing tool) | 🟢 | Click to place vertices, close shape, name zone |
+| 3 | Drag & drop asset pins onto floor plan | 🟢 | Select from asset list, drag to position on map |
+| 4 | Snap-to-grid option for clean alignment | 🟢 | Toggle grid overlay on/off |
+| 5 | Label placement tool (department names, area labels) | 🟢 | Text overlay on map |
+| 6 | Draw walls/barriers (line drawing tool) | 🟢 | Visual representation of physical layout |
+| 7 | Draw production flow paths (directional arrows) | 🟢 | Show material movement through facility |
+| 8 | Pin customization (icon shape by asset category, size by criticality) | 🟢 | CNC = one icon, conveyor = another, etc. |
+| 9 | Undo/redo for all map edits | 🟢 | Essential for builder usability |
+| 10 | Save draft / publish workflow | 🟢 | Draft → localStorage draft key; Publish → published key read by floor plan viewer |
+| 11 | Multi-floor builder (add floors, name them, navigate between) | 🟢 | Floor tabs with add/rename/delete. Active floor selector at bottom of builder. |
 | 12 | Import from CAD/DXF (stretch goal) | 🔴 | Auto-trace walls from architectural drawings |
-| 13 | Template facility layouts (common manufacturing layouts) | 🔴 | Starting templates to customize |
+| 13 | Template facility layouts (common manufacturing layouts) | 🟢 | Linear Flow, U-Shape, L-Shape, Open Floor — with SVG mini-previews |
 | 14 | AI-assisted map building | 🔴 | ⭐ Upload photo of floor → AI suggests zones and asset positions |
-| 15 | Bulk pin placement (CSV import with x,y coordinates) | 🔴 | For large facilities with many assets |
+| 15 | Bulk pin placement (CSV import with x,y coordinates) | 🟢 | CSV paste or file upload with parse preview table before import |
 
 *Note: Users who want help building their map can use AI onboarding (Phase 3, Step 3). This self-service builder is for users who want to do it themselves.*
 
-### KPI Gauge Dials
-> ⛔ **Cancelled** — Dashboard already has the right design: large numbers, sparklines, color-coded borders, trend arrows. Gauge dials are not needed.
-
+### PM Checklists & Operator Rounds ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Half-circle speedometer gauges | ~~🔴~~ | Cancelled — current dashboard design is preferred |
-| 2 | Configurable zones (Normal/Warning/Error with colors) | ~~🔴~~ | Cancelled |
-| 3 | KPI configuration builder | ~~🔴~~ | Cancelled |
-| 4 | Dashboard layout customization (drag/resize KPI cards) | 🔴 | Still worth doing eventually |
-| 5 | KPI auto-refresh via WebSocket | 🔴 | Still needed — wire when backend is live |
+| 1 | Checklist template builder (admin creates reusable checklists) | 🔴 | Drag and drop to reorder items |
+| 2 | Checklist item types: checkbox, pass/fail, numeric reading, text note, photo required | 🔴 | ⭐ Not just checkboxes — capture real data |
+| 3 | Attach checklists to PM templates (auto-included when PM WO generates) | 🔴 | Daily PM → daily checklist, monthly PM → monthly checklist |
+| 4 | Operator self-service checklists (machine operator completes daily checks) | 🔴 | ⭐ Operator opens app, scans QR on machine, gets today's checklist |
+| 5 | Checklist completion tracking (who completed, when, how long) | 🔴 | |
+| 6 | Failed checklist items auto-generate corrective WO | 🔴 | ⭐ Operator marks "belt tension: FAIL" → WO created for maintenance |
+| 7 | Photo verification on checklist items (require photo proof) | 🔴 | "Take photo of clean filter" |
+| 8 | Numeric readings with acceptable range (flag out-of-range) | 🔴 | "Pressure: _____ PSI (normal: 80-120)" → red if outside range |
+| 9 | Checklist history per asset (see all past completed checklists) | 🔴 | Audit trail |
+| 10 | Checklist compliance reporting (% completed on time by operator/asset) | 🔴 | Feeds into department performance reporting |
+| 11 | Digital signature on checklist completion | 🔴 | Accountability |
+| 12 | Offline checklist completion (sync when back online) | 🔴 | For areas with poor connectivity |
+
+*Note: This is a key differentiator for operator engagement. Operators become part of the maintenance process through daily checklists instead of just calling when something breaks. Feeds data into predictive maintenance and reporting.*
+
+### QR & Barcode Scanning
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 1 | Scan button in global header (accessible from any page) | 🔴 | Camera opens, scan any code, routes to correct item |
+| 2 | Asset QR scan → opens asset detail page | 🔴 | |
+| 3 | Asset QR scan → opens daily checklist for that asset (if operator) | 🔴 | ⭐ Operator workflow: walk up, scan, complete checklist |
+| 4 | Part barcode scan → opens part detail / stock info | 🔴 | |
+| 5 | Part barcode scan from within WO → adds part to WO parts used | 🔴 | Tech scans part while working, auto-logs usage |
+| 6 | QR scan on floor plan → centers map on that asset | 🔴 | |
+| 7 | Generate and print QR codes for assets from within app | 🔴 | DYMO LabelWriter integration |
+| 8 | Generate and print barcode labels for parts from within app | 🔴 | DYMO LabelWriter integration |
+| 9 | Bulk QR/barcode generation (select multiple, print batch) | 🔴 | |
+| 10 | Support for existing barcodes (manufacturer part numbers as barcodes) | 🔴 | Match SOLLiD standard: manufacturer part # = barcode |
+
+*Note: Both QR codes and barcodes are still widely used. QR for assets (more data, links to app), barcodes for parts (matches manufacturer labels, faster scanning for inventory). Support both.*
+
+### KPI Dashboard (Modern Design)
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 1 | Large number KPI cards | 🟢 | Bold primary metric, clearly readable |
+| 2 | Sparkline trend charts per card | 🟢 | 7-day mini trend inline with each KPI |
+| 3 | Color-coded card borders + trend arrows | 🟢 | Red/yellow/green border + up/down arrow indicator |
+| 4 | KPI configuration builder | 🔴 | Admin creates custom KPIs, sets data sources, filters, thresholds |
+| 5 | Dashboard layout customization | 🔴 | Drag and resize KPI cards |
+| 6 | KPI auto-refresh via WebSocket | 🔴 | No manual reload needed — wire when backend is live |
+| 7 | Drill-down on any KPI card | 🔴 | Click PM Compliance → see list of completed/missed PMs behind that number |
+| 8 | Time range selector on dashboard | 🔴 | This Week / This Month / This Quarter / Custom |
+| 9 | KPI comparison view | 🔴 | This period vs last period side by side |
 
 ### Scoreboard Enhancements
 | # | Feature | Status | Notes |
@@ -283,6 +319,69 @@
 | 7 | CSV export on all views | 🔴 | |
 | 8 | Natural language report generation (AI) | 🔴 | "Show me downtime by department this quarter" |
 
+### Operations & Department Performance Reporting ⭐
+
+**Maintenance Department KPIs (for Kade / Ops Manager)**
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 1 | Maintenance cost as % of asset replacement value (RAV) | 🔴 | Industry benchmark: 2-5% |
+| 2 | Planned vs unplanned maintenance ratio | 🔴 | ⭐ Target: 80% planned / 20% unplanned. Shows if department is proactive or reactive |
+| 3 | PM compliance rate (completed on time vs total scheduled) | 🟢 | Already on dashboard — extend to reporting with drill-down |
+| 4 | Mean Time to Repair (MTTR) | 🟢 | Already on dashboard — extend to reporting with trending |
+| 5 | Mean Time Between Failures (MTBF) per asset | 🔴 | ⭐ Shows equipment reliability improving or declining |
+| 6 | Wrench time (actual hands-on-tool time vs total labor hours) | 🔴 | Industry best practice: 55%+ is good |
+| 7 | Emergency/reactive work order percentage | 🔴 | ⭐ Trending down = department is improving |
+| 8 | Backlog age (how old are open WOs on average) | 🔴 | Growing backlog = understaffed or inefficient |
+| 9 | Schedule compliance (WOs completed as scheduled vs rescheduled) | 🔴 | |
+| 10 | First-time fix rate (WO completed without reopening) | 🔴 | Quality of repairs metric |
+
+**Production Support Metrics**
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 11 | Equipment availability (uptime %) per asset and overall | 🔴 | ⭐ THE metric production cares about most |
+| 12 | Downtime hours by department / asset / cause | 🔴 | ⭐ Where are we losing production? |
+| 13 | Maintenance impact on production (downtime during scheduled production hours) | 🔴 | Separates scheduled maintenance downtime from unplanned |
+| 14 | Cost per unit of production attributable to maintenance | 🔴 | Ties maintenance cost to production output |
+| 15 | Asset ROI (maintenance cost vs production value generated) | 🔴 | Which machines earn their keep? |
+
+**Reporting Features**
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 16 | Executive summary report (auto-generated monthly/weekly) | 🔴 | ⭐ One-page PDF: here's how maintenance supported production this month |
+| 17 | Trend reports (any metric over time with trendlines) | 🔴 | Show improvement or decline |
+| 18 | Department comparison (if multi-facility: compare facilities) | 🔴 | |
+| 19 | Scheduled report delivery (email PDF to Kade every Monday) | 🔴 | |
+| 20 | Natural language report queries (AI) | 🔴 | "How did we do on PM compliance in January?" |
+| 21 | Exportable to PDF and CSV | 🔴 | |
+| 22 | Red/Yellow/Green scorecards for leadership presentations | 🟢 | Already built — extend with exportable format |
+
+*Note: These metrics speak production's language. Kade doesn't care about "PM compliance" in isolation — he cares about "equipment availability went from 89% to 94% and unplanned downtime dropped 30% since we implemented assetZ." Frame all reports around production impact.*
+
+### Competitive Migration & Import ⭐
+
+**CSV/Excel Import (Phase 2 priority)**
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 1 | Upload CSV/Excel file import wizard | 🔴 | Step-by-step guided import flow |
+| 2 | AI-powered column mapping | 🔴 | ⭐ AI reads column headers and auto-maps to assetZ fields |
+| 3 | Preview and review before import | 🔴 | Show sample rows with mapped fields, user confirms |
+| 4 | Validation and error reporting | 🔴 | Flag missing required fields, duplicates, format issues |
+| 5 | Import assets, WOs, parts, PMs, locations as separate uploads | 🔴 | One entity type per import, guided order |
+| 6 | Rollback capability (undo an import within 24 hours) | 🔴 | Safety net for bad imports |
+
+**API-Based Direct Migration (Phase 3)**
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 7 | MaintainX direct import (OAuth + API pull) | 🔴 | ⭐ User logs into MaintainX from within assetZ, we pull everything |
+| 8 | Asset Essentials / Brightly direct import | 🔴 | API-based migration |
+| 9 | UpKeep direct import | 🔴 | API-based migration |
+| 10 | Fiix direct import | 🔴 | API-based migration |
+| 11 | Limble direct import | 🔴 | API-based migration |
+| 12 | Data model mapping layer per platform | 🔴 | Translates competitor fields/statuses/categories to assetZ equivalents |
+| 13 | Migration progress dashboard | 🔴 | Real-time progress bar |
+| 14 | Post-migration validation report | 🔴 | Summary of what imported and any issues |
+| 15 | Side-by-side comparison (old system vs assetZ) | 🔴 | Verify data came through correctly |
+
 ### Predictive Maintenance & IoT ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
@@ -349,6 +448,12 @@ These are the features that make assetZ unique vs MaintainX, Limble, UpKeep, Fii
 10. **⭐ Self-Service Map Builder** — No competitor offers an in-app facility map builder where users can draw zones, place pins, and design their floor plan without professional services. Combined with AI-assisted building (upload a photo → AI suggests layout).
 
 11. **⭐ Graph-Powered Predictive Maintenance** — Not just sensor thresholds (any IoT platform does that). Our graph database enables cross-asset prediction: "Asset X failed with this vibration pattern. Asset Y is the same model and trending the same way — inspect now." No competitor connects failure prediction across related assets.
+
+12. **⭐ Zero-Friction Migration** — Direct API import from top competitors (MaintainX, Asset Essentials, UpKeep, Fiix, Limble). Plus AI-powered CSV mapping for any platform. Eliminates the #1 reason companies don't switch.
+
+13. **⭐ Operator Engagement Through Checklists** — Operators scan QR, complete daily checklists, failed items auto-generate WOs. Turns operators into the first line of maintenance defense. No competitor makes this workflow this seamless.
+
+14. **⭐ Production-Language Reporting** — Reports framed around what operations managers care about: equipment availability, downtime impact, maintenance cost per production unit. Not just maintenance metrics — production impact metrics.
 
 ---
 
