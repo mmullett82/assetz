@@ -181,8 +181,8 @@
 ### Scoreboard Enhancements
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Stoplight icon next to each tech name | 🔴 | ⭐ Actual traffic signal visual (3 stacked circles) |
-| 2 | Keep row color highlighting AND add stoplight | 🔴 | Both together |
+| 1 | Stoplight icon next to each tech name | 🟢 | ⭐ Actual traffic signal visual (3 stacked circles) |
+| 2 | Keep row color highlighting AND add stoplight | 🟢 | Both together |
 | 3 | TV/kiosk mode (auto-rotate, large text) | 🔴 | For shop floor display |
 
 ### Graph Database (Kuzu)
