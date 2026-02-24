@@ -170,13 +170,15 @@
 *Note: Users who want help building their map can use AI onboarding (Phase 3, Step 3). This self-service builder is for users who want to do it themselves.*
 
 ### KPI Gauge Dials
+> ⛔ **Cancelled** — Dashboard already has the right design: large numbers, sparklines, color-coded borders, trend arrows. Gauge dials are not needed.
+
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Half-circle speedometer gauges (like AE screenshot) | 🔴 | Recharts RadialBarChart |
-| 2 | Configurable zones (Normal/Warning/Error with colors) | 🔴 | Match AE: 0-70 red, 70-90 orange, 90-100 green |
-| 3 | KPI configuration builder (data source, filters, thresholds) | 🔴 | Admin can create custom KPIs |
-| 4 | Dashboard layout customization (drag/resize KPI cards) | 🔴 | |
-| 5 | KPI auto-refresh via WebSocket | 🔴 | No manual reload needed (fix AE pain point) |
+| 1 | Half-circle speedometer gauges | ~~🔴~~ | Cancelled — current dashboard design is preferred |
+| 2 | Configurable zones (Normal/Warning/Error with colors) | ~~🔴~~ | Cancelled |
+| 3 | KPI configuration builder | ~~🔴~~ | Cancelled |
+| 4 | Dashboard layout customization (drag/resize KPI cards) | 🔴 | Still worth doing eventually |
+| 5 | KPI auto-refresh via WebSocket | 🔴 | Still needed — wire when backend is live |
 
 ### Scoreboard Enhancements
 | # | Feature | Status | Notes |
