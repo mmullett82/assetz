@@ -103,40 +103,51 @@ export default function FloorPlanPage() {
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-slate-200 bg-white px-4 sm:px-6 py-2 shrink-0 text-xs text-slate-500">
         <span className="font-semibold text-slate-400 uppercase tracking-wide">Legend</span>
 
+        {/* Blueprint symbols */}
+        <div className="hidden sm:flex items-center gap-1.5">
+          <svg width="20" height="10" className="shrink-0">
+            <line x1="0" y1="5" x2="20" y2="5" stroke="#1e293b" strokeWidth="2" />
+          </svg>
+          Walls
+        </div>
+        <div className="hidden sm:flex items-center gap-1.5">
+          <svg width="20" height="10" className="shrink-0">
+            <rect x="1" y="1" width="18" height="8" fill="none" stroke="#1e293b" strokeWidth="1" />
+          </svg>
+          Equipment
+        </div>
+        <div className="hidden sm:flex items-center gap-1.5">
+          <svg width="20" height="10" className="shrink-0">
+            <line x1="0" y1="5" x2="20" y2="5" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3" />
+          </svg>
+          Aisles
+        </div>
+
+        <span className="hidden sm:inline h-3.5 w-px bg-slate-200" />
+
+        {/* Status LED indicators */}
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-green-500 shrink-0" />
           Operational
         </div>
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-yellow-500 shrink-0" />
-          Maintenance
+          PM Due
         </div>
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-red-500 shrink-0" />
           Down
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-slate-400 shrink-0" />
-          Decommissioned
-        </div>
-
-        <span className="hidden sm:inline h-3.5 w-px bg-slate-200" />
-
-        <div className="hidden sm:flex items-center gap-1.5">
-          <span className="h-3 w-5 rounded-sm bg-blue-100 border border-blue-300 shrink-0" />
-          CNC
-        </div>
-        <div className="hidden sm:flex items-center gap-1.5">
-          <span className="h-3 w-5 rounded-sm bg-yellow-100 border border-yellow-300 shrink-0" />
-          Edge Bander
-        </div>
-        <div className="hidden sm:flex items-center gap-1.5">
-          <span className="h-3 w-5 rounded-sm bg-orange-100 border border-orange-300 shrink-0" />
-          Panel Saw
+          <svg width="16" height="16" className="shrink-0">
+            <circle cx="8" cy="8" r="4" fill="#eab308" />
+            <circle cx="8" cy="8" r="6" fill="none" stroke="#eab308" strokeWidth="1" opacity="0.5" />
+          </svg>
+          Active Maint.
         </div>
 
         <span className="ml-auto hidden md:inline text-slate-400">
-          Scroll to zoom · Drag to pan · Click pin to select · 107 DXF assets
+          Scroll to zoom · Drag to pan · Click equipment to select · Click zone to filter
         </span>
       </div>
     </div>

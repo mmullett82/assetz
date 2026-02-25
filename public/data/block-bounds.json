@@ -1,0 +1,140 @@
+{
+  "BiesseRover1531LR": {
+    "hw": 90,
+    "hh": 175,
+    "widthPx": 36,
+    "heightPx": 70
+  },
+  "BiesseRover1531RL": {
+    "hw": 90,
+    "hh": 175,
+    "widthPx": 36,
+    "heightPx": 70
+  },
+  "Holzma HPL400_2con": {
+    "hw": 85,
+    "hh": 190,
+    "widthPx": 34,
+    "heightPx": 76
+  },
+  "EB_Biesse_Akron_1440A": {
+    "hw": 55,
+    "hh": 225,
+    "widthPx": 22,
+    "heightPx": 90
+  },
+  "Biesse Elix K3": {
+    "hw": 55,
+    "hh": 100,
+    "widthPx": 22,
+    "heightPx": 40
+  },
+  "DrawerBoxNotcher": {
+    "hw": 40,
+    "hh": 60,
+    "widthPx": 16,
+    "heightPx": 24
+  },
+  "DrawerBoxDovetail": {
+    "hw": 40,
+    "hh": 60,
+    "widthPx": 16,
+    "heightPx": 24
+  },
+  "HOMAG BHX 500": {
+    "hw": 65,
+    "hh": 110,
+    "widthPx": 26,
+    "heightPx": 44
+  },
+  "CaseClampFeedThrough": {
+    "hw": 80,
+    "hh": 190,
+    "widthPx": 32,
+    "heightPx": 76
+  },
+  "MITERSAW_TABLE3658X610": {
+    "hw": 35,
+    "hh": 150,
+    "widthPx": 14,
+    "heightPx": 60
+  },
+  "DrawerBoxLaser": {
+    "hw": 35,
+    "hh": 50,
+    "widthPx": 14,
+    "heightPx": 20
+  },
+  "SanderWB": {
+    "hw": 40,
+    "hh": 60,
+    "widthPx": 16,
+    "heightPx": 24
+  },
+  "PocketBoring": {
+    "hw": 30,
+    "hh": 60,
+    "widthPx": 12,
+    "heightPx": 24
+  },
+  "FaceFrameClamp": {
+    "hw": 35,
+    "hh": 50,
+    "widthPx": 14,
+    "heightPx": 20
+  },
+  "PillarMortiseTenonFaceFrame": {
+    "hw": 45,
+    "hh": 100,
+    "widthPx": 18,
+    "heightPx": 40
+  },
+  "NestingInOutFeed4x10": {
+    "hw": 65,
+    "hh": 350,
+    "widthPx": 26,
+    "heightPx": 140
+  },
+  "MitersawTigerstop": {
+    "hw": 35,
+    "hh": 130,
+    "widthPx": 14,
+    "heightPx": 52
+  },
+  "CeflaLines_20200916_V2": {
+    "hw": 600,
+    "hh": 250,
+    "widthPx": 240,
+    "heightPx": 100
+  },
+  "HomagRobSaw1": {
+    "hw": 120,
+    "hh": 250,
+    "widthPx": 48,
+    "heightPx": 100
+  },
+  "HomagASR1": {
+    "hw": 60,
+    "hh": 150,
+    "widthPx": 24,
+    "heightPx": 60
+  },
+  "EdgeBander_Magazine": {
+    "hw": 50,
+    "hh": 200,
+    "widthPx": 20,
+    "heightPx": 80
+  },
+  "DoorPress": {
+    "hw": 40,
+    "hh": 80,
+    "widthPx": 16,
+    "heightPx": 32
+  },
+  "BlumHingeInsert": {
+    "hw": 30,
+    "hh": 50,
+    "widthPx": 12,
+    "heightPx": 20
+  }
+}

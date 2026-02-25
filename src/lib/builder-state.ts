@@ -51,6 +51,19 @@ export interface AssetPin {
   size: 'sm' | 'md' | 'lg'
 }
 
+export interface EquipmentPlacement {
+  id: string
+  blockName: string
+  displayName: string
+  assetId?: string
+  department?: string
+  x: number
+  y: number
+  rotation: number       // degrees
+  widthInches: number
+  heightInches: number
+}
+
 export interface BuilderFloor {
   id: string
   name: string
@@ -60,6 +73,7 @@ export interface BuilderFloor {
   flows: BuilderFlow[]
   labels: BuilderLabel[]
   pins: AssetPin[]
+  equipment: EquipmentPlacement[]
 }
 
 export interface BuilderDoc {
@@ -166,11 +180,12 @@ export function makeFloor(name: string): BuilderFloor {
   return {
     id:     `floor-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     name,
-    zones:  [],
-    walls:  [],
-    flows:  [],
-    labels: [],
-    pins:   [],
+    zones:     [],
+    walls:     [],
+    flows:     [],
+    labels:    [],
+    pins:      [],
+    equipment: [],
   }
 }
 
@@ -198,7 +213,7 @@ export const TEMPLATES: Template[] = [
         { id: 't-z3', name: 'Assembly',    color: '#f59e0b', points: [{x:490,y:60},{x:720,y:60},{x:720,y:340},{x:490,y:340}] },
         { id: 't-z4', name: 'Shipping',    color: '#10b981', points: [{x:740,y:60},{x:980,y:60},{x:980,y:340},{x:740,y:340}] },
       ],
-      walls: [], flows: [], labels: [], pins: [],
+      walls: [], flows: [], labels: [], pins: [], equipment: [],
     },
   },
   {
@@ -211,7 +226,7 @@ export const TEMPLATES: Template[] = [
         { id: 't-z2', name: 'Production',  color: '#f59e0b', points: [{x:300,y:400},{x:700,y:400},{x:700,y:640},{x:300,y:640}] },
         { id: 't-z3', name: 'Right Wing',  color: '#10b981', points: [{x:720,y:60},{x:980,y:60},{x:980,y:640},{x:720,y:640}] },
       ],
-      walls: [], flows: [], labels: [], pins: [],
+      walls: [], flows: [], labels: [], pins: [], equipment: [],
     },
   },
   {
@@ -223,7 +238,7 @@ export const TEMPLATES: Template[] = [
         { id: 't-z1', name: 'Main Floor',  color: '#3b82f6', points: [{x:20,y:60},{x:700,y:60},{x:700,y:400},{x:20,y:400}] },
         { id: 't-z2', name: 'Side Dept',   color: '#8b5cf6', points: [{x:20,y:420},{x:340,y:420},{x:340,y:640},{x:20,y:640}] },
       ],
-      walls: [], flows: [], labels: [], pins: [],
+      walls: [], flows: [], labels: [], pins: [], equipment: [],
     },
   },
   {
@@ -234,7 +249,7 @@ export const TEMPLATES: Template[] = [
       zones: [
         { id: 't-z1', name: 'Production',  color: '#3b82f6', points: [{x:20,y:60},{x:980,y:60},{x:980,y:640},{x:20,y:640}] },
       ],
-      walls: [], flows: [], labels: [], pins: [],
+      walls: [], flows: [], labels: [], pins: [], equipment: [],
     },
   },
 ]

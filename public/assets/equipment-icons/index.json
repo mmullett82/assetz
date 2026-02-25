@@ -1,0 +1,170 @@
+[
+  {
+    "blockName": "BiesseRover1531LR",
+    "filename": "biesse-rover1531lr.svg",
+    "displayName": "Biesse Rover1531LR",
+    "category": "CNC",
+    "widthInches": 180,
+    "heightInches": 350
+  },
+  {
+    "blockName": "BiesseRover1531RL",
+    "filename": "biesse-rover1531rl.svg",
+    "displayName": "Biesse Rover1531RL",
+    "category": "CNC",
+    "widthInches": 180,
+    "heightInches": 350
+  },
+  {
+    "blockName": "HomagRobSaw1",
+    "filename": "homag-rob-saw1.svg",
+    "displayName": "Homag Rob Saw 1",
+    "category": "Panel Saws",
+    "widthInches": 240,
+    "heightInches": 500
+  },
+  {
+    "blockName": "HomagASR1",
+    "filename": "homag-asr1.svg",
+    "displayName": "Homag ASR 1",
+    "category": "Panel Saws",
+    "widthInches": 120,
+    "heightInches": 300
+  },
+  {
+    "blockName": "Holzma HPL400_2con",
+    "filename": "holzma-hpl400-2con.svg",
+    "displayName": "Holzma HPL400 2con",
+    "category": "Panel Saws",
+    "widthInches": 170,
+    "heightInches": 380
+  },
+  {
+    "blockName": "EB_Biesse_Akron_1440A",
+    "filename": "eb-biesse-akron-1440a.svg",
+    "displayName": "EB Biesse Akron 1440A",
+    "category": "Edge Banders",
+    "widthInches": 110,
+    "heightInches": 450
+  },
+  {
+    "blockName": "Biesse Elix K3",
+    "filename": "biesse-elix-k3.svg",
+    "displayName": "Biesse Elix K 3",
+    "category": "Equipment",
+    "widthInches": 110,
+    "heightInches": 200
+  },
+  {
+    "blockName": "DrawerBoxNotcher",
+    "filename": "drawer-box-notcher.svg",
+    "displayName": "Drawer Box Notcher",
+    "category": "Woodworking",
+    "widthInches": 80,
+    "heightInches": 120
+  },
+  {
+    "blockName": "DrawerBoxDovetail",
+    "filename": "drawer-box-dovetail.svg",
+    "displayName": "Drawer Box Dovetail",
+    "category": "Woodworking",
+    "widthInches": 80,
+    "heightInches": 120
+  },
+  {
+    "blockName": "EdgeBander_Magazine",
+    "filename": "edge-bander-magazine.svg",
+    "displayName": "Edge Bander Magazine",
+    "category": "Edge Banders",
+    "widthInches": 100,
+    "heightInches": 400
+  },
+  {
+    "blockName": "HOMAG BHX 500",
+    "filename": "homag-bhx-500.svg",
+    "displayName": "HOMAG BHX  500",
+    "category": "CNC",
+    "widthInches": 130,
+    "heightInches": 220
+  },
+  {
+    "blockName": "CaseClampFeedThrough",
+    "filename": "case-clamp-feed-through.svg",
+    "displayName": "Case Clamp Feed Through",
+    "category": "Clamps & Presses",
+    "widthInches": 160,
+    "heightInches": 380
+  },
+  {
+    "blockName": "MITERSAW_TABLE3658X610",
+    "filename": "mitersaw-table3658x610.svg",
+    "displayName": "MITERSAW TABLE3658X 610",
+    "category": "Woodworking",
+    "widthInches": 70,
+    "heightInches": 300
+  },
+  {
+    "blockName": "DrawerBoxLaser",
+    "filename": "drawer-box-laser.svg",
+    "displayName": "Drawer Box Laser",
+    "category": "Woodworking",
+    "widthInches": 70,
+    "heightInches": 100
+  },
+  {
+    "blockName": "PocketBoring",
+    "filename": "pocket-boring.svg",
+    "displayName": "Pocket Boring",
+    "category": "CNC",
+    "widthInches": 60,
+    "heightInches": 120
+  },
+  {
+    "blockName": "FaceFrameClamp",
+    "filename": "face-frame-clamp.svg",
+    "displayName": "Face Frame Clamp",
+    "category": "Clamps & Presses",
+    "widthInches": 70,
+    "heightInches": 100
+  },
+  {
+    "blockName": "PillarMortiseTenonFaceFrame",
+    "filename": "pillar-mortise-tenon-face-frame.svg",
+    "displayName": "Pillar Mortise Tenon Face Frame",
+    "category": "Woodworking",
+    "widthInches": 90,
+    "heightInches": 200
+  },
+  {
+    "blockName": "DoorPress",
+    "filename": "door-press.svg",
+    "displayName": "Door Press",
+    "category": "Clamps & Presses",
+    "widthInches": 80,
+    "heightInches": 160
+  },
+  {
+    "blockName": "MitersawTigerstop",
+    "filename": "mitersaw-tigerstop.svg",
+    "displayName": "Mitersaw Tigerstop",
+    "category": "Woodworking",
+    "widthInches": 70,
+    "heightInches": 260
+  },
+  {
+    "blockName": "NestingInOutFeed4x10",
+    "filename": "nesting-in-out-feed4x10.svg",
+    "displayName": "Nesting In Out Feed4x 10",
+    "category": "CNC",
+    "widthInches": 130,
+    "heightInches": 700
+  },
+  {
+    "blockName": "CeflaLines_20200916_V2",
+    "filename": "cefla-lines-20200916-v2.svg",
+    "displayName": "Cefla Lines 20200916 V 2",
+    "category": "Finishing",
+    "widthInches": 1200,
+    "heightInches": 500
+  }
+]

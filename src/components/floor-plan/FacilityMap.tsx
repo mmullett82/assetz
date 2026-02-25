@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { dxfToSvg, SVG_W, SVG_H, SCALE } from '@/lib/floor-plan-transform'
-import { ZONES, GRID_COLS } from '@/data/floor-plan/sollid-building'
-import AssetPin from './AssetPin'
+import { ZONES, GRID_COLS, type Zone } from '@/data/floor-plan/sollid-building'
 import LayerControls, { type LayerState } from './LayerControls'
+import EquipmentFootprint from './EquipmentFootprint'
+import DepartmentZone from './DepartmentZone'
 import type { DxfAsset } from './DxfAssetPanel'
 
-// ─── Data types matching public/data/sollid-assets.json ───────────────────────
+// ─── Asset data types (from public/data/sollid-assets.json) ───────────────────
 
 interface MachineFootprint {
   id: string
@@ -18,39 +19,14 @@ interface MachineFootprint {
   x: number
   y: number
   rotation: number
-  hw: number   // half-width in DXF inches
-  hh: number   // half-height in DXF inches
+  hw: number
+  hh: number
   layer: 'Machines' | 'Phase2'
 }
 
 interface FloorData {
   assetPins: DxfAsset[]
   machineFootprints: MachineFootprint[]
-}
-
-// ─── Status and equipment styling ──────────────────────────────────────────────
-
-const STATUS_COLOR: Record<string, string> = {
-  operational:    '#22c55e',
-  maintenance:    '#f59e0b',
-  down:           '#ef4444',
-  decommissioned: '#94a3b8',
-}
-
-const EQUIP_FILL: Record<string, string> = {
-  cnc:         '#dbeafe',
-  panel_saw:   '#ffedd5',
-  edge_bander: '#fef9c3',
-  boring:      '#ede9fe',
-  finishing:   '#fee2e2',
-  conveyor:    '#f1f5f9',
-  clamp:       '#f1f5f9',
-  press:       '#f0fdf4',
-  woodworking: '#fef3c7',
-  sander:      '#fef3c7',
-  saw:         '#fef3c7',
-  utility:     '#dcfce7',
-  equipment:   '#f8fafc',
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -66,27 +42,64 @@ export default function FacilityMap({
   selectedPinNumber,
   onSelectPin,
 }: FacilityMapProps) {
-  const [data, setData] = useState<FloorData | null>(null)
+  const [floorData, setFloorData] = useState<FloorData | null>(null)
+  const [blueprintSvg, setBlueprintSvg] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeZone, setActiveZone] = useState<string | null>(null)
+  const blueprintRef = useRef<SVGGElement>(null)
   const [layers, setLayers] = useState<LayerState>({
-    zones:     true,
-    equipment: true,
-    pins:      true,
-    grid:      true,
-    phase2:    false,
-    labels:    true,
+    structure:    true,
+    grid:         true,
+    equipment:    true,
+    storage:      true,
+    aisles:       true,
+    labels:       true,
+    maintenance:  true,
+    phase2:       false,
   })
-  const [hoveredPin, setHoveredPin] = useState<string | null>(null)
 
-  // Load floor data from public/data/sollid-assets.json
   useEffect(() => {
-    fetch('/data/sollid-assets.json')
-      .then(r => r.json())
-      .then((d: FloorData) => { setData(d); setLoading(false) })
-      .catch(() => setLoading(false))
+    Promise.all([
+      fetch('/data/sollid-assets.json').then(r => r.json()),
+      fetch('/data/sollid-blueprint.svg').then(r => r.text()),
+    ]).then(([assets, svgText]: [FloorData, string]) => {
+      setFloorData(assets)
+      // Strip outer <svg> tags, keep inner content
+      const inner = svgText
+        .replace(/^<svg[^>]*>/, '')
+        .replace(/<\/svg>\s*$/, '')
+      setBlueprintSvg(inner)
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
 
-  if (!data && !loading) {
+  // Toggle layer visibility via DOM refs on the blueprint SVG groups
+  useEffect(() => {
+    const g = blueprintRef.current
+    if (!g) return
+
+    const layerMap: Record<string, string[]> = {
+      structure: ['layer-building'],
+      storage:   ['layer-storage', 'layer-workbenches'],
+      aisles:    ['layer-aisles'],
+      equipment: ['layer-machines'],
+      phase2:    ['layer-phase2'],
+    }
+
+    for (const [key, ids] of Object.entries(layerMap)) {
+      const visible = layers[key as keyof LayerState]
+      for (const id of ids) {
+        const el = g.querySelector(`#${id}`)
+        if (el) (el as SVGElement).style.display = visible ? '' : 'none'
+      }
+    }
+  }, [layers, blueprintSvg])
+
+  const handleZoneClick = useCallback((zoneId: string) => {
+    setActiveZone(prev => prev === zoneId ? null : zoneId)
+  }, [])
+
+  if (!floorData && !loading) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-slate-500">
         Failed to load floor plan data.
@@ -94,106 +107,31 @@ export default function FacilityMap({
     )
   }
 
-  const pins = data?.assetPins ?? []
-  const allFootprints = data?.machineFootprints ?? []
+  const allFootprints = floorData?.machineFootprints ?? []
+  const allPins = floorData?.assetPins ?? []
 
-  // Show Phase2 or current Machines layer
+  // Build blockName → DxfAsset[] map for click handling
+  const machineToAssets = new Map<string, DxfAsset[]>()
+  for (const pin of allPins) {
+    if (!pin.nearestMachine) continue
+    const arr = machineToAssets.get(pin.nearestMachine) ?? []
+    arr.push(pin)
+    machineToAssets.set(pin.nearestMachine, arr)
+  }
+
+  // Show Phase2 or current Machines layer footprints
   const footprints = allFootprints.filter(f =>
     layers.phase2 ? f.layer === 'Phase2' : f.layer === 'Machines'
   )
 
-  // Apply status filter to pins
-  const visiblePins = statusFilter
-    ? pins.filter(p => p.status === statusFilter)
-    : pins
-
-  // ─── Machine footprint renderer ────────────────────────────────────────────
-
-  const renderFootprint = (f: MachineFootprint) => {
-    const [cx, cy] = dxfToSvg(f.x, f.y)
-    const w = f.hw * 2 * SCALE
-    const h = f.hh * 2 * SCALE
-    const fill = EQUIP_FILL[f.equipmentType] ?? EQUIP_FILL.equipment
-    const stroke = f.layer === 'Phase2' ? '#64748b' : '#475569'
-    const opacity = f.layer === 'Phase2' ? 0.5 : 0.8
-    // Negate rotation because SVG Y-axis is flipped relative to DXF
-    const rot = -f.rotation
-
-    return (
-      <g key={f.id} transform={`rotate(${rot}, ${cx}, ${cy})`} opacity={opacity}>
-        <rect
-          x={cx - w / 2}
-          y={cy - h / 2}
-          width={w}
-          height={h}
-          fill={fill}
-          stroke={stroke}
-          strokeWidth={0.6}
-          rx={1}
-        />
-        {layers.labels && w > 25 && h > 14 && (
-          <text
-            x={cx}
-            y={cy}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize={Math.min(8, w / 7, h / 3.5)}
-            fill="#334155"
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            {f.blockName.replace(/([A-Z])/g, ' $1').trim().slice(0, 18)}
-          </text>
-        )}
-        <title>{f.displayName || f.blockName}{f.layer === 'Phase2' ? ' (Phase 2)' : ''}</title>
-      </g>
-    )
-  }
-
-  // ─── Zone renderer ──────────────────────────────────────────────────────────
-
-  const renderZone = (zone: typeof ZONES[0]) => {
-    // DXF y2 (north = high) → SVG y_top (small); DXF y1 (south = low) → SVG y_bot (large)
-    const [svgX1, svgYTop] = dxfToSvg(zone.x1, zone.y2)
-    const [svgX2, svgYBot] = dxfToSvg(zone.x2, zone.y1)
-    const w = svgX2 - svgX1
-    const h = svgYBot - svgYTop
-
-    return (
-      <g key={zone.id}>
-        <rect
-          x={svgX1}
-          y={svgYTop}
-          width={w}
-          height={h}
-          fill={zone.fill}
-          stroke={zone.stroke}
-          strokeWidth={0.75}
-        />
-        {layers.labels && w > 55 && h > 18 && (
-          <text
-            x={svgX1 + w / 2}
-            y={svgYTop + Math.min(h / 2, 16)}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize={Math.min(10, w / 11, h / 3)}
-            fontWeight="500"
-            fill="#475569"
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            {zone.label}
-          </text>
-        )}
-      </g>
-    )
-  }
+  // Get active zone bounds for filtering
+  const activeZoneData = activeZone ? ZONES.find(z => z.id === activeZone) : null
 
   return (
     <div className="relative w-full h-full bg-slate-100 rounded-lg overflow-hidden select-none">
 
-      {/* Layer toggle */}
       <LayerControls layers={layers} onChange={setLayers} />
 
-      {/* Loading overlay */}
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-30">
           <div className="flex flex-col items-center gap-2 text-slate-500">
@@ -221,36 +159,33 @@ export default function FacilityMap({
             height={SVG_H}
             style={{ display: 'block', background: 'white' }}
           >
-            {/* Building outline */}
-            <rect
-              x={0} y={0}
-              width={SVG_W} height={SVG_H}
-              fill="white"
-              stroke="#374151"
-              strokeWidth={2}
-            />
+            {/* 1. White background */}
+            <rect x={0} y={0} width={SVG_W} height={SVG_H} fill="white" />
 
-            {/* Department zones */}
-            {layers.zones && ZONES.map(renderZone)}
+            {/* 2. Blueprint SVG layers (building, aisles, storage, workbenches, machines, phase2) */}
+            {blueprintSvg && (
+              <g
+                ref={blueprintRef}
+                dangerouslySetInnerHTML={{ __html: blueprintSvg }}
+              />
+            )}
 
-            {/* Column grid lines */}
+            {/* 3. Column grid (React-rendered) */}
             {layers.grid && GRID_COLS.map((col, i) => {
               const [svgX] = dxfToSvg(col.x, 0)
-              if (svgX < 0 || svgX > SVG_W) return null
+              if (svgX < -2 || svgX > SVG_W + 2) return null
               return (
                 <g key={i}>
                   <line
                     x1={svgX} y1={0}
                     x2={svgX} y2={SVG_H}
-                    stroke="#94a3b8"
-                    strokeWidth={0.5}
-                    strokeDasharray="3 5"
-                    strokeOpacity={0.5}
+                    stroke="#cbd5e1"
+                    strokeWidth={0.4}
+                    strokeDasharray="3 7"
                   />
                   <text
-                    x={svgX}
-                    y={SVG_H - 4}
-                    textAnchor="middle"
+                    x={svgX + 2}
+                    y={8}
                     fontSize={6}
                     fill="#94a3b8"
                     style={{ userSelect: 'none' }}
@@ -261,27 +196,40 @@ export default function FacilityMap({
               )
             })}
 
-            {/* Machine footprints */}
-            {layers.equipment && footprints.map(renderFootprint)}
+            {/* 4. Department zones (invisible until hovered/clicked) */}
+            {layers.labels && ZONES.map(zone => (
+              <DepartmentZone
+                key={zone.id}
+                zone={zone}
+                isActive={activeZone === zone.id}
+                onClick={handleZoneClick}
+              />
+            ))}
 
-            {/* Asset pins */}
-            {layers.pins && visiblePins.map(pin => {
-              const [svgX, svgY] = dxfToSvg(pin.x, pin.y)
-              const color = STATUS_COLOR[pin.status] ?? STATUS_COLOR.decommissioned
+            {/* 5. Equipment footprints (status LED, clickable) */}
+            {layers.equipment && footprints.map(fp => {
+              const assets = machineToAssets.get(fp.blockName) ?? []
+              const firstAsset = assets[0]
+              const status = firstAsset?.status ?? 'decommissioned'
+
+              // Determine if this footprint is in the active zone
+              const inActiveZone = !activeZoneData || isInZone(fp.x, fp.y, activeZoneData)
+              // Determine if status-filtered
+              const matchesFilter = !statusFilter || status === statusFilter
+
               return (
-                <AssetPin
-                  key={pin.assetNumber}
-                  assetNumber={pin.assetNumber}
-                  displayName={pin.displayName}
-                  x={svgX}
-                  y={svgY}
-                  color={color}
-                  isSelected={selectedPinNumber === pin.assetNumber}
-                  isHovered={hoveredPin === pin.assetNumber}
-                  isNew={pin.isNew}
-                  isFuture={pin.isFuture}
-                  onSelect={() => onSelectPin?.(pin)}
-                  onHover={over => setHoveredPin(over ? pin.assetNumber : null)}
+                <EquipmentFootprint
+                  key={fp.id}
+                  footprint={fp}
+                  asset={firstAsset ?? null}
+                  status={status}
+                  isSelected={!!firstAsset && selectedPinNumber === firstAsset.assetNumber}
+                  dimmed={(!matchesFilter || !inActiveZone)}
+                  showLabel={layers.labels}
+                  showMaintenance={layers.maintenance}
+                  onClick={() => {
+                    if (firstAsset) onSelectPin?.(firstAsset)
+                  }}
                 />
               )
             })}
@@ -301,4 +249,10 @@ export default function FacilityMap({
       </TransformWrapper>
     </div>
   )
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function isInZone(x: number, y: number, zone: Zone): boolean {
+  return x >= zone.x1 && x <= zone.x2 && y >= zone.y1 && y <= zone.y2
 }
