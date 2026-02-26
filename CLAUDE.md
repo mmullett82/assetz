@@ -19,7 +19,7 @@ assetZ is a Computerized Maintenance Management System (CMMS) built by chaiT, de
 - **State Management:** React Context + hooks for local state, SWR or React Query for server state
 - **Real-Time:** WebSocket connections to backend for live dashboard/floor plan updates
 - **Charts/KPIs:** Recharts for dashboards and trend visualization
-- **Floor Plans:** Canvas or SVG-based interactive floor plan viewer with draggable asset pins
+- **Floor Plans:** SVG-based interactive floor plan viewer with DXF-to-SVG conversion pipeline, dark CAD theme
 - **Barcode Scanning:** Web-based camera API for QR/barcode scanning on mobile
 - **AI Chat Interface:** Collapsible sidebar chat panel + inline smart prompt components
 
@@ -68,7 +68,9 @@ assetz/
 │   ├── lib/                 # Utility functions, API client, WebSocket manager
 │   ├── types/               # TypeScript interfaces matching backend schema
 │   └── styles/              # Global styles, Tailwind config
-├── public/                  # Static assets, PWA manifest, icons
+├── public/
+│   └── assets/
+│       └── equipment-icons/ # Blueprint-style SVG equipment footprints for map
 ├── package.json
 ├── tailwind.config.ts
 ├── tsconfig.json
@@ -105,6 +107,8 @@ SC-B1-FIN-SPRAY-AUTO_SPRAYBOOTH-C1-01   ← Finishing has its own C1
 SC-B1-FAC-AIR-COMPRESSOR-U1-01
 ```
 
+**IMPORTANT:** The "C3" in `SC-B1-MIL-CNC-ROVER-C3-04` means Cell 3 in the Mill department — it is NOT a map grid coordinate. Cell refers to a logical grouping of same-type equipment within a department. The alphanumeric grid location on the floor plan (e.g., "C-7") is a separate field entirely.
+
 **Asset Number / Barcode** — short, sequential, scannable:
 `[CompanyPrefix]-[TypeCode]-[4-digit sequence]`
 Asset number = barcode number (always the same value).
@@ -129,6 +133,214 @@ Measured against DUE DATE, not creation date:
 - 🟡 Yellow: 1–2 days remaining
 - 🔴 Red: Past due
 
+### 6. Stoplight Visual Design
+Stoplights render like REAL traffic signals — all three circles (red, yellow, green) are always visible. The active status is full brightness with a subtle glow effect. The inactive circles are dim (~15-20% opacity) but still present. This applies to:
+- Technician scoreboard rows (each tech has a stoplight)
+- TV/kiosk mode (large stoplights, highly visible across the shop floor)
+- Any status indicator that uses the stoplight metaphor
+
+This is NOT a single colored dot. It is three stacked circles where only one is "lit."
+
+### 7. In-App Chat & Voice-to-Text
+**Chat/Messaging:**
+- In-app messaging with threaded conversations per work order (like MaintainX — their #1 rated feature)
+- Direct messages between techs, managers, requesters
+- @mentions in comments
+- Photo/video attachments in chat threads
+- Notification preferences per user
+
+**Voice-to-Text (critical for manufacturing floor use):**
+- Microphone button available on ALL text input fields throughout the app — not just chat
+- Use cases: chat messages, WO completion notes, WO comments, PM task descriptions, search, asset notes
+- Manufacturing context: techs have dirty/greasy hands, wear gloves, stand next to running machines. Typing on a phone is impractical. Voice input is the primary input method on the floor.
+- AI-assisted voice processing: tech says "finished replacing the drive belt on Rover 3, took about 45 minutes, used one Gates belt from the parts room" → AI structures into: action taken, time logged (45 min), parts consumed (1x Gates belt). No manual form filling.
+- Voice-to-summary on completed WOs: tech records voice note → AI structures into formatted completion summary
+
+### 8. Asset Reference Cards (Quick Reference Guides)
+Every asset can have a **Reference Card** — a structured quick-reference document that surfaces automatically inside any work order for that asset. When a tech opens a WO, the reference card is one tap away (collapsible panel or tab within the WO detail view).
+
+**Reference Card contents:**
+- Standard PM procedures and checklists for this specific asset
+- Safety warnings and lockout/tagout requirements
+- Common failure modes and their fixes
+- Recommended spare parts with part numbers
+- Lubrication points and schedules
+- Belt/filter replacement intervals and specs
+- Photos of key maintenance points (e.g., "grease fitting is HERE")
+- Links to full manufacturer manuals (stored in graphX document system)
+- Troubleshooting decision tree (if symptom X → check Y first)
+
+**How it gets built:**
+- Maintenance teams create reference cards per asset or per asset MODEL (so one card covers all 4 Biesse Rovers)
+- Upload PDFs, images, or fill in structured templates within assetZ
+- Cards are living documents — editable, versioned, with change history
+
+**AI Enhancement (future):**
+- AI reads the full manufacturer manual (via graphX) and auto-generates a draft reference card
+- AI assistant in WO context can answer questions using the reference card + manual as knowledge base
+- Two modes when AI assists on a WO:
+  - **Fix Only** — Quick answer, get the machine running, minimal explanation. For time-critical situations.
+  - **Fix & Train** — Step-by-step guidance with explanations of WHY each step matters. For when there's time to learn. Builds technician skill over time.
+- AI tracks which fixes a tech has done before vs. first-time encounters, adjusting guidance depth automatically
+
+### 9. VR-Assisted Maintenance (Future — Phase 4+)
+Augmented/virtual reality integration for hands-on guided maintenance:
+- VR headset (or AR glasses) overlays step-by-step repair instructions onto the physical equipment
+- **LiDAR scanning** for real-time spatial awareness — the system knows what it's looking at
+- Live diagnosis: scan a machine, system identifies the model, pulls up the reference card, and walks through the repair visually
+- Remote expert mode: a senior tech or OEM specialist can see what the field tech sees and guide them through the repair in real-time
+- Integration with assetZ WO system — repair steps, time, and parts are logged automatically as the tech works
+
+### 10. 3D Equipment Scanning & Virtual Disassembly (Future — Phase 4+)
+Scan physical machines to create interactive 3D models that can be virtually disassembled:
+- **External scanning** via LiDAR/photogrammetry to capture the machine's exterior geometry and produce a 3D rendering
+- **Internal modeling** supplemented by manufacturer documentation, exploded diagrams, and CAD files (since you can't scan internals without physical disassembly)
+- AI combines scanned exterior + online literature + manufacturer data to build a complete virtual model
+- **Virtual teardown**: tech can "pull apart" the 3D model layer by layer to understand how components relate, identify the part that's likely failed, and see how to access it
+- **Troubleshooting mode**: describe a symptom → AI highlights the most likely failed components in the 3D model and shows the disassembly path to reach them
+- Parts identification: scan an unknown part with a phone camera → AI matches it to the 3D model and returns the part number, supplier, and inventory status
+
+### 11. Facility Walkthrough Scanning & Digital Twin (Future — Phase 4+)
+Walk the entire building with a scanning device to build the complete digital facility in one pass:
+- LiDAR/scanning device captures the full 3D environment as you physically move through the building
+- **Tag-as-you-go**: during the walkthrough, identify and tag assets, departments, racking sections, aisles, storage areas — "this is Mill department, this is a Biesse Rover, this rack section is laminate inventory"
+- System auto-generates: 2D floor plan, 3D navigable environment, asset registry entries, department zone boundaries, racking layouts, aisle paths — all from the single walkthrough
+- **Replaces weeks of manual CMMS onboarding** with a 2-hour facility walk
+- The 3D walkthrough becomes a replayable virtual environment for new employee orientation and training
+- Periodic re-scans detect layout changes (moved equipment, new racking, reconfigured departments) and flag diffs against the previous scan
+
+---
+
+## Interactive Floor Plan — Architecture & Design Decisions
+
+The floor plan is one of assetZ's primary competitive differentiators. It is NOT a static image with pins — it's a living, interactive blueprint rendered from actual CAD data.
+
+### Visual Theme: Dark Blue CAD Canvas (Always Dark)
+The floor plan canvas is ALWAYS dark blue (`#162032`) regardless of the app's light/dark mode setting. The rest of the app (sidebar, headers, asset cards, dashboards) follows the global theme, but the map canvas stays dark. This is the same pattern as Figma — UI can be light or dark, canvas is its own thing.
+
+**Rationale:** Status LEDs (green/yellow/red) need maximum contrast to be instantly scannable. A maintenance manager glancing at the map needs red and yellow dots to jump out immediately. Dark canvas makes that happen.
+
+**Canvas colors:**
+- Background: `#162032` (dark navy-blue)
+- Wall/structure linework: `#5b8dd9` at ~55% opacity
+- Equipment outlines: `#7cb3f4` (lighter blue, slightly brighter than walls)
+- Storage/racking: `#3d6494` at ~45% opacity (present but not dominant)
+- Grid lines: `#1e2d47` (very subtle)
+- Grid text: `#3d5a80`
+- Aisle lines: `#2e4a6e` dashed
+- Department labels: `#4a6d94` default, `#93c5fd` on hover/click
+- Asset labels: `#6a8db8` (monospace, below equipment footprint)
+- Tooltip background: `#152033` with `#1e2d47` border
+
+**Global Theme System:**
+- Light / Dark / System toggle lives in sidebar footer or Settings page — NOT on the floor plan page
+- System mode detects OS `prefers-color-scheme` and follows automatically
+- Theme persists per user
+- Floor plan page: header bar and detail panel follow global theme; map canvas always dark
+
+### Rendering Approach: DXF-to-SVG Pipeline
+The floor plan base layer is generated by converting the facility's DXF (CAD) file to SVG format programmatically. This is vector art, so it stays crisp at any zoom level.
+
+**Layers to render from DXF:**
+- Building (walls, structural elements) — solid lines
+- Aisles (traffic corridors) — dashed lines
+- Storage and Buffer (rack layouts)
+- Workbenches Plantequipment
+- Machines — rendered as simplified bounding box outlines, NOT full block geometry (machine blocks have 9,000–27,000 lines each — way too heavy for web rendering)
+
+**What the DXF does NOT contain (for SOLLiD's file):**
+- The architectural envelope (walls, exterior) lives in a missing XREF. The Building layer only has partial structural elements. The annotated facility screenshot (`sollid-facility-layout-annotated.png`) is the ground truth for building outline and department positioning.
+
+### Equipment Footprints = The Interactive Elements
+- Equipment is rendered as **simplified CAD-style outlines** — architectural/engineering symbol quality, matching what you'd see on a real engineering drawing. NOT cartoon icons, NOT colored dots.
+- Each footprint is extracted from the DXF machine blocks as a simplified bounding outline — same shape and proportions, reduced line count.
+- The equipment footprint itself IS the clickable element. The ENTIRE rectangle/shape is the click target, not just a corner dot.
+- **There is NO separation between "Equipment" and "Asset Pins." Equipment IS the asset. One thing, one representation.**
+
+### Status Indicators (LED Dots)
+Small dot (8–10px) sits in the top-right corner of each equipment footprint, like a physical LED on the machine:
+- 🟢 Green = Operational
+- 🟡 Yellow/Orange = PM Due
+- 🔴 Red = Down / Open Work Order
+- 🟡 Pulsing animated ring = Active maintenance in progress (a technician is currently working on it)
+- ⚫ Gray = Decommissioned
+
+### Asset Labeling on the Map
+**Normal zoom:** Short recognizable label — e.g., `ROVER-C3-04` (the unique portion of the facility asset ID)
+**Hover tooltip:** Full facility asset ID + machine name — e.g., `SC-B1-MIL-CNC-ROVER-C3-04 — Biesse Rover B 1531`
+**Click → Detail panel** shows:
+- Facility Asset ID: SC-B1-MIL-CNC-ROVER-C3-04
+- Asset Number/Barcode: SLD-ROV-0004
+- Equipment: Biesse Rover B 1531
+- Department: Mill
+- Cell: 3
+- Grid Location: C-7 (from the alphanumeric blueprint grid — separate from cell number)
+- DXF Reference: #47 (legacy CAD reference number, useful for cross-referencing the original blueprint)
+- Status with color indicator
+- Last work order summary
+- Next PM due date
+- Quick action buttons: Work Order, PM Schedule, Parts List, Asset History
+- "Find in Asset Registry" button to navigate to full asset detail page
+
+### Alphanumeric Grid System
+The map uses a blueprint-style grid, NOT raw DXF coordinates:
+- **Numbers 1–15 across the top** — matching the structural column grid from the DXF (47'-4" first bay, then 56'-0" bays)
+- **Letters (A–F or similar) down the left side** — evenly dividing the building height
+- A location reads as "C-7" or "D-12" — like reading a map grid reference
+- This is how maintenance techs reference locations on the floor
+
+### Department Zones
+- Defined as invisible interactive polygon overlays on top of the blueprint — the blueprint art always shows through
+- **Default state:** Gray text label, always visible, centered within the zone
+- **Hover:** Label turns blue
+- **Click:** Label turns blue AND zone boundary appears as subtle dashed outline; filters to show only that department's assets
+- Department zones should NOT be visible colored boxes that obscure the blueprint
+
+**All departments for SOLLiD (from DXF + annotated screenshot):**
+Mill, Kitting, Assembly, Finishing, White Wood, Maintenance, Receiving, Shipping Docks, West Storage & Racking, East End Storage & Racking, Showroom, Lobby, Operations Offices & Cubicles, Bathrooms & Storage, Breakroom & Food, Sales Tools, Grill Patio, Conference Room, Forklift Repair, Welding, Paint/Lacquer Storage, Dust Collector Storage, Air Compressor & Chiller Room, Laminate Inventory, Color Room, Face Frame Manufacturing, WW Prep, Repair & Glazing, Value Series Inventory, Flatstock Incoming, LTL, Finished Good Storage
+
+### Layer Toggles (Layers Panel)
+- Building Structure (walls, columns, doors)
+- Column Grid (alphanumeric overlay)
+- Assets (equipment footprints with status indicators)
+- Storage & Racking
+- Aisles & Transport
+- Department Labels (hover/click zones)
+- Active Maintenance (pulsing indicators)
+- Phase 2 Layout (future equipment from DXF Phase2 layer)
+
+### Dependency Visualization on Floor Plan (Future — scaffold data model now)
+When a user clicks an asset and selects "Show Dependencies" or "Show Flow":
+- **DEPENDS_ON** relationships render as **solid red directional arrows** between equipment
+- **FEEDS** relationships render as **dashed yellow directional arrows** showing material flow with time buffer
+- **Impact visualization:** Click a DOWN (red) asset → "Show Impact" highlights every downstream asset affected, arrows turn red, creating a visual cascade showing what's blocked
+- **Production flow mode:** Toggle to show all material flow arrows across the facility — how raw material enters and flows through departments to finished goods
+
+### Map Builder (Edit Mode)
+Activated via the "Map Builder" button in the floor plan UI. This is the self-service facility map editor:
+- **Equipment Icon Library sidebar** with categorized sections: CNC Machines, Edge Banders, Panel Saws, Conveyors, Storage/Racking, Workbenches, Material Handling, Utility Systems
+- Icons are **blueprint-style SVG footprints** (engineering quality, not clip art) stored in `/public/assets/equipment-icons/`
+- Each icon file is named to match the DXF block name (e.g., `biesse-rover-1531.svg`, `homag-bhx-500.svg`, `sawstop.svg`)
+- **Drag from library → drop on map** → positions the equipment → prompt for asset ID, equipment name, department assignment
+- Snap-to-grid option for clean alignment
+- Department zone boundary drawing tool (polygon)
+- Production flow arrow drawing tool
+- Undo/redo for all edits
+- Save draft / publish workflow (edits don't affect live map until published)
+- All asset positions stored in a **single JSON data file** — single source of truth, easy to manually edit
+
+### DXF Reference Data (SOLLiD Facility — G2.5 EQUIPMENT LAYOUT EGRESS-2.dxf)
+- **File:** 46 MB, 5.4M lines, 3,198 model-space entities, 300 block definitions
+- **Coordinate system:** 1 unit = 1 inch, Imperial
+- **Building extents:** X: ~1,200–9,500 in, Y: ~350–4,300 in (~690' wide × ~330' tall)
+- **Machine blocks scale:** 0.039 (mm→in conversion, block geometry drawn in mm)
+- **Exception:** CeflaLines_20200916_V2 at scale=11.99 (different unit system)
+- **Asset Number layer:** 107 MTEXT labels (#1–#258) positioned at each machine location — these are the asset position coordinates
+- **Key layers:** Machines (495 entities), Storage and Buffer (1,053), Workbenches (379), Building (168), Asset Number (107), Aisles (101), Transport Equipment (96), DepartmentLabel (17)
+- **Missing XREF:** X-PLAN-FLR1 (architectural walls/columns/doors) not embedded — 90+ architectural layers exist in layer table but have no geometry
+
+---
+
 ## API Base URL
 
 Development: `http://localhost:8000/api`
@@ -152,14 +364,18 @@ The backend API documentation (when running) will be at `http://localhost:8000/d
 Goal: Functional enough to replace Asset Essentials at SOLLiD for daily operations.
 
 Priority build order:
-1. Project scaffolding, auth pages, app shell with sidebar nav
-2. Asset registry (CRUD, detail views, barcode display)
-3. Work order management (create, status workflow, comments, photos)
-4. KPI dashboard with placeholder data (wire to WebSocket later)
-5. PM schedule management
-6. Parts inventory with reservation UI
-7. Settings and configuration
+1. ✅ Project scaffolding, auth pages, app shell with sidebar nav
+2. ✅ Asset registry (CRUD, detail views, barcode display)
+3. ✅ Work order management (create, status workflow, comments, photos)
+4. ✅ KPI dashboard with placeholder data
+5. ✅ PM schedule management
+6. ✅ Parts inventory with reservation UI
+7. ✅ Red/Yellow/Green scoreboard
+8. 🟡 Settings and configuration
+9. 🟡 Interactive floor plan (DXF-to-SVG pipeline built, needs correction pass)
 
 ## Important Context
 
 This product is being dogfooded at SOLLiD Cabinetry (cabinet manufacturing) as the first production deployment. The maintenance team will use this daily. Manufacturing floor conditions apply — the mobile experience must work with gloves, in poor lighting, and under time pressure. Fast, clear, scannable.
+
+SOLLiD is a ~690' × 330' cabinet manufacturing facility with Biesse CNC machines, HOMAG boring centers, Cefla finishing lines, edge banders, panel saws, and extensive racking/storage. Matt is actively implementing Asset Essentials there and using that hands-on experience to identify pain points that assetZ solves.

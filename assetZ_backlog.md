@@ -1,5 +1,5 @@
 # assetZ Product Backlog
-## Last Updated: February 23, 2026
+## Last Updated: February 26, 2026
 
 ---
 
@@ -22,9 +22,9 @@
 | 5 | PM schedule management | 🟢 | Basic version |
 | 6 | Parts inventory with reservations | 🟢 | Basic version |
 | 7 | Red/Yellow/Green scoreboard | 🟢 | Row highlighting, no stoplight icons yet |
-| 8 | Settings & configuration | 🟢 | Started, may not be complete |
-| 9 | Enterprise form enhancements | 🟢 | Claude Code started but didn't finish |
-| 10 | Asset floor plan / map | 🟢 | Claude Code started building this |
+| 8 | Settings & configuration | 🟡 | Started, may not be complete |
+| 9 | Enterprise form enhancements | 🟡 | Claude Code started but didn't finish |
+| 10 | Asset floor plan / map | 🟡 | DXF-to-SVG rendering working, needs correction pass (dark blue theme, dept zones, grid, asset orientation) |
 
 ---
 
@@ -33,28 +33,28 @@
 ### Three-View System (MaintainX-Inspired)
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Panel View (two-pane: list + detail) | 🟢 | Default view for all modules |
-| 2 | Table View (data grid with column picker) | 🟢 | Sortable, bulk select, inline edit |
-| 3 | Calendar View (WOs and PMs) | 🟢 | Weekly/monthly toggle, overdue in red |
-| 4 | View toggle icons (top-right of list pages) | 🟢 | Persist user's last selection |
+| 1 | Panel View (two-pane: list + detail) | 🔴 | Default view for all modules |
+| 2 | Table View (data grid with column picker) | 🔴 | Sortable, bulk select, inline edit |
+| 3 | Calendar View (WOs and PMs) | 🔴 | Weekly/monthly toggle, overdue in red |
+| 4 | View toggle icons (top-right of list pages) | 🔴 | Persist user's last selection |
 
 ### Universal Filter Bar
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 5 | "+ Add Filter" horizontal filter system | 🟢 | Replace sidebar tree filtering |
-| 6 | Filter pills/chips (removable, stackable) | 🟢 | AND logic between multiple filters |
-| 7 | Save Filter combinations (personal + org-wide) | 🟡 | Named saved views |
-| 8 | Default saved filters per module | 🟢 | "My Open WOs", "Low Stock", etc. |
+| 5 | "+ Add Filter" horizontal filter system | 🔴 | Replace sidebar tree filtering |
+| 6 | Filter pills/chips (removable, stackable) | 🔴 | AND logic between multiple filters |
+| 7 | Save Filter combinations (personal + org-wide) | 🔴 | Named saved views |
+| 8 | Default saved filters per module | 🔴 | "My Open WOs", "Low Stock", etc. |
 
 ### Navigation & Layout
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 9 | Sidebar: hamburger toggle at TOP LEFT | 🟢 | Not bottom |
-| 10 | Sidebar: collapsed = icons only (~60px) | 🟢 | Tooltips on hover |
-| 11 | Sidebar: expanded = icons + labels (~220px) | 🟢 | |
-| 12 | Global search bar (per-module) | 🟢 | Searches name, title, ID, description, barcode |
-| 13 | Sort controls dropdown | 🟢 | Smart defaults: WOs = overdue first, then due soonest |
-| 14 | Three-dot menu (⋯) per row | 🟢 | Replaces broken right-click context menu |
+| 9 | Sidebar: hamburger toggle at TOP LEFT | 🔴 | Not bottom |
+| 10 | Sidebar: collapsed = icons only (~60px) | 🔴 | Tooltips on hover |
+| 11 | Sidebar: expanded = icons + labels (~220px) | 🔴 | |
+| 12 | Global search bar (per-module) | 🔴 | Searches name, title, ID, description, barcode |
+| 13 | Sort controls dropdown | 🔴 | Smart defaults: WOs = overdue first, then due soonest |
+| 14 | Three-dot menu (⋯) per row | 🔴 | Replaces broken right-click context menu |
 
 ### Default Sort Logic
 - **Assets:** Alphabetical by name
@@ -69,14 +69,14 @@
 ### Asset Form — Missing Fields
 | # | Field/Section | Status | Notes |
 |---|--------------|--------|-------|
-| 1 | Purchase info (price, date, invoice, expected life, replacement cost, salvage value) | 🟢 | Enhancement pass started |
-| 2 | Warranty tracking (title, expiration, vendor) | 🟢 | |
-| 3 | Dates (manufacture, placed, removed, out-of-service begin/end) | 🟢 | |
-| 4 | Condition assessment (condition, date, est. replace date, assessment note) | 🟢 | |
-| 5 | Calculated rollups (Total WO Cost, Total Labor Hrs, Total Downtime) | 🟡 | Read-only, calculated from WO data |
-| 6 | Safety & Procedures notes (safety, training, shutdown, LOTO, emergency) | 🟢 | |
-| 7 | Assigned To (primary tech), Emergency Contact | 🟢 | |
-| 8 | Tag Number, RFID field | 🟢 | |
+| 1 | Purchase info (price, date, invoice, expected life, replacement cost, salvage value) | 🟡 | Enhancement pass started |
+| 2 | Warranty tracking (title, expiration, vendor) | 🟡 | |
+| 3 | Dates (manufacture, placed, removed, out-of-service begin/end) | 🟡 | |
+| 4 | Condition assessment (condition, date, est. replace date, assessment note) | 🟡 | |
+| 5 | Calculated rollups (Total WO Cost, Total Labor Hrs, Total Downtime) | 🔴 | Read-only, calculated from WO data |
+| 6 | Safety & Procedures notes (safety, training, shutdown, LOTO, emergency) | 🟡 | |
+| 7 | Assigned To (primary tech), Emergency Contact | 🟡 | |
+| 8 | Tag Number, RFID field | 🟡 | |
 | 9 | Photo upload, Document attachments | 🟡 | |
 | 10 | Check-out/sign-out tracking with log | 🔴 | |
 | 11 | Associated Assets (beyond parent-child) | 🔴 | Links to graph DEPENDS_ON/FEEDS |
@@ -85,42 +85,42 @@
 ### PM Form — Missing Fields
 | # | Field/Section | Status | Notes |
 |---|--------------|--------|-------|
-| 1 | PM Type: Time-Based, Meter-Based, Time-Based with Meter Override | 🟢 | |
-| 2 | Expected completion (X days, X hours after generation) | 🟢 | |
-| 3 | WO creation time (e.g., generate at 08:00 AM) | 🟢 | |
-| 4 | Default WO Status for generated WOs | 🟢 | |
-| 5 | Pre-filled Problem/Cause codes on PM template | 🟢 | |
-| 6 | End conditions (no end, after X occurrences, on date) | 🟢 | |
+| 1 | PM Type: Time-Based, Meter-Based, Time-Based with Meter Override | 🟡 | |
+| 2 | Expected completion (X days, X hours after generation) | 🔴 | |
+| 3 | WO creation time (e.g., generate at 08:00 AM) | 🔴 | |
+| 4 | Default WO Status for generated WOs | 🔴 | |
+| 5 | Pre-filled Problem/Cause codes on PM template | 🔴 | |
+| 6 | End conditions (no end, after X occurrences, on date) | 🔴 | |
 | 7 | Season start option (seasonal equipment) | 🔴 | |
-| 8 | Dependency-aware skip: "Don't create unless prior PMs completed" | 🟢 | More advanced than simple skip_if_open |
+| 8 | Dependency-aware skip: "Don't create unless prior PMs completed" | 🔴 | More advanced than simple skip_if_open |
 | 9 | Exclusion Conditions (holidays, shutdowns) | 🔴 | |
 | 10 | WO generation timing (next scheduled vs next work day) | 🔴 | |
-| 11 | PM Parts section (attach required parts to template) | 🟢 | Auto-reserve when WO generates |
+| 11 | PM Parts section (attach required parts to template) | 🔴 | Auto-reserve when WO generates |
 | 12 | **PM Stacking/Grouping** | 🔴 | ⭐ Combine daily+weekly+monthly PMs falling on same day into single WO with all tasks |
 
 ### WO Form — Missing Fields
 | # | Field/Section | Status | Notes |
 |---|--------------|--------|-------|
-| 1 | "Breakdown" work type | 🟢 | Add alongside preventive, corrective, emergency, inspection |
-| 2 | Origin Info (origin type, originated date, originator, assigned date) | 🟢 | |
-| 3 | Action Taken (completion datetime + description) | 🟢 | |
+| 1 | "Breakdown" work type | 🔴 | Add alongside preventive, corrective, emergency, inspection |
+| 2 | Origin Info (origin type, originated date, originator, assigned date) | 🔴 | |
+| 3 | Action Taken (completion datetime + description) | 🔴 | |
 | 4 | Planning section (scheduling/resource) | 🔴 | |
 | 5 | Contact User button (reach originator) | 🔴 | |
 | 6 | Signature for completion | 🔴 | MaintainX has this — accountability layer |
 | 7 | Cost tracking (labor cost, travel, parts cost, other) | 🔴 | |
-| 8 | Time tracking (time spent on WO) | 🟡 | |
+| 8 | Time tracking (time spent on WO) | 🔴 | |
 
 ### Parts Form — Missing Fields
 | # | Field/Section | Status | Notes |
 |---|--------------|--------|-------|
-| 1 | Alternate Part # (cross-reference equivalent parts) | 🟢 | |
-| 2 | Manufacturer Barcode | 🟢 | |
-| 3 | Par Quantity (ideal stock level) | 🟢 | |
-| 4 | Min/Max Level reorder method | 🟢 | |
-| 5 | Qty on Back Order | 🟢 | |
+| 1 | Alternate Part # (cross-reference equivalent parts) | 🔴 | |
+| 2 | Manufacturer Barcode | 🔴 | |
+| 3 | Par Quantity (ideal stock level) | 🔴 | |
+| 4 | Min/Max Level reorder method | 🔴 | |
+| 5 | Qty on Back Order | 🔴 | |
 | 6 | Multiple storage locations per part | 🔴 | |
 | 7 | Parts Kits (pre-built groups for common tasks) | 🔴 | Pull as a unit for WO |
-| 8 | Photo upload, Document attachments | 🟡 | |
+| 8 | Photo upload, Document attachments | 🔴 | |
 | 9 | Parts associated to assets (view parts list from asset) | 🔴 | ⭐ Key workflow feature |
 
 ---
@@ -130,98 +130,64 @@
 ### Floor Plan / Asset Map ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Upload floor plan image per facility/building | 🟡 | Claude Code started |
-| 2 | Pin assets to floor plan positions (drag & drop) | 🟡 | |
-| 3 | Real-time status overlay (pin color = asset status) | 🟢 | ⭐ Green=operational, Yellow=warning, Red=down |
-| 4 | Click pin to see asset detail (mini popup) | 🟢 | |
-| 5 | Dependency chain visualization on floor plan | 🟢 | ⭐ DEPENDS_ON = solid red lines, FEEDS = dashed yellow lines |
-| 6 | Ripple effect animation when asset goes down | 🔴 | ⭐ Shows downstream impact visually spreading |
-| 7 | Heat map overlay (failure frequency, cost, downtime) | 🔴 | ⭐ Toggle between different heat map types |
-| 8 | Department zone boundaries on floor plan | 🟢 | Color-coded zones matching department |
-| 9 | Multi-floor support (floor selector tabs) | 🔴 | |
-| 10 | Grid overlay with coordinates (e.g., D5) | 🔴 | For reference during walk-throughs |
-| 11 | Zoom + pan with smooth navigation | 🟢 | |
-| 12 | Filter map pins by status, category, department | 🟢 | Uses same filter bar as list views |
-| 13 | "Map View" as 4th view option on Assets page | 🔴 | Alongside Panel/Table/Calendar |
-| 14 | Technician location on map (future: BLE beacons) | 🔴 | Phase 3+ |
-| 15 | Production flow arrows showing material path | 🔴 | ⭐ Visual of how material moves through facility |
-| 16 | Buffer status indicators on FEEDS relationships | 🔴 | "4 hrs of staged parts remaining" |
-| 17 | QR code scanning → auto-centers map on that asset | 🔴 | |
+| 1 | DXF-to-SVG vector rendering pipeline | 🟡 | Working but needs density/accuracy corrections |
+| 2 | Dark blue CAD canvas (always dark, `#162032`, regardless of app theme) | 🔴 | Blue-toned linework, not gold |
+| 3 | Pin assets to floor plan positions (drag & drop) | 🔴 | Via Map Builder edit mode |
+| 4 | Real-time status overlay (LED dots on equipment corners) | 🟡 | ⭐ Green=operational, Yellow=PM due, Red=down + red glow, Pulsing=active maint |
+| 5 | Click equipment footprint to see asset detail panel | 🟡 | Working but click target is too small — entire footprint should be clickable |
+| 6 | Dependency chain visualization on floor plan | 🔴 | ⭐ DEPENDS_ON = solid red lines, FEEDS = dashed yellow lines |
+| 7 | Ripple effect animation when asset goes down | 🔴 | ⭐ Shows downstream impact visually spreading |
+| 8 | Heat map overlay (failure frequency, cost, downtime) | 🔴 | ⭐ Toggle between different heat map types |
+| 9 | Department zone boundaries (invisible interactive polygons) | 🟡 | Gray labels default, blue on hover/click, needs repositioning |
+| 10 | Multi-floor support (floor selector tabs) | 🔴 | |
+| 11 | Alphanumeric grid overlay (numbers 1-15 top, letters A-F side) | 🔴 | Blueprint-style, replaces raw DXF coordinates |
+| 12 | Zoom + pan with smooth navigation | 🟢 | Working well |
+| 13 | Filter map pins by status, category, department | 🟡 | Status filter working, dept click-to-filter working |
+| 14 | "Map View" as 4th view option on Assets page | 🔴 | Alongside Panel/Table/Calendar |
+| 15 | Technician location on map (future: BLE beacons) | 🔴 | Phase 3+ |
+| 16 | Production flow arrows showing material path | 🔴 | ⭐ Visual of how material moves through facility |
+| 17 | Buffer status indicators on FEEDS relationships | 🔴 | "4 hrs of staged parts remaining" |
+| 18 | QR code scanning → auto-centers map on that asset | 🔴 | |
+| 19 | Asset labeling: short label at normal zoom, full facility ID on hover | 🔴 | e.g., ROVER-C3-04 → SC-B1-MIL-CNC-ROVER-C3-04 |
 
 ### Self-Service Map Builder ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Upload floor plan image (JPG, PNG, PDF) | 🟢 | JPG/PNG background image upload — per building/floor |
-| 2 | Draw department zones on floor plan (polygon drawing tool) | 🟢 | Click to place vertices, close shape, name zone |
-| 3 | Drag & drop asset pins onto floor plan | 🟢 | Select from asset list, drag to position on map |
-| 4 | Snap-to-grid option for clean alignment | 🟢 | Toggle grid overlay on/off |
-| 5 | Label placement tool (department names, area labels) | 🟢 | Text overlay on map |
-| 6 | Draw walls/barriers (line drawing tool) | 🟢 | Visual representation of physical layout |
-| 7 | Draw production flow paths (directional arrows) | 🟢 | Show material movement through facility |
-| 8 | Pin customization (icon shape by asset category, size by criticality) | 🟢 | CNC = one icon, conveyor = another, etc. |
-| 9 | Undo/redo for all map edits | 🟢 | Essential for builder usability |
-| 10 | Save draft / publish workflow | 🟢 | Draft → localStorage draft key; Publish → published key read by floor plan viewer |
-| 11 | Multi-floor builder (add floors, name them, navigate between) | 🟢 | Floor tabs with add/rename/delete. Active floor selector at bottom of builder. |
-| 12 | Import from CAD/DXF (stretch goal) | 🔴 | Auto-trace walls from architectural drawings |
-| 13 | Template facility layouts (common manufacturing layouts) | 🟢 | Linear Flow, U-Shape, L-Shape, Open Floor — with SVG mini-previews |
-| 14 | AI-assisted map building | 🔴 | ⭐ Upload photo of floor → AI suggests zones and asset positions |
-| 15 | Bulk pin placement (CSV import with x,y coordinates) | 🟢 | CSV paste or file upload with parse preview table before import |
+| 1 | DXF/CAD import → auto-generates vector floor plan | 🟡 | Working for SOLLiD DXF, needs refinement |
+| 2 | Upload floor plan image (JPG, PNG, PDF) as alternative | 🔴 | Per building/floor, for customers without CAD |
+| 3 | Draw department zones on floor plan (polygon drawing tool) | 🔴 | Click to place vertices, close shape, name zone |
+| 4 | Equipment icon library sidebar (blueprint-style SVG footprints) | 🔴 | ⭐ Categorized: CNC, Edge Banders, Saws, Conveyors, Storage, etc. |
+| 5 | Drag & drop equipment from library onto floor plan | 🔴 | On drop: assign asset ID, name, department |
+| 6 | Snap-to-grid option for clean alignment | 🔴 | Toggle grid overlay on/off |
+| 7 | Label placement tool (department names, area labels) | 🔴 | Text overlay on map |
+| 8 | Draw walls/barriers (line drawing tool) | 🔴 | Visual representation of physical layout |
+| 9 | Draw production flow paths (directional arrows) | 🔴 | Show material movement through facility |
+| 10 | Equipment icons stored in `/assets/equipment-icons/` | 🔴 | Named to match DXF block names, e.g., `biesse-rover-1531.svg` |
+| 11 | Undo/redo for all map edits | 🔴 | Essential for builder usability |
+| 12 | Save draft / publish workflow | 🔴 | Work in progress without affecting live map |
+| 13 | Multi-floor builder (add floors, name them, navigate between) | 🔴 | Building > Floor > Map |
+| 14 | Template facility layouts (common manufacturing layouts) | 🔴 | Starting templates to customize |
+| 15 | AI-assisted map building | 🔴 | ⭐ Upload photo of floor → AI suggests zones and asset positions |
+| 16 | Bulk pin placement (CSV import with x,y coordinates) | 🔴 | For large facilities with many assets |
 
 *Note: Users who want help building their map can use AI onboarding (Phase 3, Step 3). This self-service builder is for users who want to do it themselves.*
 
-### PM Checklists & Operator Rounds ⭐
+### KPI Gauge Dials
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Checklist template builder (admin creates reusable checklists) | 🔴 | Drag and drop to reorder items |
-| 2 | Checklist item types: checkbox, pass/fail, numeric reading, text note, photo required | 🔴 | ⭐ Not just checkboxes — capture real data |
-| 3 | Attach checklists to PM templates (auto-included when PM WO generates) | 🔴 | Daily PM → daily checklist, monthly PM → monthly checklist |
-| 4 | Operator self-service checklists (machine operator completes daily checks) | 🔴 | ⭐ Operator opens app, scans QR on machine, gets today's checklist |
-| 5 | Checklist completion tracking (who completed, when, how long) | 🔴 | |
-| 6 | Failed checklist items auto-generate corrective WO | 🔴 | ⭐ Operator marks "belt tension: FAIL" → WO created for maintenance |
-| 7 | Photo verification on checklist items (require photo proof) | 🔴 | "Take photo of clean filter" |
-| 8 | Numeric readings with acceptable range (flag out-of-range) | 🔴 | "Pressure: _____ PSI (normal: 80-120)" → red if outside range |
-| 9 | Checklist history per asset (see all past completed checklists) | 🔴 | Audit trail |
-| 10 | Checklist compliance reporting (% completed on time by operator/asset) | 🔴 | Feeds into department performance reporting |
-| 11 | Digital signature on checklist completion | 🔴 | Accountability |
-| 12 | Offline checklist completion (sync when back online) | 🔴 | For areas with poor connectivity |
-
-*Note: This is a key differentiator for operator engagement. Operators become part of the maintenance process through daily checklists instead of just calling when something breaks. Feeds data into predictive maintenance and reporting.*
-
-### QR & Barcode Scanning
-| # | Feature | Status | Notes |
-|---|---------|--------|-------|
-| 1 | Scan button in global header (accessible from any page) | 🔴 | Camera opens, scan any code, routes to correct item |
-| 2 | Asset QR scan → opens asset detail page | 🔴 | |
-| 3 | Asset QR scan → opens daily checklist for that asset (if operator) | 🔴 | ⭐ Operator workflow: walk up, scan, complete checklist |
-| 4 | Part barcode scan → opens part detail / stock info | 🔴 | |
-| 5 | Part barcode scan from within WO → adds part to WO parts used | 🔴 | Tech scans part while working, auto-logs usage |
-| 6 | QR scan on floor plan → centers map on that asset | 🔴 | |
-| 7 | Generate and print QR codes for assets from within app | 🔴 | DYMO LabelWriter integration |
-| 8 | Generate and print barcode labels for parts from within app | 🔴 | DYMO LabelWriter integration |
-| 9 | Bulk QR/barcode generation (select multiple, print batch) | 🔴 | |
-| 10 | Support for existing barcodes (manufacturer part numbers as barcodes) | 🔴 | Match SOLLiD standard: manufacturer part # = barcode |
-
-*Note: Both QR codes and barcodes are still widely used. QR for assets (more data, links to app), barcodes for parts (matches manufacturer labels, faster scanning for inventory). Support both.*
-
-### KPI Dashboard (Modern Design)
-| # | Feature | Status | Notes |
-|---|---------|--------|-------|
-| 1 | Large number KPI cards | 🟢 | Bold primary metric, clearly readable |
-| 2 | Sparkline trend charts per card | 🟢 | 7-day mini trend inline with each KPI |
-| 3 | Color-coded card borders + trend arrows | 🟢 | Red/yellow/green border + up/down arrow indicator |
-| 4 | KPI configuration builder | 🔴 | Admin creates custom KPIs, sets data sources, filters, thresholds |
-| 5 | Dashboard layout customization | 🔴 | Drag and resize KPI cards |
-| 6 | KPI auto-refresh via WebSocket | 🔴 | No manual reload needed — wire when backend is live |
-| 7 | Drill-down on any KPI card | 🔴 | Click PM Compliance → see list of completed/missed PMs behind that number |
-| 8 | Time range selector on dashboard | 🔴 | This Week / This Month / This Quarter / Custom |
-| 9 | KPI comparison view | 🔴 | This period vs last period side by side |
+| 1 | Half-circle speedometer gauges (like AE screenshot) | 🔴 | Recharts RadialBarChart |
+| 2 | Configurable zones (Normal/Warning/Error with colors) | 🔴 | Match AE: 0-70 red, 70-90 orange, 90-100 green |
+| 3 | KPI configuration builder (data source, filters, thresholds) | 🔴 | Admin can create custom KPIs |
+| 4 | Dashboard layout customization (drag/resize KPI cards) | 🔴 | |
+| 5 | KPI auto-refresh via WebSocket | 🔴 | No manual reload needed (fix AE pain point) |
 
 ### Scoreboard Enhancements
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Stoplight icon next to each tech name | 🟢 | ⭐ Actual traffic signal visual (3 stacked circles) |
-| 2 | Keep row color highlighting AND add stoplight | 🟢 | Both together |
-| 3 | TV/kiosk mode (auto-rotate, large text) | 🟢 | For shop floor display |
+| 1 | Stoplight icon next to each tech name | 🔴 | ⭐ Actual traffic signal visual (3 stacked circles) |
+| 2 | Stoplight renders ALL 3 circles always — active status full brightness + glow, inactive at ~15-20% opacity | 🔴 | ⭐ Looks like a real traffic light, not a single colored dot |
+| 3 | Keep row color highlighting AND add stoplight | 🔴 | Both together |
+| 4 | TV/kiosk mode (auto-rotate, large text, large stoplights) | 🔴 | For shop floor display — stoplights highly visible across the room |
 
 ### Graph Database (Kuzu)
 | # | Feature | Status | Notes |
@@ -275,7 +241,7 @@
 ### Mobile / PWA
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | PWA manifest and service worker | 🟢 | |
+| 1 | PWA manifest and service worker | 🔴 | |
 | 2 | Offline mode with reliable sync | 🔴 | ⭐ Fix AE's biggest pain point |
 | 3 | Barcode/QR scanning via camera | 🔴 | |
 | 4 | Push notifications | 🔴 | |
@@ -285,9 +251,34 @@
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
 | 1 | In-app messaging (WO chat threads) | 🔴 | MaintainX's #1 rated feature |
-| 2 | @mentions in comments | 🔴 | |
-| 3 | Photo/video attachments in comments | 🔴 | |
-| 4 | Notification preferences per user | 🔴 | |
+| 2 | Direct messages between techs/managers/requesters | 🔴 | |
+| 3 | @mentions in comments | 🔴 | |
+| 4 | Photo/video attachments in comments | 🔴 | |
+| 5 | Notification preferences per user | 🔴 | |
+| 6 | Voice-to-text mic button on ALL text inputs app-wide | 🔴 | ⭐ Critical for shop floor — dirty hands, gloves, noisy environment |
+| 7 | AI-structured voice input (speech → structured WO fields) | 🔴 | ⭐ Tech says "replaced drive belt, 45 min, used 1 Gates belt" → AI parses into action, time, parts consumed |
+| 8 | Voice-to-summary on completed WOs | 🔴 | ⭐ Voice note → AI formats into completion summary |
+| 9 | Voice search ("find asset Rover 4") | 🔴 | Uses same mic button + speech recognition |
+
+*Note: Voice-to-text uses browser Web Speech API for basic transcription. AI-structured processing (parsing time, parts, actions from speech) requires a backend endpoint — coordinate with Grant on Claude API integration for speech→structured data.*
+
+### Asset Reference Cards (Quick Reference Guides) ⭐
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 1 | Reference Card data model per asset (or per asset MODEL for shared cards) | 🔴 | One card can cover all 4 Biesse Rovers |
+| 2 | Reference Card tab/panel inside Work Order detail view | 🔴 | ⭐ One tap to access — always available when working a WO |
+| 3 | Structured template for reference cards (PM procedures, safety, common failures, parts, lubrication, troubleshooting) | 🔴 | |
+| 4 | Upload PDFs, images, and documents to reference cards | 🔴 | Photos of grease fittings, belt routing, etc. |
+| 5 | Troubleshooting decision tree (symptom → check this first) | 🔴 | Visual flowchart or structured checklist |
+| 6 | Links to full manufacturer manuals (stored in graphX) | 🔴 | Reference card is the quick version, manual is the deep version |
+| 7 | Version history and change tracking on reference cards | 🔴 | Living documents, editable over time |
+| 8 | AI auto-generates draft reference card from manufacturer manual | 🔴 | ⭐ graphX ingests manual → AI extracts key procedures, parts, and specs into card template |
+| 9 | AI assistant uses reference card + manual as knowledge base during WO | 🔴 | ⭐ Tech asks "how do I tension the drive belt on this?" → AI answers from card/manual |
+| 10 | Fix Only mode — quick answer, minimal explanation, get machine running | 🔴 | ⭐ For time-critical situations |
+| 11 | Fix & Train mode — step-by-step with WHY explanations, builds tech skill | 🔴 | ⭐ For when there's time to learn |
+| 12 | AI adapts guidance depth based on tech's history with this asset/repair type | 🔴 | ⭐ First time replacing this belt? Full walkthrough. Done it 5 times? Just the spec. |
+
+*Note: Reference cards are immediately useful even without AI — maintenance teams create them as standard operating procedures. AI enhancement layers on top over time. The Fix Only vs Fix & Train toggle is a major differentiator for technician development.*
 
 ### Automation Engine
 | # | Feature | Status | Notes |
@@ -319,69 +310,6 @@
 | 7 | CSV export on all views | 🔴 | |
 | 8 | Natural language report generation (AI) | 🔴 | "Show me downtime by department this quarter" |
 
-### Operations & Department Performance Reporting ⭐
-
-**Maintenance Department KPIs (for Kade / Ops Manager)**
-| # | Feature | Status | Notes |
-|---|---------|--------|-------|
-| 1 | Maintenance cost as % of asset replacement value (RAV) | 🔴 | Industry benchmark: 2-5% |
-| 2 | Planned vs unplanned maintenance ratio | 🔴 | ⭐ Target: 80% planned / 20% unplanned. Shows if department is proactive or reactive |
-| 3 | PM compliance rate (completed on time vs total scheduled) | 🟢 | Already on dashboard — extend to reporting with drill-down |
-| 4 | Mean Time to Repair (MTTR) | 🟢 | Already on dashboard — extend to reporting with trending |
-| 5 | Mean Time Between Failures (MTBF) per asset | 🔴 | ⭐ Shows equipment reliability improving or declining |
-| 6 | Wrench time (actual hands-on-tool time vs total labor hours) | 🔴 | Industry best practice: 55%+ is good |
-| 7 | Emergency/reactive work order percentage | 🔴 | ⭐ Trending down = department is improving |
-| 8 | Backlog age (how old are open WOs on average) | 🔴 | Growing backlog = understaffed or inefficient |
-| 9 | Schedule compliance (WOs completed as scheduled vs rescheduled) | 🔴 | |
-| 10 | First-time fix rate (WO completed without reopening) | 🔴 | Quality of repairs metric |
-
-**Production Support Metrics**
-| # | Feature | Status | Notes |
-|---|---------|--------|-------|
-| 11 | Equipment availability (uptime %) per asset and overall | 🔴 | ⭐ THE metric production cares about most |
-| 12 | Downtime hours by department / asset / cause | 🔴 | ⭐ Where are we losing production? |
-| 13 | Maintenance impact on production (downtime during scheduled production hours) | 🔴 | Separates scheduled maintenance downtime from unplanned |
-| 14 | Cost per unit of production attributable to maintenance | 🔴 | Ties maintenance cost to production output |
-| 15 | Asset ROI (maintenance cost vs production value generated) | 🔴 | Which machines earn their keep? |
-
-**Reporting Features**
-| # | Feature | Status | Notes |
-|---|---------|--------|-------|
-| 16 | Executive summary report (auto-generated monthly/weekly) | 🔴 | ⭐ One-page PDF: here's how maintenance supported production this month |
-| 17 | Trend reports (any metric over time with trendlines) | 🔴 | Show improvement or decline |
-| 18 | Department comparison (if multi-facility: compare facilities) | 🔴 | |
-| 19 | Scheduled report delivery (email PDF to Kade every Monday) | 🔴 | |
-| 20 | Natural language report queries (AI) | 🔴 | "How did we do on PM compliance in January?" |
-| 21 | Exportable to PDF and CSV | 🔴 | |
-| 22 | Red/Yellow/Green scorecards for leadership presentations | 🟢 | Already built — extend with exportable format |
-
-*Note: These metrics speak production's language. Kade doesn't care about "PM compliance" in isolation — he cares about "equipment availability went from 89% to 94% and unplanned downtime dropped 30% since we implemented assetZ." Frame all reports around production impact.*
-
-### Competitive Migration & Import ⭐
-
-**CSV/Excel Import (Phase 2 priority)**
-| # | Feature | Status | Notes |
-|---|---------|--------|-------|
-| 1 | Upload CSV/Excel file import wizard | 🔴 | Step-by-step guided import flow |
-| 2 | AI-powered column mapping | 🔴 | ⭐ AI reads column headers and auto-maps to assetZ fields |
-| 3 | Preview and review before import | 🔴 | Show sample rows with mapped fields, user confirms |
-| 4 | Validation and error reporting | 🔴 | Flag missing required fields, duplicates, format issues |
-| 5 | Import assets, WOs, parts, PMs, locations as separate uploads | 🔴 | One entity type per import, guided order |
-| 6 | Rollback capability (undo an import within 24 hours) | 🔴 | Safety net for bad imports |
-
-**API-Based Direct Migration (Phase 3)**
-| # | Feature | Status | Notes |
-|---|---------|--------|-------|
-| 7 | MaintainX direct import (OAuth + API pull) | 🔴 | ⭐ User logs into MaintainX from within assetZ, we pull everything |
-| 8 | Asset Essentials / Brightly direct import | 🔴 | API-based migration |
-| 9 | UpKeep direct import | 🔴 | API-based migration |
-| 10 | Fiix direct import | 🔴 | API-based migration |
-| 11 | Limble direct import | 🔴 | API-based migration |
-| 12 | Data model mapping layer per platform | 🔴 | Translates competitor fields/statuses/categories to assetZ equivalents |
-| 13 | Migration progress dashboard | 🔴 | Real-time progress bar |
-| 14 | Post-migration validation report | 🔴 | Summary of what imported and any issues |
-| 15 | Side-by-side comparison (old system vs assetZ) | 🔴 | Verify data came through correctly |
-
 ### Predictive Maintenance & IoT ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
@@ -412,6 +340,31 @@
 | 21 | Fleet-wide health heatmap | 🔴 | Color-coded view of all assets by health score |
 
 *Note: Predictive maintenance is the highest-value differentiator for enterprise customers. Start with Biesse SOPHIA integration (already available on SOLLiD's equipment), then expand to generic sensors. The graph database enables cross-asset prediction that no competitor offers.*
+
+### Advanced Maintenance Technology (Phase 4+ — Future Vision) ⭐
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| **VR/AR-Assisted Maintenance** | | | |
+| 1 | AR overlay of repair instructions on physical equipment via headset/glasses | 🔴 | ⭐ Step-by-step guidance overlaid on the actual machine |
+| 2 | LiDAR spatial scanning for real-time equipment identification | 🔴 | Point device at machine → system identifies model, pulls reference card |
+| 3 | Live diagnosis mode: scan → identify → diagnose → walkthrough repair | 🔴 | ⭐ Full guided repair experience |
+| 4 | Remote expert mode (senior tech/OEM specialist sees what field tech sees) | 🔴 | ⭐ Real-time collaboration on complex repairs from anywhere |
+| 5 | Auto-log repair steps, time, and parts consumed during VR session | 🔴 | WO completion data captured passively as tech works |
+| **3D Equipment Scanning & Virtual Disassembly** | | | |
+| 6 | External scan via LiDAR/photogrammetry → 3D model of machine exterior | 🔴 | ⭐ Capture real equipment geometry |
+| 7 | AI builds complete virtual model: scanned exterior + manufacturer docs + CAD data + online literature | 🔴 | ⭐ Combines multiple sources since internals can't be scanned without physical disassembly |
+| 8 | Virtual teardown — pull apart 3D model layer by layer | 🔴 | ⭐ Understand component relationships, access paths, assembly order |
+| 9 | Troubleshooting mode: describe symptom → AI highlights likely failed components in 3D model | 🔴 | ⭐ Shows disassembly path to reach the problem area |
+| 10 | Part identification: scan unknown part with phone camera → AI matches to 3D model → returns part number, supplier, inventory status | 🔴 | ⭐ Instant part lookup from a photo |
+| 11 | Interactive 3D exploded views linked to reference cards and manuals | 🔴 | Click a component in 3D → see its maintenance procedures |
+| **Facility Walkthrough Scanning & Digital Twin** | | | |
+| 12 | Walk-the-building scanning: LiDAR/device captures entire facility as you move through it | 🔴 | ⭐ One physical walkthrough builds the complete digital environment |
+| 13 | Tag-as-you-go: identify assets, departments, racking, aisles during the walkthrough | 🔴 | ⭐ "This is Mill department, this is a Biesse Rover, this rack section is laminate inventory" |
+| 14 | Auto-generates 2D floor plan + 3D environment + asset registry + department zones from single walkthrough | 🔴 | ⭐ Replaces weeks of manual data entry with a 2-hour facility walk |
+| 15 | Replayable 3D walkthrough for employee orientation and training | 🔴 | New hires learn the facility layout virtually before their first day on the floor |
+| 16 | Periodic re-scan to detect layout changes (moved equipment, new racking, etc.) | 🔴 | Diff against previous scan to flag what changed |
+
+*Note: VR/AR and 3D scanning represent the long-term vision for assetZ. These features would put assetZ in a category no CMMS competitor currently occupies. Start with simpler AR (phone camera-based, not full headset) and build toward full VR as hardware becomes more accessible on the shop floor. The 3D model library would be built incrementally — each scanned machine adds to the library for all customers using that equipment model. The facility walkthrough is the ultimate onboarding tool — one physical walk replaces weeks of manual setup. The walkthrough also becomes a living digital twin that stays in sync with the real facility through periodic re-scans.*
 
 ### Multi-Tenancy & SaaS
 | # | Feature | Status | Notes |
@@ -445,22 +398,25 @@ These are the features that make assetZ unique vs MaintainX, Limble, UpKeep, Fii
 
 9. **⭐ KPIs That Actually Auto-Refresh** — No manual reload after admin changes (direct fix of AE's biggest daily frustration).
 
-10. **⭐ Self-Service Map Builder** — No competitor offers an in-app facility map builder where users can draw zones, place pins, and design their floor plan without professional services. Combined with AI-assisted building (upload a photo → AI suggests layout).
+10. **⭐ Self-Service Map Builder** — No competitor offers an in-app facility map builder where users can draw zones, place pins, and design their floor plan without professional services. Combined with AI-assisted building (upload a photo → AI suggests layout). DXF/CAD import auto-generates vector floor plans.
 
 11. **⭐ Graph-Powered Predictive Maintenance** — Not just sensor thresholds (any IoT platform does that). Our graph database enables cross-asset prediction: "Asset X failed with this vibration pattern. Asset Y is the same model and trending the same way — inspect now." No competitor connects failure prediction across related assets.
 
-12. **⭐ Zero-Friction Migration** — Direct API import from top competitors (MaintainX, Asset Essentials, UpKeep, Fiix, Limble). Plus AI-powered CSV mapping for any platform. Eliminates the #1 reason companies don't switch.
+12. **⭐ Voice-First Input for Shop Floor** — Mic button on every text input in the app. AI-structured voice processing: tech says "replaced drive belt, 45 minutes, used one Gates belt" → system parses into action, time, and parts consumed. No competitor treats voice as a first-class input method across the entire app.
 
-13. **⭐ Operator Engagement Through Checklists** — Operators scan QR, complete daily checklists, failed items auto-generate WOs. Turns operators into the first line of maintenance defense. No competitor makes this workflow this seamless.
+13. **⭐ Real Stoplight Visuals** — Three-circle traffic signal indicators (not single colored dots) where active status glows and inactive circles are dim. Instantly readable across a room on TV/kiosk mode.
 
-14. **⭐ Production-Language Reporting** — Reports framed around what operations managers care about: equipment availability, downtime impact, maintenance cost per production unit. Not just maintenance metrics — production impact metrics.
+14. **⭐ Asset Reference Cards with Fix Only / Fix & Train AI** — Quick reference guides surface automatically inside every WO. AI uses reference card + full manual as knowledge base. Two modes: Fix Only (get it running fast) and Fix & Train (learn while you work). AI adapts guidance depth based on tech's experience with that repair type. No competitor offers adaptive AI-guided maintenance training built into the WO workflow.
+
+15. **⭐ VR/AR-Guided Maintenance, 3D Virtual Disassembly & Facility Digital Twin** — Future vision: scan a machine with LiDAR, get a 3D model you can virtually pull apart, with AI highlighting the likely failed component and showing the repair path. Remote expert mode lets senior techs guide junior techs from anywhere. Walk-the-building scanning builds the entire facility (floor plan, asset registry, departments, racking) from a single physical walkthrough — replacing weeks of manual onboarding with a 2-hour walk. No CMMS competitor is even attempting this.
 
 ---
 
 ## NOTES & IDEAS (Captured During Sessions)
 
-- Consider grid overlay on floor plans with coordinate system (e.g., D5) for walk-through reference
-- MaintainX's in-WO chat threads are their #1 feature — prioritize for Phase 3
+- **Global theme system:** Light / Dark / System toggle in sidebar footer or Settings. System mode follows OS `prefers-color-scheme`. Floor plan canvas is ALWAYS dark blue regardless of theme.
+- Consider grid overlay on floor plans with coordinate system (e.g., D5) for walk-through reference → DECIDED: Alphanumeric grid, numbers 1-15 top, letters A-F side
+- MaintainX's in-WO chat threads are their #1 feature — prioritize for Phase 3 → Added to Communication section with voice-to-text
 - MaintainX CoPilot is Enterprise-only ($$$). Our AI should be available at lower tiers to undercut.
 - Voice notes for WO completion summaries — huge for techs who hate typing
 - Photo-to-asset from nameplate — huge time saver during onboarding floor walks
@@ -473,3 +429,7 @@ These are the features that make assetZ unique vs MaintainX, Limble, UpKeep, Fii
 - MaintainX weakness: no indoor floor plan mapping. Our biggest visual differentiator.
 - Asset Essentials weakness: KPIs require manual reload after config changes. We fix this with WebSocket.
 - Asset Essentials weakness: mobile app sync unreliable. PWA with offline-first fixes this.
+- Reference cards should be buildable per asset OR per asset model — one card for "Biesse Rover B 1531" covers all 4 machines. Override at individual asset level if needed.
+- Fix Only vs Fix & Train is a training multiplier — every WO becomes an optional learning opportunity. Track which techs have completed "trained" repairs to build a skills matrix over time.
+- VR/AR: Start with phone camera AR (lower barrier) before investing in headset-based VR. Phone-based AR can do part scanning and basic overlay guidance immediately.
+- 3D model library is a network effect — every customer who scans a Biesse Rover adds to the shared model that all Biesse Rover owners benefit from. This creates a competitive moat.
