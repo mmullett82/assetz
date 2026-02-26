@@ -5,15 +5,13 @@
  *   public/data/sollid-blueprint.svg   — full-building SVG with layered <g> groups
  *   public/data/block-bounds.json      — bounding box per machine block name
  *
- * Layers:
- *   Building                   → <g id="layer-building">
- *   Aisles                     → <g id="layer-aisles">
- *   Storage and Buffer         → <g id="layer-storage">
- *   Workbenches Plantequipment → <g id="layer-workbenches">
- *   Machines (INSERT → rect)   → <g id="layer-machines">
- *   Phase2                     → <g id="layer-phase2">
- *
- * Entity types: LWPOLYLINE, POLYLINE, LINE, ARC, CIRCLE, INSERT (machines only)
+ * Layers (vibrant color palette on #0f172a canvas):
+ *   Building                   → <g id="layer-building">  #e2e8f0 warm white 2px
+ *   Aisles                     → <g id="layer-aisles">    #6366f1 indigo dotted 0.5px
+ *   Storage and Buffer         → <g id="layer-storage">   #92400e amber 0.3px @ 40%
+ *   Workbenches Plantequipment → <g id="layer-workbenches"> same as storage
+ *   Machines (INSERT → rect)   → <g id="layer-machines">  #06b6d4 cyan 1.2px
+ *   Phase2                     → <g id="layer-phase2">    #10b981 emerald 1px dashed
  *
  * Coordinate transform: svgX = (dxfX - 500) * 0.2, svgY = (4500 - dxfY) * 0.2
  * ViewBox: 0 0 1862 900
@@ -43,42 +41,43 @@ const SVG_H     = 900
 const X_LO = 300, X_HI = 10200
 const Y_LO = -700, Y_HI = 4700
 
-// ─── Layer config ──────────────────────────────────────────────────────────────
+// ─── Layer config — vibrant, distinct colors per layer ─────────────────────────
 
 const LAYER_CFG = {
   'Building': {
     id: 'layer-building',
-    stroke: '#1e293b',
-    strokeWidth: 1.5,
+    stroke: '#e2e8f0',       // Bright warm white — building shell / walls / columns
+    strokeWidth: 2,
   },
   'Aisles': {
     id: 'layer-aisles',
-    stroke: '#94a3b8',
-    strokeWidth: 0.8,
-    strokeDasharray: '6 4',
+    stroke: '#6366f1',       // Indigo/purple — distinct from dept boundaries
+    strokeWidth: 0.5,
+    strokeDasharray: '2 4',  // dotted, not dashed
   },
   'Storage and Buffer': {
     id: 'layer-storage',
-    stroke: '#64748b',
-    strokeWidth: 0.5,
+    stroke: '#92400e',       // Dim amber/orange — background texture
+    strokeWidth: 0.3,
+    strokeOpacity: 0.4,
   },
   'Workbenches Plantequipment': {
     id: 'layer-workbenches',
-    stroke: '#64748b',
-    strokeWidth: 0.5,
-    closedFill: '#f8fafc',
+    stroke: '#92400e',       // Same as storage
+    strokeWidth: 0.3,
+    strokeOpacity: 0.4,
   },
   'Machines': {
     id: 'layer-machines',
-    stroke: '#1e293b',
-    strokeWidth: 1,
+    stroke: '#06b6d4',       // Bright cyan/teal — BRIGHTEST interactive elements
+    strokeWidth: 1.2,
   },
   'Phase2': {
     id: 'layer-phase2',
-    stroke: '#3b82f6',
-    strokeWidth: 0.5,
+    stroke: '#10b981',       // Vibrant emerald green — future overlay
+    strokeWidth: 1,
     strokeDasharray: '4 3',
-    opacity: 0.6,
+    opacity: 0.7,
   },
 }
 
@@ -114,8 +113,8 @@ function polyToPath(e, cfg) {
   }
   if (closed) parts.push('Z')
 
-  const fill = closed && cfg.closedFill ? cfg.closedFill : 'none'
-  return `<path d="${parts.join(' ')}" fill="${fill}" />`
+  // Outline only — no fills on dark canvas
+  return `<path d="${parts.join(' ')}" fill="none" />`
 }
 
 function lineToPath(e) {
@@ -125,7 +124,6 @@ function lineToPath(e) {
     if (!inBounds(a.x, a.y) && !inBounds(b.x, b.y)) return ''
     return `<path d="M${f(svgX(a.x))},${f(svgY(a.y))} L${f(svgX(b.x))},${f(svgY(b.y))}" fill="none" />`
   }
-  // fallback: start/end properties
   const s = e.start || e.startPoint || {}
   const end = e.end || e.endPoint || {}
   if (!inBounds(s.x ?? 0, s.y ?? 0) && !inBounds(end.x ?? 0, end.y ?? 0)) return ''
@@ -141,15 +139,12 @@ function arcToPath(e) {
   const startAngle = (e.startAngle ?? 0) * Math.PI / 180
   const endAngle   = (e.endAngle ?? 360) * Math.PI / 180
 
-  // DXF angles are CCW from +X; SVG Y is flipped so we negate Y
   const sx = f(svgX(cx + r * Math.cos(startAngle)))
   const sy = f(svgY(cy + r * Math.sin(startAngle)))
   const ex = f(svgX(cx + r * Math.cos(endAngle)))
   const ey = f(svgY(cy + r * Math.sin(endAngle)))
   const sr = f(r * SCALE)
 
-  // Determine sweep: DXF CCW → SVG CW (because Y flip) → sweep-flag=0
-  // Large arc if angular span > 180°
   let angleDiff = endAngle - startAngle
   if (angleDiff < 0) angleDiff += 2 * Math.PI
   const largeArc = angleDiff > Math.PI ? 1 : 0
@@ -185,11 +180,9 @@ function computeBlockBbox(blockName) {
     return null
   }
 
-  // Collect all X/Y coordinates from geometric entities
   const xs = [], ys = []
 
   for (const e of block.entities) {
-    // Skip text/annotation entities
     if (['TEXT', 'MTEXT', 'DIMENSION', 'ATTDEF', 'ATTRIB', 'INSERT', 'SOLID', 'POINT'].includes(e.type)) continue
 
     const addPt = (x, y) => { xs.push(x); ys.push(y) }
@@ -222,8 +215,6 @@ function computeBlockBbox(blockName) {
     return null
   }
 
-  // Use IQR-based percentile clipping to remove outlier geometry
-  // (dimension lines, leader lines extend far beyond machine body)
   xs.sort((a, b) => a - b)
   ys.sort((a, b) => a - b)
 
@@ -263,14 +254,12 @@ for (const e of entities) {
   const cfg = LAYER_CFG[layerName]
 
   if (layerName === 'Machines' && e.type === 'INSERT') {
-    // Render as simplified bounding box rect using footprint data from sollid-assets.json
     const ix = e.position?.x ?? e.x ?? 0
     const iy = e.position?.y ?? e.y ?? 0
     if (!inBounds(ix, iy)) continue
 
-    // Find matching footprint for this INSERT position
     const fp = footprintLookup.get(`${Math.round(ix)},${Math.round(iy)}`)
-    if (!fp) continue // skip INSERTs without matching footprint data
+    if (!fp) continue
 
     const rot = e.rotation ?? 0
     const scx = f(svgX(ix))
@@ -289,7 +278,7 @@ for (const e of entities) {
     continue
   }
 
-  // Skip INSERT on non-Machines layers (we only want geometric primitives)
+  // Skip INSERT on non-Machines layers
   if (e.type === 'INSERT') continue
 
   let svg = ''
@@ -332,6 +321,7 @@ for (const [layerName, cfg] of Object.entries(LAYER_CFG)) {
     `fill="none"`,
   ]
   if (cfg.strokeDasharray) attrs.push(`stroke-dasharray="${cfg.strokeDasharray}"`)
+  if (cfg.strokeOpacity) attrs.push(`stroke-opacity="${cfg.strokeOpacity}"`)
   if (cfg.opacity) attrs.push(`opacity="${cfg.opacity}"`)
 
   svgParts.push(`<g ${attrs.join(' ')}>`)
@@ -349,15 +339,13 @@ mkdirSync(dirname(SVG_OUT), { recursive: true })
 const svgStr = svgParts.join('\n')
 writeFileSync(SVG_OUT, svgStr)
 
-// Block bounds JSON — derive from sollid-assets.json footprints (hand-tuned, accurate)
-// Block bboxes from DXF include infeed/outfeed conveyors and auxiliary geometry
 const assetsJson = JSON.parse(readFileSync(resolve(ROOT, 'public/data/sollid-assets.json'), 'utf-8'))
 const blockBoundsOut = {}
 for (const fp of assetsJson.machineFootprints || []) {
-  if (blockBoundsOut[fp.blockName]) continue // first occurrence per block name
+  if (blockBoundsOut[fp.blockName]) continue
   blockBoundsOut[fp.blockName] = {
-    hw: fp.hw,       // half-width in DXF inches
-    hh: fp.hh,       // half-height in DXF inches
+    hw: fp.hw,
+    hh: fp.hh,
     widthPx: +(fp.hw * 2 * SCALE).toFixed(2),
     heightPx: +(fp.hh * 2 * SCALE).toFixed(2),
   }

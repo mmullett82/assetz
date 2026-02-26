@@ -9,7 +9,9 @@
  *   Bay 14→15: 676" (56'-4")
  * Y increases north in DXF; SVG transform flips Y so north appears at top.
  *
- * No fill/stroke colors — blueprint style uses no zone fills.
+ * Zone positions corrected from SOLLiD-floor-plan.png annotated screenshot.
+ * Key fix: Mill (grids 3-6), Kitting (grids 6-10), Assembly (grids 10-12)
+ * do NOT overlap — they are side-by-side with clean boundaries.
  */
 
 export interface Zone {
@@ -52,113 +54,129 @@ export const GRID_COLS: GridCol[] = [
   { x: 9808, label: '15' },
 ]
 
-// ─── Department zones (~22 zones from annotated screenshot) ──────────────────
+// ─── Grid rows (A–F, dividing building height) ──────────────────────────────
+export interface GridRow {
+  y: number      // DXF inches
+  label: string  // "A" … "F"
+}
+
+export const GRID_ROWS: GridRow[] = [
+  { y: 4500, label: 'A' },
+  { y: 3750, label: 'B' },
+  { y: 3000, label: 'C' },
+  { y: 2250, label: 'D' },
+  { y: 1500, label: 'E' },
+  { y:  750, label: 'F' },
+  { y:    0, label: 'G' },
+]
+
+// ─── Department zones (corrected from annotated screenshot) ──────────────────
 
 export const ZONES: Zone[] = [
-  // ── North strip (Y ~3200–4400) ──────────────────────────────────────────────
+  // ── North strip (Y ~3200–4500) ──────────────────────────────────────────────
   {
     id: 'white-wood',
     label: 'White Wood',
-    x1:  500, y1: 3200, x2: 3084, y2: 4400,
+    x1:  500, y1: 3200, x2: 3084, y2: 4500,
   },
   {
     id: 'maintenance',
     label: 'Maintenance',
-    x1: 2500, y1: 3800, x2: 3200, y2: 4400,
+    x1: 2412, y1: 3800, x2: 3084, y2: 4500,
   },
   {
     id: 'compressor-chiller',
     label: 'Air Compressor & Chiller',
-    x1: 3084, y1: 4000, x2: 3756, y2: 4400,
+    x1: 3084, y1: 4100, x2: 3756, y2: 4500,
   },
   {
     id: 'finishing',
     label: 'Finishing',
-    x1: 3084, y1: 3200, x2: 7116, y2: 4400,
+    x1: 3084, y1: 3200, x2: 7116, y2: 4500,
   },
   {
     id: 'showroom',
     label: 'Showroom',
-    x1: 7116, y1: 3200, x2: 8460, y2: 4400,
+    x1: 7116, y1: 3200, x2: 8460, y2: 4500,
   },
   {
     id: 'lobby',
     label: 'Lobby',
-    x1: 8460, y1: 3800, x2: 9200, y2: 4400,
+    x1: 8460, y1: 3800, x2: 9132, y2: 4500,
   },
 
   // ── Middle production (Y ~700–3200) ─────────────────────────────────────────
   {
     id: 'west-storage',
     label: 'West Storage & Racking',
-    x1:  500, y1:  700, x2: 1068, y2: 3200,
+    x1:  500, y1:  700, x2: 1740, y2: 3200,    // grids 1-3
   },
   {
     id: 'mill',
     label: 'Mill',
-    x1: 1068, y1:  700, x2: 3756, y2: 3200,
+    x1: 1740, y1:  700, x2: 3756, y2: 3200,    // grids 3-6 (NOT overlapping kitting)
   },
   {
     id: 'kitting',
     label: 'Kitting',
-    x1: 3756, y1:  700, x2: 7116, y2: 3200,
+    x1: 3756, y1:  700, x2: 6444, y2: 3200,    // grids 6-10 (center of building)
   },
   {
     id: 'assembly',
     label: 'Assembly',
-    x1: 7116, y1:  700, x2: 8460, y2: 3200,
+    x1: 6444, y1:  700, x2: 7788, y2: 3200,    // grids 10-12 (right of kitting)
   },
   {
     id: 'ops-offices',
     label: 'Operations Offices',
-    x1: 8460, y1: 2600, x2: 9808, y2: 3200,
+    x1: 7116, y1: 2600, x2: 9132, y2: 3200,    // grids 11-14, upper strip
   },
   {
     id: 'east-storage',
     label: 'East End Storage & Racking',
-    x1: 8460, y1:  700, x2: 9808, y2: 2600,
+    x1: 7788, y1:  700, x2: 9808, y2: 2600,    // grids 12-15
   },
   {
     id: 'sales-tools',
     label: 'Sales Tools',
-    x1: 9200, y1: 2200, x2: 9808, y2: 2600,
+    x1: 9132, y1: 2200, x2: 9808, y2: 2600,
   },
   {
     id: 'breakroom',
     label: 'Breakroom & Food',
-    x1: 9200, y1: 1800, x2: 9808, y2: 2200,
+    x1: 9132, y1: 1600, x2: 9808, y2: 2200,
   },
   {
     id: 'grill-patio',
     label: 'Grill Patio',
-    x1: 9808, y1: 1800, x2: 10200, y2: 2600,
+    x1: 9808, y1: 1600, x2: 10200, y2: 2600,
   },
 
-  // ── South strip (Y ~100–700) ────────────────────────────────────────────────
+  // ── South strip (Y ~0–700) ────────────────────────────────────────────────
   {
     id: 'forklift-repair',
     label: 'Forklift Repair',
-    x1:  500, y1:  100, x2: 1068, y2:  700,
+    x1:  500, y1:  0, x2: 1740, y2:  700,       // grids 1-3
   },
   {
     id: 'receiving',
     label: 'Receiving',
-    x1: 1068, y1:  100, x2: 3756, y2:  700,
+    x1: 1740, y1:  0, x2: 3756, y2:  700,       // grids 3-6
   },
   {
     id: 'welding',
     label: 'Welding',
-    x1: 3756, y1:  100, x2: 5100, y2:  700,
+    x1: 3756, y1:  0, x2: 5100, y2:  700,       // grids 6-8
   },
   {
     id: 'dust-collector',
     label: 'Dust Collector Storage',
-    x1: 3756, y1: -200, x2: 5100, y2:  100,
+    x1: 3756, y1: -400, x2: 5100, y2:  0,       // below welding
   },
   {
     id: 'shipping',
     label: 'Shipping',
-    x1: 5100, y1:  100, x2: 9808, y2:  700,
+    x1: 5100, y1:  0, x2: 9808, y2:  700,       // grids 8-15
   },
 
   // ── Inside offices (approximate) ───────────────────────────────────────────

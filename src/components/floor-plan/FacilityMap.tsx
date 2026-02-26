@@ -3,11 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { dxfToSvg, SVG_W, SVG_H, SCALE } from '@/lib/floor-plan-transform'
-import { ZONES, GRID_COLS, type Zone } from '@/data/floor-plan/sollid-building'
+import { ZONES, GRID_COLS, GRID_ROWS, type Zone } from '@/data/floor-plan/sollid-building'
 import LayerControls, { type LayerState } from './LayerControls'
 import EquipmentFootprint from './EquipmentFootprint'
 import DepartmentZone from './DepartmentZone'
 import type { DxfAsset } from './DxfAssetPanel'
+
+// Canvas background — dark navy for maximum contrast
+const CANVAS_BG = '#0f172a'
 
 // ─── Asset data types (from public/data/sollid-assets.json) ───────────────────
 
@@ -52,8 +55,7 @@ export default function FacilityMap({
     grid:         true,
     equipment:    true,
     storage:      true,
-    aisles:       true,
-    labels:       true,
+    zones:        true,
     maintenance:  true,
     phase2:       false,
   })
@@ -64,7 +66,6 @@ export default function FacilityMap({
       fetch('/data/sollid-blueprint.svg').then(r => r.text()),
     ]).then(([assets, svgText]: [FloorData, string]) => {
       setFloorData(assets)
-      // Strip outer <svg> tags, keep inner content
       const inner = svgText
         .replace(/^<svg[^>]*>/, '')
         .replace(/<\/svg>\s*$/, '')
@@ -81,7 +82,7 @@ export default function FacilityMap({
     const layerMap: Record<string, string[]> = {
       structure: ['layer-building'],
       storage:   ['layer-storage', 'layer-workbenches'],
-      aisles:    ['layer-aisles'],
+      zones:     ['layer-aisles'],
       equipment: ['layer-machines'],
       phase2:    ['layer-phase2'],
     }
@@ -110,7 +111,7 @@ export default function FacilityMap({
   const allFootprints = floorData?.machineFootprints ?? []
   const allPins = floorData?.assetPins ?? []
 
-  // Build blockName → DxfAsset[] map for click handling
+  // Build blockName → DxfAsset[] map
   const machineToAssets = new Map<string, DxfAsset[]>()
   for (const pin of allPins) {
     if (!pin.nearestMachine) continue
@@ -119,23 +120,22 @@ export default function FacilityMap({
     machineToAssets.set(pin.nearestMachine, arr)
   }
 
-  // Show Phase2 or current Machines layer footprints
-  const footprints = allFootprints.filter(f =>
-    layers.phase2 ? f.layer === 'Phase2' : f.layer === 'Machines'
-  )
+  // Current + Phase 2 equipment (Phase 2 OVERLAYS, doesn't replace)
+  const currentFootprints = allFootprints.filter(f => f.layer === 'Machines')
+  const phase2Footprints = allFootprints.filter(f => f.layer === 'Phase2')
 
-  // Get active zone bounds for filtering
+  // Active zone for filtering
   const activeZoneData = activeZone ? ZONES.find(z => z.id === activeZone) : null
 
   return (
-    <div className="relative w-full h-full bg-slate-100 rounded-lg overflow-hidden select-none">
+    <div className="relative w-full h-full rounded-lg overflow-hidden select-none" style={{ backgroundColor: CANVAS_BG }}>
 
       <LayerControls layers={layers} onChange={setLayers} />
 
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-30">
-          <div className="flex flex-col items-center gap-2 text-slate-500">
-            <div className="h-6 w-6 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center z-30" style={{ backgroundColor: 'rgba(15,23,42,0.9)' }}>
+          <div className="flex flex-col items-center gap-2 text-slate-300">
+            <div className="h-6 w-6 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
             <span className="text-sm">Loading floor plan…</span>
           </div>
         </div>
@@ -157,12 +157,12 @@ export default function FacilityMap({
             viewBox={`0 0 ${SVG_W} ${SVG_H}`}
             width={SVG_W}
             height={SVG_H}
-            style={{ display: 'block', background: 'white' }}
+            style={{ display: 'block', background: CANVAS_BG }}
           >
-            {/* 1. White background */}
-            <rect x={0} y={0} width={SVG_W} height={SVG_H} fill="white" />
+            {/* 1. Dark canvas background */}
+            <rect x={0} y={0} width={SVG_W} height={SVG_H} fill={CANVAS_BG} />
 
-            {/* 2. Blueprint SVG layers (building, aisles, storage, workbenches, machines, phase2) */}
+            {/* 2. Blueprint SVG layers */}
             {blueprintSvg && (
               <g
                 ref={blueprintRef}
@@ -170,34 +170,67 @@ export default function FacilityMap({
               />
             )}
 
-            {/* 3. Column grid (React-rendered) */}
-            {layers.grid && GRID_COLS.map((col, i) => {
-              const [svgX] = dxfToSvg(col.x, 0)
-              if (svgX < -2 || svgX > SVG_W + 2) return null
-              return (
-                <g key={i}>
-                  <line
-                    x1={svgX} y1={0}
-                    x2={svgX} y2={SVG_H}
-                    stroke="#cbd5e1"
-                    strokeWidth={0.4}
-                    strokeDasharray="3 7"
-                  />
-                  <text
-                    x={svgX + 2}
-                    y={8}
-                    fontSize={6}
-                    fill="#94a3b8"
-                    style={{ userSelect: 'none' }}
-                  >
-                    {col.label}
-                  </text>
-                </g>
-              )
-            })}
+            {/* 3. Column grid lines + numbers */}
+            {layers.grid && (
+              <>
+                {GRID_COLS.map((col, i) => {
+                  const [svgX] = dxfToSvg(col.x, 0)
+                  if (svgX < -2 || svgX > SVG_W + 2) return null
+                  return (
+                    <g key={`col-${i}`}>
+                      <line
+                        x1={svgX} y1={0}
+                        x2={svgX} y2={SVG_H}
+                        stroke="#334155"
+                        strokeWidth={0.5}
+                        strokeDasharray="3 7"
+                      />
+                      <text
+                        x={svgX + 3}
+                        y={14}
+                        fontSize={12}
+                        fill="#94a3b8"
+                        fontFamily="monospace"
+                        fontWeight="600"
+                        style={{ userSelect: 'none' }}
+                      >
+                        {col.label}
+                      </text>
+                    </g>
+                  )
+                })}
+                {/* Row grid lines + letters */}
+                {GRID_ROWS.map((row, i) => {
+                  const [, svgY] = dxfToSvg(0, row.y)
+                  if (svgY < -2 || svgY > SVG_H + 2) return null
+                  return (
+                    <g key={`row-${i}`}>
+                      <line
+                        x1={0} y1={svgY}
+                        x2={SVG_W} y2={svgY}
+                        stroke="#334155"
+                        strokeWidth={0.5}
+                        strokeDasharray="3 7"
+                      />
+                      <text
+                        x={5}
+                        y={svgY - 3}
+                        fontSize={12}
+                        fill="#94a3b8"
+                        fontFamily="monospace"
+                        fontWeight="600"
+                        style={{ userSelect: 'none' }}
+                      >
+                        {row.label}
+                      </text>
+                    </g>
+                  )
+                })}
+              </>
+            )}
 
-            {/* 4. Department zones (invisible until hovered/clicked) */}
-            {layers.labels && ZONES.map(zone => (
+            {/* 4. Department zones — always-visible dashed boundaries, no click highlight */}
+            {layers.zones && ZONES.map(zone => (
               <DepartmentZone
                 key={zone.id}
                 zone={zone}
@@ -206,15 +239,13 @@ export default function FacilityMap({
               />
             ))}
 
-            {/* 5. Equipment footprints (status LED, clickable) */}
-            {layers.equipment && footprints.map(fp => {
+            {/* 5. Current equipment — bright cyan, ALWAYS rendered */}
+            {layers.equipment && currentFootprints.map(fp => {
               const assets = machineToAssets.get(fp.blockName) ?? []
               const firstAsset = assets[0]
               const status = firstAsset?.status ?? 'decommissioned'
 
-              // Determine if this footprint is in the active zone
               const inActiveZone = !activeZoneData || isInZone(fp.x, fp.y, activeZoneData)
-              // Determine if status-filtered
               const matchesFilter = !statusFilter || status === statusFilter
 
               return (
@@ -225,7 +256,7 @@ export default function FacilityMap({
                   status={status}
                   isSelected={!!firstAsset && selectedPinNumber === firstAsset.assetNumber}
                   dimmed={(!matchesFilter || !inActiveZone)}
-                  showLabel={layers.labels}
+                  showLabel={layers.zones}
                   showMaintenance={layers.maintenance}
                   onClick={() => {
                     if (firstAsset) onSelectPin?.(firstAsset)
@@ -234,12 +265,28 @@ export default function FacilityMap({
               )
             })}
 
-            {/* Scale bar: bottom-right, 500" = 100px */}
+            {/* 6. Phase 2 equipment OVERLAY — emerald green dashed, on top */}
+            {layers.phase2 && phase2Footprints.map(fp => (
+              <EquipmentFootprint
+                key={fp.id}
+                footprint={fp}
+                asset={null}
+                status="decommissioned"
+                isSelected={false}
+                dimmed={false}
+                isPhase2
+                showLabel={layers.zones}
+                showMaintenance={false}
+                onClick={() => {}}
+              />
+            ))}
+
+            {/* Scale bar */}
             <g transform={`translate(${SVG_W - 130}, ${SVG_H - 18})`}>
-              <line x1={0} y1={0} x2={100} y2={0} stroke="#64748b" strokeWidth={1.5} />
-              <line x1={0} y1={-4} x2={0} y2={4} stroke="#64748b" strokeWidth={1.5} />
-              <line x1={100} y1={-4} x2={100} y2={4} stroke="#64748b" strokeWidth={1.5} />
-              <text x={50} y={-5} textAnchor="middle" fontSize={6} fill="#64748b" style={{ userSelect: 'none' }}>
+              <line x1={0} y1={0} x2={100} y2={0} stroke="#94a3b8" strokeWidth={1.5} />
+              <line x1={0} y1={-4} x2={0} y2={4} stroke="#94a3b8" strokeWidth={1.5} />
+              <line x1={100} y1={-4} x2={100} y2={4} stroke="#94a3b8" strokeWidth={1.5} />
+              <text x={50} y={-5} textAnchor="middle" fontSize={7} fill="#94a3b8" fontFamily="monospace" style={{ userSelect: 'none' }}>
                 500&quot; (41&apos;-8&quot;)
               </text>
             </g>

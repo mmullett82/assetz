@@ -8,8 +8,7 @@ export interface LayerState {
   grid:         boolean
   equipment:    boolean
   storage:      boolean
-  aisles:       boolean
-  labels:       boolean
+  zones:        boolean
   maintenance:  boolean
   phase2:       boolean
 }
@@ -24,8 +23,7 @@ const LAYER_DEFS: { key: keyof LayerState; label: string }[] = [
   { key: 'grid',         label: 'Column Grid' },
   { key: 'equipment',    label: 'Assets' },
   { key: 'storage',      label: 'Storage & Racking' },
-  { key: 'aisles',       label: 'Aisles & Transport' },
-  { key: 'labels',       label: 'Department Labels' },
+  { key: 'zones',        label: 'Department Zones' },
   { key: 'maintenance',  label: 'Active Maintenance' },
   { key: 'phase2',       label: 'Phase 2 Layout' },
 ]
@@ -46,7 +44,7 @@ export default function LayerControls({ layers, onChange }: LayerControlsProps) 
           'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium shadow-sm border transition-colors',
           open
             ? 'bg-slate-800 text-white border-slate-700'
-            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50',
+            : 'bg-[#1e2d47] text-slate-300 border-[#2e4a6e] hover:bg-[#253a54]',
         ].join(' ')}
         aria-label="Toggle layer controls"
       >
@@ -69,7 +67,7 @@ export default function LayerControls({ layers, onChange }: LayerControlsProps) 
               />
               <span className="text-xs text-slate-700">{label}</span>
               {key === 'phase2' && layers.phase2 && (
-                <span className="ml-auto text-[10px] text-blue-600 font-medium">ON</span>
+                <span className="ml-auto text-[10px] text-cyan-600 font-medium">ON</span>
               )}
               {key === 'maintenance' && layers.maintenance && (
                 <span className="ml-auto text-[10px] text-yellow-600 font-medium">ON</span>
@@ -79,7 +77,7 @@ export default function LayerControls({ layers, onChange }: LayerControlsProps) 
 
           <div className="pt-1 mt-1 border-t border-slate-100">
             <p className="px-2 text-[10px] text-slate-400 leading-tight">
-              Phase 2 shows future layout overlay
+              Phase 2 overlays planned equipment on current layout
             </p>
           </div>
         </div>

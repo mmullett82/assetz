@@ -17,7 +17,7 @@ export default function FloorPlanPage() {
   const STATUS_CHIPS: { value: StatusFilter; label: string; dot: string }[] = [
     { value: '',            label: 'All',           dot: 'bg-slate-400'  },
     { value: 'operational', label: 'Operational',   dot: 'bg-green-500'  },
-    { value: 'maintenance', label: 'Maintenance',   dot: 'bg-yellow-500' },
+    { value: 'maintenance', label: 'Maintenance',   dot: 'bg-amber-500'  },
     { value: 'down',        label: 'Down',          dot: 'bg-red-500'    },
   ]
 
@@ -78,8 +78,6 @@ export default function FloorPlanPage() {
 
       {/* Canvas + detail panel */}
       <div className="flex flex-1 min-h-0 relative overflow-hidden">
-
-        {/* DXF facility map */}
         <div className="flex-1 min-w-0 p-2">
           <FacilityMap
             statusFilter={statusFilter}
@@ -90,7 +88,6 @@ export default function FloorPlanPage() {
           />
         </div>
 
-        {/* Asset detail panel */}
         {selectedPin && (
           <DxfAssetPanel
             asset={selectedPin}
@@ -103,35 +100,39 @@ export default function FloorPlanPage() {
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-slate-200 bg-white px-4 sm:px-6 py-2 shrink-0 text-xs text-slate-500">
         <span className="font-semibold text-slate-400 uppercase tracking-wide">Legend</span>
 
-        {/* Blueprint symbols */}
         <div className="hidden sm:flex items-center gap-1.5">
           <svg width="20" height="10" className="shrink-0">
-            <line x1="0" y1="5" x2="20" y2="5" stroke="#1e293b" strokeWidth="2" />
+            <line x1="0" y1="5" x2="20" y2="5" stroke="#e2e8f0" strokeWidth="2" />
           </svg>
           Walls
         </div>
         <div className="hidden sm:flex items-center gap-1.5">
           <svg width="20" height="10" className="shrink-0">
-            <rect x="1" y="1" width="18" height="8" fill="none" stroke="#1e293b" strokeWidth="1" />
+            <rect x="1" y="1" width="18" height="8" fill="none" stroke="#06b6d4" strokeWidth="1.2" />
           </svg>
           Equipment
         </div>
         <div className="hidden sm:flex items-center gap-1.5">
           <svg width="20" height="10" className="shrink-0">
-            <line x1="0" y1="5" x2="20" y2="5" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3" />
+            <rect x="1" y="1" width="18" height="8" fill="none" stroke="#64748b" strokeWidth="1" strokeDasharray="4 3" />
           </svg>
-          Aisles
+          Dept Zone
+        </div>
+        <div className="hidden sm:flex items-center gap-1.5">
+          <svg width="20" height="10" className="shrink-0">
+            <rect x="1" y="1" width="18" height="8" fill="none" stroke="#10b981" strokeWidth="1" strokeDasharray="4 3" />
+          </svg>
+          Phase 2
         </div>
 
         <span className="hidden sm:inline h-3.5 w-px bg-slate-200" />
 
-        {/* Status LED indicators */}
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-green-500 shrink-0" />
           Operational
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-yellow-500 shrink-0" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shrink-0" />
           PM Due
         </div>
         <div className="flex items-center gap-1.5">
@@ -140,8 +141,8 @@ export default function FloorPlanPage() {
         </div>
         <div className="flex items-center gap-1.5">
           <svg width="16" height="16" className="shrink-0">
-            <circle cx="8" cy="8" r="4" fill="#eab308" />
-            <circle cx="8" cy="8" r="6" fill="none" stroke="#eab308" strokeWidth="1" opacity="0.5" />
+            <circle cx="8" cy="8" r="4" fill="#f59e0b" />
+            <circle cx="8" cy="8" r="6" fill="none" stroke="#f59e0b" strokeWidth="1" opacity="0.5" />
           </svg>
           Active Maint.
         </div>
