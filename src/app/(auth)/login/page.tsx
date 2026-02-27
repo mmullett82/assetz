@@ -1,28 +1,31 @@
 'use client'
 
-import type { Metadata } from 'next'
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Zap } from 'lucide-react'
-
-// Metadata can't be exported from client components — move to a separate
-// server component wrapper if needed; for now just define it here as a comment.
-// export const metadata: Metadata = { title: 'Sign In' }
+import { useAuth } from '@/hooks/useAuth'
+import { USE_MOCK } from '@/lib/config'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { login } = useAuth()
+  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setIsLoading(true)
     try {
-      // TODO: wire to useAuth().login()
-      await new Promise((r) => setTimeout(r, 800)) // placeholder
-      window.location.href = '/dashboard'
+      if (USE_MOCK) {
+        await new Promise((r) => setTimeout(r, 800))
+      } else {
+        await login(email, password)
+      }
+      router.push('/dashboard')
     } catch {
       setError('Invalid email or password.')
     } finally {

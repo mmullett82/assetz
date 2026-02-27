@@ -4,8 +4,7 @@ import useSWR from 'swr'
 import type { Asset, PaginatedResponse } from '@/types'
 import apiClient, { type AssetsQuery } from '@/lib/api-client'
 import { MOCK_ASSETS } from '@/lib/mock-data'
-
-const USE_MOCK = true // always use mock data until backend is connected
+import { USE_MOCK } from '@/lib/config'
 
 function mockFetcher(query?: AssetsQuery): PaginatedResponse<Asset> {
   let data = [...MOCK_ASSETS]

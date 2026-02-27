@@ -9,6 +9,8 @@ import Button from '@/components/ui/Button'
 import { MOCK_ASSETS, MOCK_DEPARTMENTS } from '@/lib/mock-data'
 import { MOCK_PARTS } from '@/lib/mock-parts'
 import { X } from 'lucide-react'
+import apiClient from '@/lib/api-client'
+import { USE_MOCK } from '@/lib/config'
 
 type PMType = 'time_based' | 'meter_based' | 'time_meter_override'
 type EndCondition = 'none' | 'occurrences' | 'date'
@@ -187,8 +189,13 @@ export default function PMForm({ pmSchedule }: PMFormProps) {
     if (!validate()) return
     setSaving(true)
     try {
-      // TODO: wire to apiClient.pmSchedules.create() / .update()
-      await new Promise((r) => setTimeout(r, 600))
+      if (USE_MOCK) {
+        await new Promise((r) => setTimeout(r, 600))
+      } else if (isEditing && pmSchedule) {
+        await apiClient.pmSchedules.update(pmSchedule.id, form as unknown as Partial<PMSchedule>)
+      } else {
+        await apiClient.pmSchedules.create(form as unknown as Partial<PMSchedule>)
+      }
       router.push('/pm')
       router.refresh()
     } catch {

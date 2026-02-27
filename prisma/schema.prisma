@@ -1,0 +1,545 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Organization & Facility ──────────────────────────────────────────────────
+
+model Organization {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String   @unique
+  created_at DateTime @default(now())
+
+  facilities   Facility[]
+  departments  Department[]
+  users        User[]
+  assets       Asset[]
+  work_orders  WorkOrder[]
+  pm_schedules PMSchedule[]
+  parts        Part[]
+  config_items ConfigItem[]
+  crews        Crew[]
+  notifications Notification[]
+  floor_plans  FloorPlan[]
+
+  @@map("organizations")
+}
+
+model Facility {
+  id              String   @id @default(cuid())
+  organization_id String
+  name            String
+  building_code   String
+  address         String?
+  timezone        String   @default("America/Vancouver")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  assets       Asset[]
+  departments  Department[]
+  floor_plans  FloorPlan[]
+
+  @@map("facilities")
+}
+
+model Department {
+  id              String   @id @default(cuid())
+  organization_id String
+  facility_id     String
+  name            String
+  code            String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  facility     Facility     @relation(fields: [facility_id], references: [id], onDelete: Cascade)
+  assets       Asset[]
+
+  @@unique([facility_id, code])
+  @@map("departments")
+}
+
+// ─── User ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id              String   @id @default(cuid())
+  organization_id String
+  email           String   @unique
+  password_hash   String
+  full_name       String
+  role            String   @default("technician") // admin, manager, technician, requester
+  is_active       Boolean  @default(true)
+  avatar_url      String?
+  phone           String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  assigned_assets      Asset[]             @relation("AssignedTo")
+  emergency_assets     Asset[]             @relation("EmergencyContact")
+  requested_wos        WorkOrder[]         @relation("RequestedBy")
+  assigned_wos         WorkOrder[]         @relation("AssignedToWO")
+  assigned_pm_schedules PMSchedule[]
+  wo_comments          WorkOrderComment[]
+  wo_photos            WorkOrderPhoto[]
+  labor_entries        LaborEntry[]
+  part_reservations    PartReservation[]
+  notifications        Notification[]
+  crew_memberships     CrewMember[]
+
+  @@map("users")
+}
+
+// ─── Asset ────────────────────────────────────────────────────────────────────
+
+model Asset {
+  id              String  @id @default(cuid())
+  organization_id String
+  facility_id     String
+  department_id   String
+
+  facility_asset_id String @unique
+  asset_number      String @unique
+
+  name            String
+  description     String?
+  manufacturer    String?
+  model           String?
+  serial_number   String?
+  year_installed  Int?
+
+  // ID system components
+  company_code     String
+  building_code    String
+  department_code  String
+  system_type      String
+  unit_type        String
+  dependency_code  String  // L, C, U
+  dependency_group Int
+  sequence         Int
+
+  status         String @default("operational") // operational, down, maintenance, decommissioned
+  location_notes String?
+
+  // Floor plan positioning
+  floor_plan_x    Float?
+  floor_plan_y    Float?
+  floor_plan_zone String?
+
+  // Meter tracking
+  current_meter_value Float?
+  meter_unit          String?
+  last_meter_update   DateTime?
+
+  // Purchase Information
+  purchase_price          Float?
+  purchase_date           DateTime?
+  purchase_invoice_number String?
+  expected_life_years     Int?
+  replacement_cost        Float?
+  salvage_value           Float?
+
+  // Warranty
+  warranty_title           String?
+  warranty_expiration_date DateTime?
+  warranty_vendor          String?
+
+  // Dates
+  date_of_manufacture      DateTime?
+  date_placed_in_service   DateTime?
+  date_removed             DateTime?
+  out_of_service_begin     DateTime?
+  out_of_service_end       DateTime?
+
+  // Condition Assessment
+  current_condition      String?
+  condition_date         DateTime?
+  estimated_replace_date DateTime?
+  assessment_note        String?
+
+  // Safety & Procedures
+  safety_note              String?
+  training_note            String?
+  shutdown_procedure_note  String?
+  loto_procedure_note      String?
+  emergency_note           String?
+
+  // Assignment & IDs
+  assigned_to_id       String?
+  emergency_contact_id String?
+  tag_number           String?
+  rfid                 String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  facility     Facility     @relation(fields: [facility_id], references: [id], onDelete: Cascade)
+  department   Department   @relation(fields: [department_id], references: [id], onDelete: Cascade)
+  assigned_to       User?  @relation("AssignedTo", fields: [assigned_to_id], references: [id])
+  emergency_contact User?  @relation("EmergencyContact", fields: [emergency_contact_id], references: [id])
+
+  // Dependencies (graph edges)
+  depends_on_edges  AssetDependency[] @relation("DependentAsset")
+  provider_edges    AssetDependency[] @relation("ProviderAsset")
+
+  work_orders  WorkOrder[]
+  pm_schedules PMSchedule[]
+  asset_parts  AssetPart[]
+
+  @@map("assets")
+}
+
+model AssetDependency {
+  id          String @id @default(cuid())
+  dependent_id String
+  provider_id  String
+  type         String // DEPENDS_ON, FEEDS
+
+  dependent Asset @relation("DependentAsset", fields: [dependent_id], references: [id], onDelete: Cascade)
+  provider  Asset @relation("ProviderAsset", fields: [provider_id], references: [id], onDelete: Cascade)
+
+  @@unique([dependent_id, provider_id, type])
+  @@map("asset_dependencies")
+}
+
+// ─── Work Order ───────────────────────────────────────────────────────────────
+
+model WorkOrder {
+  id              String  @id @default(cuid())
+  organization_id String
+  work_order_number String @unique
+
+  asset_id String
+
+  type     String @default("corrective")
+  status   String @default("open")
+  priority String @default("medium")
+
+  title       String
+  description String
+  failure_code String?
+  cause_code   String?
+  remedy       String?
+
+  requested_by_id String
+  assigned_to_id  String?
+
+  due_date     DateTime?
+  started_at   DateTime?
+  completed_at DateTime?
+  estimated_hours Float?
+  actual_hours    Float?
+
+  pm_schedule_id String?
+
+  // Origin tracking
+  origin_type        String?
+  originated_date    DateTime?
+  originator_id      String?
+  assigned_date      DateTime?
+  completed_datetime DateTime?
+  action_taken       String?
+  root_cause         String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  asset        Asset        @relation(fields: [asset_id], references: [id], onDelete: Cascade)
+  requested_by User         @relation("RequestedBy", fields: [requested_by_id], references: [id])
+  assigned_to  User?        @relation("AssignedToWO", fields: [assigned_to_id], references: [id])
+  pm_schedule  PMSchedule?  @relation(fields: [pm_schedule_id], references: [id])
+
+  comments      WorkOrderComment[]
+  photos        WorkOrderPhoto[]
+  parts_used    WorkOrderPart[]
+  labor_entries LaborEntry[]
+  reservations  PartReservation[]
+
+  @@map("work_orders")
+}
+
+model WorkOrderComment {
+  id            String   @id @default(cuid())
+  work_order_id String
+  user_id       String
+  body          String
+  created_at    DateTime @default(now())
+
+  work_order WorkOrder @relation(fields: [work_order_id], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [user_id], references: [id])
+
+  @@map("work_order_comments")
+}
+
+model WorkOrderPhoto {
+  id             String   @id @default(cuid())
+  work_order_id  String
+  url            String
+  caption        String?
+  uploaded_by_id String
+  created_at     DateTime @default(now())
+
+  work_order  WorkOrder @relation(fields: [work_order_id], references: [id], onDelete: Cascade)
+  uploaded_by User      @relation(fields: [uploaded_by_id], references: [id])
+
+  @@map("work_order_photos")
+}
+
+model WorkOrderPart {
+  id            String @id @default(cuid())
+  work_order_id String
+  part_id       String
+  quantity_used Int
+  unit_cost     Float?
+
+  work_order WorkOrder @relation(fields: [work_order_id], references: [id], onDelete: Cascade)
+  part       Part      @relation(fields: [part_id], references: [id])
+
+  @@map("work_order_parts")
+}
+
+model LaborEntry {
+  id            String   @id @default(cuid())
+  work_order_id String
+  user_id       String
+  hours         Float
+  date          String   // ISO date string YYYY-MM-DD
+  notes         String?
+  created_at    DateTime @default(now())
+
+  work_order WorkOrder @relation(fields: [work_order_id], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [user_id], references: [id])
+
+  @@map("labor_entries")
+}
+
+// ─── PM Schedule ─────────────────────────────────────────────────────────────
+
+model PMSchedule {
+  id              String @id @default(cuid())
+  organization_id String
+
+  asset_id String
+
+  title        String
+  description  String
+  instructions String?
+
+  frequency      String @default("monthly")
+  interval_value Int?
+  meter_interval Int?
+  estimated_hours Float?
+
+  assigned_to_id String?
+
+  last_completed_at DateTime?
+  next_due_at       DateTime?
+
+  is_active Boolean @default(true)
+
+  // Extended schedule fields
+  pm_type                    String?
+  expected_completion_days   Int?
+  expected_completion_hours  Float?
+  wo_creation_time           String?
+  default_wo_status          String?
+  default_problem_code       String?
+  default_cause_code         String?
+  end_condition              String?
+  end_occurrences            Int?
+  end_date                   DateTime?
+  skip_if_open               Boolean @default(false)
+  required_parts             Json?   // [{ part_id, quantity }]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  asset        Asset        @relation(fields: [asset_id], references: [id], onDelete: Cascade)
+  assigned_to  User?        @relation(fields: [assigned_to_id], references: [id])
+
+  work_orders WorkOrder[]
+
+  @@map("pm_schedules")
+}
+
+// ─── Parts & Inventory ────────────────────────────────────────────────────────
+
+model Part {
+  id              String @id @default(cuid())
+  organization_id String
+
+  part_number  String
+  name         String
+  description  String?
+  manufacturer String?
+  vendor       String?
+  vendor_part_number String?
+
+  unit_of_measure String @default("ea")
+  unit_cost       Float?
+
+  quantity_on_hand  Int @default(0)
+  quantity_reserved Int @default(0)
+  reorder_point     Int?
+  reorder_quantity  Int?
+
+  status   String @default("in_stock")
+  location String?
+
+  // Extended fields
+  alternate_part_number  String?
+  manufacturer_barcode   String?
+  par_quantity           Int?
+  min_level              Int?
+  max_level              Int?
+  quantity_on_back_order Int?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  reservations  PartReservation[]
+  asset_parts   AssetPart[]
+  wo_parts      WorkOrderPart[]
+
+  @@unique([organization_id, part_number])
+  @@map("parts")
+}
+
+model PartReservation {
+  id               String   @id @default(cuid())
+  part_id          String
+  work_order_id    String
+  quantity_reserved Int
+  reserved_by_id   String
+  reserved_at      DateTime @default(now())
+
+  part       Part      @relation(fields: [part_id], references: [id], onDelete: Cascade)
+  work_order WorkOrder @relation(fields: [work_order_id], references: [id], onDelete: Cascade)
+  reserved_by User     @relation(fields: [reserved_by_id], references: [id])
+
+  @@map("part_reservations")
+}
+
+model AssetPart {
+  id       String @id @default(cuid())
+  asset_id String
+  part_id  String
+
+  asset Asset @relation(fields: [asset_id], references: [id], onDelete: Cascade)
+  part  Part  @relation(fields: [part_id], references: [id], onDelete: Cascade)
+
+  @@unique([asset_id, part_id])
+  @@map("asset_parts")
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id              String   @id @default(cuid())
+  organization_id String
+  user_id         String
+  title           String
+  body            String
+  type            String   @default("info") // alert, info, warning
+  read            Boolean  @default(false)
+  link            String?
+  created_at      DateTime @default(now())
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ─── Settings / Config ────────────────────────────────────────────────────────
+
+model ConfigItem {
+  id              String  @id @default(cuid())
+  organization_id String
+  category        String  // e.g. "asset_status", "wo_priority", "wo_type"
+  key             String
+  label           String
+  sort_order      Int     @default(0)
+  is_default      Boolean @default(false)
+  is_active       Boolean @default(true)
+  color           String?
+  extra           Json?   // polymorphic data
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  @@unique([organization_id, category, key])
+  @@map("config_items")
+}
+
+// ─── Floor Plan ───────────────────────────────────────────────────────────────
+
+model FloorPlan {
+  id          String  @id @default(cuid())
+  facility_id String
+  organization_id String
+  name        String
+  image_url   String?
+  svg_data    String?
+  width       Int     @default(0)
+  height      Int     @default(0)
+  scale       Float?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  facility     Facility     @relation(fields: [facility_id], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  zones        FloorPlanZone[]
+
+  @@map("floor_plans")
+}
+
+model FloorPlanZone {
+  id             String @id @default(cuid())
+  floor_plan_id  String
+  name           String
+  color          String?
+  polygon_points Json   // [{ x, y }]
+
+  floor_plan FloorPlan @relation(fields: [floor_plan_id], references: [id], onDelete: Cascade)
+
+  @@map("floor_plan_zones")
+}
+
+// ─── Crews ────────────────────────────────────────────────────────────────────
+
+model Crew {
+  id              String  @id @default(cuid())
+  organization_id String
+  name            String
+  lead_user_id    String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  members      CrewMember[]
+
+  @@map("crews")
+}
+
+model CrewMember {
+  id      String @id @default(cuid())
+  crew_id String
+  user_id String
+
+  crew Crew @relation(fields: [crew_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([crew_id, user_id])
+  @@map("crew_members")
+}

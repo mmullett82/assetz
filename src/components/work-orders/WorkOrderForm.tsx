@@ -8,6 +8,8 @@ import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import { MOCK_USERS } from '@/lib/mock-settings'
+import apiClient from '@/lib/api-client'
+import { USE_MOCK } from '@/lib/config'
 
 type WOFormData = {
   title: string
@@ -117,8 +119,13 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
     if (!validate()) return
     setSaving(true)
     try {
-      // TODO: wire to apiClient.workOrders.create() / .update()
-      await new Promise((r) => setTimeout(r, 600))
+      if (USE_MOCK) {
+        await new Promise((r) => setTimeout(r, 600))
+      } else if (isEditing && workOrder) {
+        await apiClient.workOrders.update(workOrder.id, form as unknown as Partial<WorkOrder>)
+      } else {
+        await apiClient.workOrders.create(form as unknown as Partial<WorkOrder>)
+      }
       router.push('/work-orders')
       router.refresh()
     } catch {

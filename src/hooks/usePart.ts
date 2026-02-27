@@ -4,8 +4,7 @@ import useSWR from 'swr'
 import type { Part } from '@/types'
 import apiClient from '@/lib/api-client'
 import { getMockPart } from '@/lib/mock-parts'
-
-const USE_MOCK = true // always use mock data until backend is connected
+import { USE_MOCK } from '@/lib/config'
 
 export function usePart(id: string | null) {
   const { data, error, isLoading, mutate } = useSWR<Part>(

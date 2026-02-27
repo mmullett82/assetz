@@ -5,8 +5,7 @@ import type { PMSchedule } from '@/types'
 import apiClient from '@/lib/api-client'
 import { getMockPMSchedule } from '@/lib/mock-pm-schedules'
 import { pmDueStatus } from '@/lib/pm-utils'
-
-const USE_MOCK = true // always use mock data until backend is connected
+import { USE_MOCK } from '@/lib/config'
 
 export function usePMSchedule(id: string | null) {
   const { data, error, isLoading, mutate } = useSWR<PMSchedule>(

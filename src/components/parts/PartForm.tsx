@@ -7,6 +7,8 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { Camera, Paperclip } from 'lucide-react'
+import apiClient from '@/lib/api-client'
+import { USE_MOCK } from '@/lib/config'
 
 type PartFormData = {
   part_number: string
@@ -116,8 +118,13 @@ export default function PartForm({ part }: PartFormProps) {
     if (!validate()) return
     setSaving(true)
     try {
-      // TODO: wire to apiClient.parts.create() / .update()
-      await new Promise((r) => setTimeout(r, 600))
+      if (USE_MOCK) {
+        await new Promise((r) => setTimeout(r, 600))
+      } else if (isEditing && part) {
+        await apiClient.parts.update(part.id, form as unknown as Partial<Part>)
+      } else {
+        await apiClient.parts.create(form as unknown as Partial<Part>)
+      }
       router.push('/parts')
       router.refresh()
     } catch {

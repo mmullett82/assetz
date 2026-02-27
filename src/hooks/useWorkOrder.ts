@@ -4,8 +4,7 @@ import useSWR from 'swr'
 import type { WorkOrder } from '@/types'
 import apiClient from '@/lib/api-client'
 import { getMockWorkOrder } from '@/lib/mock-work-orders'
-
-const USE_MOCK = true // always use mock data until backend is connected
+import { USE_MOCK } from '@/lib/config'
 
 export function useWorkOrder(id: string | null) {
   const { data, error, isLoading, mutate } = useSWR<WorkOrder>(

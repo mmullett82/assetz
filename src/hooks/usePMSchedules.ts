@@ -5,8 +5,7 @@ import type { PMSchedule, PaginatedResponse } from '@/types'
 import apiClient, { type PMSchedulesQuery } from '@/lib/api-client'
 import { MOCK_PM_SCHEDULES } from '@/lib/mock-pm-schedules'
 import { pmDueStatus } from '@/lib/pm-utils'
-
-const USE_MOCK = true // always use mock data until backend is connected
+import { USE_MOCK } from '@/lib/config'
 
 const STATUS_ORDER = { red: 0, yellow: 1, green: 2 }
 

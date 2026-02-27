@@ -1,19 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import { useAuth } from '@/hooks/useAuth'
+import { USE_MOCK } from '@/lib/config'
 
 interface AppShellProps {
   children: React.ReactNode
 }
 
 export default function AppShell({ children }: AppShellProps) {
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
     return localStorage.getItem('sidebar-collapsed') === 'true'
   })
+
+  // Auth guard — redirect to login if not authenticated (skip in mock mode)
+  useEffect(() => {
+    if (!USE_MOCK && !authLoading && !isAuthenticated) {
+      router.push('/login')
+    }
+  }, [USE_MOCK, authLoading, isAuthenticated, router])
+
+  if (!USE_MOCK && authLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="text-slate-400">Loading...</div>
+      </div>
+    )
+  }
 
   function handleCollapseToggle() {
     setCollapsed((prev) => {

@@ -6,8 +6,7 @@ import type { DashboardKPIs, WSEvent } from '@/types'
 import apiClient from '@/lib/api-client'
 import { MOCK_KPIS } from '@/lib/mock-dashboard'
 import wsManager from '@/lib/ws-manager'
-
-const USE_MOCK = true // always use mock data until backend is connected
+import { USE_MOCK } from '@/lib/config'
 
 export function useDashboard() {
   const { data, error, isLoading, mutate } = useSWR<DashboardKPIs>(

@@ -10,6 +10,8 @@ import { buildFacilityAssetId, buildAssetNumber } from '@/lib/asset-id'
 import { MOCK_DEPARTMENTS } from '@/lib/mock-data'
 import { MOCK_USERS } from '@/lib/mock-settings'
 import { RefreshCw, AlertTriangle, Camera, Paperclip } from 'lucide-react'
+import apiClient from '@/lib/api-client'
+import { USE_MOCK } from '@/lib/config'
 
 type AssetFormData = {
   name: string
@@ -257,8 +259,13 @@ export default function AssetForm({ asset }: AssetFormProps) {
     if (!validate()) return
     setIsSaving(true)
     try {
-      // TODO: wire to apiClient.assets.create() / .update()
-      await new Promise((r) => setTimeout(r, 600))
+      if (USE_MOCK) {
+        await new Promise((r) => setTimeout(r, 600))
+      } else if (isEditing && asset) {
+        await apiClient.assets.update(asset.id, form as unknown as Partial<Asset>)
+      } else {
+        await apiClient.assets.create(form as unknown as Partial<Asset>)
+      }
       router.push('/assets')
       router.refresh()
     } catch {

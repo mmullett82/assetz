@@ -4,8 +4,7 @@ import useSWR from 'swr'
 import type { Asset } from '@/types'
 import apiClient from '@/lib/api-client'
 import { getMockAsset } from '@/lib/mock-data'
-
-const USE_MOCK = true // always use mock data until backend is connected
+import { USE_MOCK } from '@/lib/config'
 
 export function useAsset(id: string | null) {
   const { data, error, isLoading, mutate } = useSWR<Asset>(

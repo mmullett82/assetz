@@ -4,8 +4,7 @@ import useSWR from 'swr'
 import type { WorkOrder, PaginatedResponse } from '@/types'
 import apiClient, { type WorkOrdersQuery } from '@/lib/api-client'
 import { MOCK_WORK_ORDERS } from '@/lib/mock-work-orders'
-
-const USE_MOCK = true // always use mock data until backend is connected
+import { USE_MOCK } from '@/lib/config'
 
 function mockFetcher(query?: WorkOrdersQuery): PaginatedResponse<WorkOrder> {
   let data = [...MOCK_WORK_ORDERS]

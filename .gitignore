@@ -41,3 +41,5 @@ yarn-error.log*
 next-env.d.ts
 *.dxf
 SOLLiD-floor-plan.png
+
+/src/generated/prisma

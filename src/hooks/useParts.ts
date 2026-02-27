@@ -4,8 +4,7 @@ import useSWR from 'swr'
 import type { Part, PaginatedResponse } from '@/types'
 import apiClient, { type PartsQuery } from '@/lib/api-client'
 import { MOCK_PARTS } from '@/lib/mock-parts'
-
-const USE_MOCK = true // always use mock data until backend is connected
+import { USE_MOCK } from '@/lib/config'
 
 export interface PartsQueryExtended extends PartsQuery {
   manufacturer?: string
