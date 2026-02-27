@@ -6,6 +6,7 @@ import type { TechnicianScore } from '@/lib/mock-scoreboard'
 import WorkOrderStatusBadge from '@/components/work-orders/WorkOrderStatusBadge'
 import WorkOrderPriorityBadge from '@/components/work-orders/WorkOrderPriorityBadge'
 import DueStatusBadge from '@/components/ui/DueStatusBadge'
+import Stoplight from '@/components/ui/Stoplight'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -21,36 +22,6 @@ type SortCol =
   | 'on_time_pct'
   | 'overdue_wos'
   | 'avg_response_hours'
-
-// ─── Stoplight icon ────────────────────────────────────────────────────────────
-
-const STOPLIGHT_LIT: Record<'green' | 'yellow' | 'red', { r: string; y: string; g: string }> = {
-  red:    { r: '#ef4444', y: '#1e293b', g: '#1e293b' },
-  yellow: { r: '#1e293b', y: '#eab308', g: '#1e293b' },
-  green:  { r: '#1e293b', y: '#1e293b', g: '#22c55e' },
-}
-
-function StoplightIcon({ status }: { status: 'green' | 'yellow' | 'red' }) {
-  const { r, y, g } = STOPLIGHT_LIT[status]
-  return (
-    <svg
-      width="14"
-      height="34"
-      viewBox="0 0 14 34"
-      aria-hidden="true"
-      className="shrink-0"
-    >
-      {/* Housing */}
-      <rect x="1" y="1" width="12" height="32" rx="4" fill="#0f172a" />
-      {/* Red */}
-      <circle cx="7" cy="7"  r="4" fill={r} />
-      {/* Yellow */}
-      <circle cx="7" cy="17" r="4" fill={y} />
-      {/* Green */}
-      <circle cx="7" cy="27" r="4" fill={g} />
-    </svg>
-  )
-}
 
 // ─── Color maps ────────────────────────────────────────────────────────────────
 
@@ -192,7 +163,7 @@ export default function TechnicianTable({ scores }: TechnicianTableProps) {
                   {/* Technician name */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      <StoplightIcon status={tech.row_status} />
+                      <Stoplight status={tech.row_status} size="sm" />
                       <div>
                         <div className="font-medium text-slate-900">{tech.name}</div>
                         <div className="text-xs text-slate-400">{tech.email}</div>

@@ -3,7 +3,8 @@ import { Prisma, PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import bcrypt from 'bcryptjs'
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://assetz:assetz_dev@localhost:5432/assetz?schema=public'
+const connectionString = process.env.DATABASE_URL
+if (!connectionString) throw new Error('DATABASE_URL environment variable is not set')
 const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 

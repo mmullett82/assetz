@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Zap, X } from 'lucide-react'
 import { useScoreboard } from '@/hooks/useScoreboard'
 import type { TechnicianScore, TeamSummary } from '@/lib/mock-scoreboard'
+import Stoplight from '@/components/ui/Stoplight'
 
 // ─── Period auto-rotate ────────────────────────────────────────────────────────
 
@@ -19,26 +20,6 @@ const PERIOD_LABELS: Record<Period, string> = {
 
 const ROTATE_MS = 30_000 // 30 seconds per period
 const TICK_MS   = 200
-
-// ─── Stoplight (large) ─────────────────────────────────────────────────────────
-
-const STOPLIGHT_LIT: Record<'green' | 'yellow' | 'red', { r: string; y: string; g: string }> = {
-  red:    { r: '#ef4444', y: '#1e293b', g: '#1e293b' },
-  yellow: { r: '#1e293b', y: '#eab308', g: '#1e293b' },
-  green:  { r: '#1e293b', y: '#1e293b', g: '#22c55e' },
-}
-
-function StoplightLarge({ status }: { status: 'green' | 'yellow' | 'red' }) {
-  const { r, y, g } = STOPLIGHT_LIT[status]
-  return (
-    <svg width="30" height="74" viewBox="0 0 30 74" aria-hidden="true" className="shrink-0">
-      <rect x="1" y="1" width="28" height="72" rx="8" fill="#0f172a" />
-      <circle cx="15" cy="15" r="10" fill={r} />
-      <circle cx="15" cy="37" r="10" fill={y} />
-      <circle cx="15" cy="59" r="10" fill={g} />
-    </svg>
-  )
-}
 
 // ─── Team KPI item ─────────────────────────────────────────────────────────────
 
@@ -83,7 +64,7 @@ function TechCard({ tech }: { tech: TechnicianScore }) {
 
   return (
     <div className={`rounded-xl border-l-4 bg-slate-800 p-5 flex items-start gap-4 ${borderColor}`}>
-      <StoplightLarge status={tech.row_status} />
+      <Stoplight status={tech.row_status} size="lg" />
 
       <div className="flex-1 min-w-0">
         <div className="text-xl font-bold text-white truncate">{tech.name}</div>

@@ -31,17 +31,27 @@ export interface AssetIdComponents {
 }
 
 /**
+ * Normalize a segment by replacing hyphens with underscores.
+ * Hyphens are STRICTLY field separators — they must never appear inside a segment.
+ */
+function normalizeSegment(s: string): string {
+  return s.replace(/-/g, '_')
+}
+
+/**
  * Build the full facility asset ID string from components.
+ * Text segments are defensively normalized: any hyphens within a segment
+ * are replaced with underscores to prevent unparseable IDs.
  */
 export function buildFacilityAssetId(c: AssetIdComponents): string {
   const dep = `${c.dependencyCode}${c.dependencyGroup}`
   const seq = String(c.sequence).padStart(2, '0')
   return [
-    c.companyCode.toUpperCase(),
-    c.buildingCode.toUpperCase(),
-    c.departmentCode.toUpperCase(),
-    c.systemType.toUpperCase(),
-    c.unitType.toUpperCase(),
+    normalizeSegment(c.companyCode).toUpperCase(),
+    normalizeSegment(c.buildingCode).toUpperCase(),
+    normalizeSegment(c.departmentCode).toUpperCase(),
+    normalizeSegment(c.systemType).toUpperCase(),
+    normalizeSegment(c.unitType).toUpperCase(),
     dep,
     seq,
   ].join('-')
@@ -111,9 +121,26 @@ export function validateFacilityAssetId(id: string): string | null {
   if (!parsed) {
     return 'Invalid format. Expected: COMPANY-BUILDING-DEPT-SYSTEM-UNIT-C1-01'
   }
+
+  // Segments must not contain hyphens (hyphens are field separators only).
+  // parseFacilityAssetId splits on '-', so a hyphen inside a segment would
+  // cause the split to produce the wrong number of parts — already caught above.
+  // But we also check for underscores where they shouldn't appear:
   if (parsed.companyCode.includes('_')) {
     return 'Company code cannot contain underscores — use dashes only as field separators'
   }
+  if (parsed.buildingCode.includes('_')) {
+    return 'Building code cannot contain underscores'
+  }
+
+  // Verify dependency group and sequence are positive integers
+  if (parsed.dependencyGroup < 1) {
+    return 'Dependency group number must be 1 or greater'
+  }
+  if (parsed.sequence < 1 || parsed.sequence > 99) {
+    return 'Sequence number must be between 01 and 99'
+  }
+
   return null
 }
 
