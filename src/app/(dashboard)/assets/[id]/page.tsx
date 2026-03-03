@@ -14,6 +14,7 @@ import {
   Package,
 } from 'lucide-react'
 import { useAsset } from '@/hooks/useAsset'
+import ReferenceCardCollapsible from '@/components/reference-cards/ReferenceCardCollapsible'
 import AssetStatusBadge from '@/components/ui/AssetStatusBadge'
 import DependencyBadge from '@/components/assets/DependencyBadge'
 import BarcodeDisplay from '@/components/assets/BarcodeDisplay'
@@ -334,6 +335,12 @@ export default function AssetDetailPage({ params }: Props) {
               </Section>
             )
           })()}
+
+          {/* Reference Card */}
+          <ReferenceCardCollapsible
+            assetId={asset.id}
+            assetModel={asset.manufacturer && asset.model ? `${asset.manufacturer} ${asset.model}` : undefined}
+          />
 
           {/* Timestamps */}
           <div className="text-xs text-slate-400 space-y-1 px-1">

@@ -16,19 +16,31 @@ import {
   PanelLeft,
   PanelLeftOpen,
   Upload,
+  Inbox,
 } from 'lucide-react'
+import { usePermissions } from '@/hooks/usePermissions'
+import type { Action } from '@/lib/permissions'
+import type { LucideIcon } from 'lucide-react'
 
-const NAV_ITEMS = [
-  { href: '/dashboard',    label: 'Dashboard',        icon: LayoutDashboard },
-  { href: '/assets',       label: 'Assets',           icon: Cpu             },
-  { href: '/work-orders',  label: 'Work Orders',      icon: ClipboardList   },
-  { href: '/pm',           label: 'PM Schedules',     icon: CalendarClock   },
-  { href: '/parts',        label: 'Parts & Inventory',icon: Package         },
-  { href: '/floor-plan',   label: 'Floor Plan',       icon: Map             },
-  { href: '/reports',      label: 'Reports',          icon: BarChart2       },
-  { href: '/import',       label: 'Import',           icon: Upload          },
-  { href: '/settings',     label: 'Settings',         icon: Settings        },
-] as const
+interface NavItem {
+  href: string
+  label: string
+  icon: LucideIcon
+  permission?: Action
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { href: '/dashboard',    label: 'Dashboard',         icon: LayoutDashboard },
+  { href: '/assets',       label: 'Assets',            icon: Cpu,             permission: 'view_assets' },
+  { href: '/work-orders',  label: 'Work Orders',       icon: ClipboardList,   permission: 'view_assigned_work_orders' },
+  { href: '/requests',     label: 'Requests',          icon: Inbox,           permission: 'submit_requests' },
+  { href: '/pm',           label: 'PM Schedules',      icon: CalendarClock,   permission: 'view_pm' },
+  { href: '/parts',        label: 'Parts & Inventory', icon: Package,         permission: 'view_parts' },
+  { href: '/floor-plan',   label: 'Floor Plan',        icon: Map,             permission: 'view_floor_plan' },
+  { href: '/reports',      label: 'Reports',           icon: BarChart2,       permission: 'view_reports' },
+  { href: '/import',       label: 'Import',            icon: Upload,          permission: 'import_data' },
+  { href: '/settings',     label: 'Settings',          icon: Settings,        permission: 'view_settings' },
+]
 
 interface SidebarProps {
   isOpen: boolean
@@ -39,6 +51,11 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose, collapsed, onCollapseToggle }: SidebarProps) {
   const pathname = usePathname()
+  const { can } = usePermissions()
+
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => !item.permission || can(item.permission)
+  )
 
   return (
     <>
@@ -116,7 +133,7 @@ export default function Sidebar({ isOpen, onClose, collapsed, onCollapseToggle }
               </li>
             )}
 
-            {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+            {visibleItems.map(({ href, label, icon: Icon }) => {
               const isActive =
                 href === '/dashboard'
                   ? pathname === '/dashboard'

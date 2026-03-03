@@ -27,6 +27,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   manager: 'Manager',
   technician: 'Technician',
   requester: 'Requester',
+  viewer: 'Viewer',
 }
 
 interface UsersSectionProps {

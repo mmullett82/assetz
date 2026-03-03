@@ -2,12 +2,14 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { NextRequest } from 'next/server'
 import prisma from './prisma'
+import type { UserRole } from '@/types'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'assetz-dev-secret'
 
 export interface JWTPayload {
   user_id: string
   org_id: string
+  role: UserRole
 }
 
 export function signToken(payload: JWTPayload): string {
@@ -55,6 +57,20 @@ export async function requireAuth(request: NextRequest) {
   if (!user) {
     throw new Response(JSON.stringify({ detail: 'Not authenticated' }), {
       status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+  return user
+}
+
+/**
+ * Require authentication + specific role(s) — returns user or throws 401/403.
+ */
+export async function requireRole(request: NextRequest, ...roles: UserRole[]) {
+  const user = await requireAuth(request)
+  if (!roles.includes(user.role as UserRole)) {
+    throw new Response(JSON.stringify({ detail: 'Insufficient permissions' }), {
+      status: 403,
       headers: { 'Content-Type': 'application/json' },
     })
   }

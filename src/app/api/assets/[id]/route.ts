@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth, requireRole } from '@/lib/auth'
 import { handleApiError, errorResponse } from '@/lib/api-helpers'
 
 type RouteContext = { params: Promise<{ id: string }> }
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
-    const user = await requireAuth(request)
+    const user = await requireRole(request, 'admin', 'manager')
     const { id } = await context.params
     const body = await request.json()
 
@@ -68,7 +68,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const user = await requireAuth(request)
+    const user = await requireRole(request, 'admin')
     const { id } = await context.params
 
     const existing = await prisma.asset.findFirst({

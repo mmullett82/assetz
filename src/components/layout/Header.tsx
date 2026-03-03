@@ -3,20 +3,24 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Menu, Bell, ChevronRight, LogOut, User, Settings } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 // Map route segments to readable breadcrumb labels
 const ROUTE_LABELS: Record<string, string> = {
   dashboard:    'Dashboard',
   assets:       'Assets',
   'work-orders': 'Work Orders',
+  requests:     'Requests',
   pm:           'PM Schedules',
   parts:        'Parts & Inventory',
   'floor-plan': 'Floor Plan',
   reports:      'Reports',
   settings:     'Settings',
   onboarding:   'Onboarding',
+  import:       'Import',
   new:          'New',
   edit:         'Edit',
+  'reference-card': 'Reference Card',
 }
 
 function useBreadcrumbs(): { label: string; href: string }[] {
@@ -30,20 +34,18 @@ function useBreadcrumbs(): { label: string; href: string }[] {
 
 interface HeaderProps {
   onMenuClick: () => void
-  // User object will come from auth context — placeholder for now
-  userName?: string
-  userRole?: string
   notificationCount?: number
 }
 
 export default function Header({
   onMenuClick,
-  userName = 'Matt M.',
-  userRole = 'Manager',
   notificationCount = 0,
 }: HeaderProps) {
   const breadcrumbs = useBreadcrumbs()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const { user, logout } = useAuth()
+  const userName = user?.full_name ?? 'User'
+  const userRole = user?.role ?? 'viewer'
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-slate-200 bg-white px-4">
@@ -158,7 +160,7 @@ export default function Header({
                   className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                   onClick={() => {
                     setUserMenuOpen(false)
-                    // logout() will be wired when auth context is added
+                    logout()
                   }}
                 >
                   <LogOut className="h-4 w-4" aria-hidden="true" />

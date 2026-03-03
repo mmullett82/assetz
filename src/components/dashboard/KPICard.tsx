@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 type CardStatus = 'green' | 'yellow' | 'red' | 'neutral'
@@ -70,6 +71,7 @@ export default function KPICard({
   delta,
   sublabel,
   loading = false,
+  href,
 }: KPICardProps) {
   if (loading) {
     return (
@@ -81,14 +83,8 @@ export default function KPICard({
     )
   }
 
-  return (
-    <div
-      className={[
-        'rounded-xl border border-slate-200 bg-white p-4 shadow-sm',
-        'border-l-4 transition-shadow hover:shadow-md',
-        STATUS_BORDER[status],
-      ].join(' ')}
-    >
+  const cardContent = (
+    <>
       {/* Label + icon */}
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -115,6 +111,23 @@ export default function KPICard({
           <DeltaIndicator delta={delta} />
         </div>
       )}
-    </div>
+    </>
   )
+
+  const cardClasses = [
+    'rounded-xl border border-slate-200 bg-white p-4 shadow-sm',
+    'border-l-4 transition-shadow hover:shadow-md',
+    STATUS_BORDER[status],
+    href ? 'cursor-pointer hover:ring-1 hover:ring-blue-300' : '',
+  ].join(' ')
+
+  if (href) {
+    return (
+      <Link href={href} className={cardClasses}>
+        {cardContent}
+      </Link>
+    )
+  }
+
+  return <div className={cardClasses}>{cardContent}</div>
 }

@@ -18,7 +18,7 @@ export type WorkOrderType = 'corrective' | 'preventive' | 'inspection' | 'projec
 
 export type PMFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'semiannual' | 'annual' | 'meter_based'
 
-export type UserRole = 'admin' | 'manager' | 'technician' | 'requester'
+export type UserRole = 'admin' | 'manager' | 'technician' | 'requester' | 'viewer'
 
 export type PartStatus = 'in_stock' | 'low_stock' | 'out_of_stock' | 'on_order'
 
@@ -346,6 +346,98 @@ export interface User {
   updated_at: string
 }
 
+// ─── Work Request ────────────────────────────────────────────────────────────
+
+export type RequestStatus = 'submitted' | 'approved' | 'rejected' | 'cancelled'
+export type RequestUrgency = 'low' | 'normal' | 'high' | 'emergency'
+
+export interface WorkRequest {
+  id: string
+  organization_id: string
+  requester_id: string
+  requester_name: string
+
+  asset_id?: string
+  asset_identifier?: string
+  asset?: Asset
+  title: string
+  description?: string
+  urgency: RequestUrgency
+  location_description?: string
+  photo_urls?: string[]
+
+  status: RequestStatus
+  reviewed_by_id?: string
+  reviewed_by?: User
+  reviewed_at?: string
+  rejection_reason?: string
+
+  assigned_priority?: string
+  assigned_tech_id?: string
+  assigned_tech?: User
+  work_order_id?: string
+  work_order?: WorkOrder
+
+  queue_position?: number
+
+  notify_on_assignment: boolean
+  notify_on_completion: boolean
+  notify_on_queue_update: boolean
+
+  created_at: string
+  updated_at: string
+}
+
+// ─── Reference Cards ─────────────────────────────────────────────────────────
+
+export type ReferenceCardSectionType =
+  | 'procedures'
+  | 'safety'
+  | 'failures'
+  | 'spare_parts'
+  | 'lubrication'
+  | 'troubleshooting'
+  | 'photos'
+  | 'documents'
+  | 'custom'
+
+export interface ReferenceCard {
+  id: string
+  organization_id: string
+  asset_id?: string
+  asset_model?: string
+  title: string
+  version: number
+  is_published: boolean
+  created_by_id: string
+  updated_by_id: string
+  created_by?: User
+  updated_by?: User
+  sections?: ReferenceCardSection[]
+  created_at: string
+  updated_at: string
+}
+
+export interface ReferenceCardSection {
+  id: string
+  reference_card_id: string
+  section_type: ReferenceCardSectionType
+  title: string
+  sort_order: number
+  content: Record<string, unknown>
+}
+
+export interface ReferenceCardVersion {
+  id: string
+  reference_card_id: string
+  version: number
+  snapshot: Record<string, unknown>
+  changed_by_id: string
+  changed_by?: User
+  change_summary?: string
+  created_at: string
+}
+
 // ─── API Response Wrappers ────────────────────────────────────────────────────
 
 export interface PaginatedResponse<T> {
@@ -374,6 +466,13 @@ export interface DashboardKPIs {
   mean_time_to_repair?: number      // Hours
   parts_low_stock: number
   technicians_active: number
+  // Extended KPIs (Enhanced Dashboard)
+  planned_wos?: number
+  reactive_wos?: number
+  pending_approval?: number
+  new_requests_today?: number
+  critical_priority?: number
+  parts_on_backorder?: number
 }
 
 // ─── WebSocket Events ─────────────────────────────────────────────────────────

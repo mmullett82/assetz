@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const token = signToken({ user_id: user.id, org_id: org.id })
+    const token = signToken({ user_id: user.id, org_id: org.id, role: 'admin' })
 
     return NextResponse.json({
       access_token: token,

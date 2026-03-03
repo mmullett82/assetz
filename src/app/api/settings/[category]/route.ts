@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth, requireRole } from '@/lib/auth'
 import { handleApiError } from '@/lib/api-helpers'
 
 type RouteContext = { params: Promise<{ category: string }> }
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
-    const user = await requireAuth(request)
+    const user = await requireRole(request, 'admin')
     const { category } = await context.params
     const items = await request.json()
 

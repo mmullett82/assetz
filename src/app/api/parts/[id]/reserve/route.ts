@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { requireAuth } from '@/lib/auth'
+import { requireRole } from '@/lib/auth'
 import { handleApiError, errorResponse } from '@/lib/api-helpers'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const user = await requireAuth(request)
+    const user = await requireRole(request, 'admin', 'manager', 'technician')
     const { id } = await context.params
     const { work_order_id, quantity } = await request.json()
 

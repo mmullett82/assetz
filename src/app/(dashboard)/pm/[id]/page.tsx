@@ -10,6 +10,7 @@ import { usePMSchedule } from '@/hooks/usePMSchedule'
 import CompleteModal from '@/components/pm/CompleteModal'
 import PMFrequencyBadge from '@/components/pm/PMFrequencyBadge'
 import DueStatusBadge from '@/components/ui/DueStatusBadge'
+import ReferenceCardCollapsible from '@/components/reference-cards/ReferenceCardCollapsible'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import { MOCK_PM_HISTORY } from '@/lib/mock-pm-schedules'
 import { daysUntilDue, formatDueDate, parseInstructions, calculateNextDue } from '@/lib/pm-utils'
@@ -176,6 +177,14 @@ export default function PMDetailPage({ params }: Props) {
           )}
         </dl>
       </div>
+
+      {/* Reference Card — inline guide for this asset */}
+      {pmSchedule.asset_id && (
+        <ReferenceCardCollapsible
+          assetId={pmSchedule.asset_id}
+          assetModel={asset ? `${asset.manufacturer} ${asset.model}` : undefined}
+        />
+      )}
 
       {/* Two-column */}
       <div className="grid gap-5 lg:grid-cols-2">

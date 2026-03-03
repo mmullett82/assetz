@@ -14,17 +14,19 @@ model Organization {
   slug       String   @unique
   created_at DateTime @default(now())
 
-  facilities   Facility[]
-  departments  Department[]
-  users        User[]
-  assets       Asset[]
-  work_orders  WorkOrder[]
-  pm_schedules PMSchedule[]
-  parts        Part[]
-  config_items ConfigItem[]
-  crews        Crew[]
+  facilities    Facility[]
+  departments   Department[]
+  users         User[]
+  assets        Asset[]
+  work_orders   WorkOrder[]
+  pm_schedules  PMSchedule[]
+  parts         Part[]
+  config_items  ConfigItem[]
+  crews         Crew[]
   notifications Notification[]
-  floor_plans  FloorPlan[]
+  floor_plans   FloorPlan[]
+  work_requests   WorkRequest[]
+  reference_cards ReferenceCard[]
 
   @@map("organizations")
 }
@@ -92,6 +94,12 @@ model User {
   part_reservations    PartReservation[]
   notifications        Notification[]
   crew_memberships     CrewMember[]
+  submitted_requests   WorkRequest[] @relation("RequestedByUser")
+  reviewed_requests    WorkRequest[] @relation("ReviewedByUser")
+  assigned_requests    WorkRequest[] @relation("AssignedTechUser")
+  created_ref_cards    ReferenceCard[] @relation("RCCreatedBy")
+  updated_ref_cards    ReferenceCard[] @relation("RCUpdatedBy")
+  ref_card_versions    ReferenceCardVersion[] @relation("RCVersionChangedBy")
 
   @@map("users")
 }
@@ -189,9 +197,11 @@ model Asset {
   depends_on_edges  AssetDependency[] @relation("DependentAsset")
   provider_edges    AssetDependency[] @relation("ProviderAsset")
 
-  work_orders  WorkOrder[]
-  pm_schedules PMSchedule[]
-  asset_parts  AssetPart[]
+  work_orders   WorkOrder[]
+  pm_schedules  PMSchedule[]
+  asset_parts   AssetPart[]
+  work_requests   WorkRequest[]
+  reference_cards ReferenceCard[]
 
   @@map("assets")
 }
@@ -262,6 +272,7 @@ model WorkOrder {
   parts_used    WorkOrderPart[]
   labor_entries LaborEntry[]
   reservations  PartReservation[]
+  work_request  WorkRequest?
 
   @@map("work_orders")
 }
@@ -441,6 +452,103 @@ model AssetPart {
 
   @@unique([asset_id, part_id])
   @@map("asset_parts")
+}
+
+// ─── Reference Cards ─────────────────────────────────────────────────────────
+
+model ReferenceCard {
+  id              String   @id @default(cuid())
+  organization_id String
+  asset_id        String?  // specific asset
+  asset_model     String?  // shared across model (e.g. "Biesse Rover B 1531")
+  title           String
+  version         Int      @default(1)
+  is_published    Boolean  @default(false)
+  created_by_id   String
+  updated_by_id   String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organization Organization          @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  asset        Asset?                @relation(fields: [asset_id], references: [id])
+  created_by   User                  @relation("RCCreatedBy", fields: [created_by_id], references: [id])
+  updated_by   User                  @relation("RCUpdatedBy", fields: [updated_by_id], references: [id])
+  sections     ReferenceCardSection[]
+  versions     ReferenceCardVersion[]
+
+  @@map("reference_cards")
+}
+
+model ReferenceCardSection {
+  id                String @id @default(cuid())
+  reference_card_id String
+  section_type      String // procedures, safety, failures, spare_parts, lubrication, troubleshooting, photos, documents, custom
+  title             String
+  sort_order        Int    @default(0)
+  content           Json   // type-specific structured content
+
+  reference_card ReferenceCard @relation(fields: [reference_card_id], references: [id], onDelete: Cascade)
+
+  @@map("reference_card_sections")
+}
+
+model ReferenceCardVersion {
+  id                String   @id @default(cuid())
+  reference_card_id String
+  version           Int
+  snapshot          Json     // full card + sections at that point in time
+  changed_by_id     String
+  change_summary    String?
+  created_at        DateTime @default(now())
+
+  reference_card ReferenceCard @relation(fields: [reference_card_id], references: [id], onDelete: Cascade)
+  changed_by     User          @relation("RCVersionChangedBy", fields: [changed_by_id], references: [id])
+
+  @@map("reference_card_versions")
+}
+
+// ─── Work Requests ───────────────────────────────────────────────────────────
+
+model WorkRequest {
+  id              String   @id @default(cuid())
+  organization_id String
+  requester_id    String
+  requester_name  String   // denormalized for display
+
+  asset_id           String?
+  asset_identifier   String?  // free text / barcode scan
+  title              String
+  description        String?
+  urgency            String   @default("normal") // low, normal, high, emergency
+  location_description String?
+  photo_urls         Json?    // string[]
+
+  status             String   @default("submitted") // submitted, approved, rejected, cancelled
+  reviewed_by_id     String?
+  reviewed_at        DateTime?
+  rejection_reason   String?
+
+  // Fields set during triage/approval
+  assigned_priority  String?
+  assigned_tech_id   String?
+  work_order_id      String?  @unique
+
+  // Notification preferences
+  notify_on_assignment Boolean @default(true)
+  notify_on_completion Boolean @default(true)
+  notify_on_queue_update Boolean @default(false)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  requester    User         @relation("RequestedByUser", fields: [requester_id], references: [id])
+  asset        Asset?       @relation(fields: [asset_id], references: [id])
+  reviewed_by  User?        @relation("ReviewedByUser", fields: [reviewed_by_id], references: [id])
+  assigned_tech User?       @relation("AssignedTechUser", fields: [assigned_tech_id], references: [id])
+  work_order   WorkOrder?   @relation(fields: [work_order_id], references: [id])
+
+  @@map("work_requests")
 }
 
 // ─── Notifications ────────────────────────────────────────────────────────────

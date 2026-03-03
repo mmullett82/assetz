@@ -18,6 +18,13 @@ export const MOCK_KPIS: DashboardKPIs = {
   mean_time_to_repair:           3.2,  // hours
   parts_low_stock:               2,
   technicians_active:            2,
+  // Extended KPIs
+  planned_wos:                   2,
+  reactive_wos:                  2,
+  pending_approval:              3,
+  new_requests_today:            1,
+  critical_priority:             1,
+  parts_on_backorder:            0,
 }
 
 // Deltas vs. prior 7 days — positive = improved

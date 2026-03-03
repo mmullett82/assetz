@@ -14,6 +14,10 @@ import type {
   User,
   DashboardKPIs,
   PaginatedResponse,
+  WorkRequest,
+  ReferenceCard,
+  ReferenceCardSection,
+  ReferenceCardVersion,
 } from '@/types'
 
 const API_BASE =
@@ -293,7 +297,97 @@ export const users = {
     }),
 }
 
+// ─── Requests ─────────────────────────────────────────────────────────────────
+
+export interface RequestsQuery {
+  page?: number
+  page_size?: number
+  status?: string
+  urgency?: string
+  requester_id?: string
+  period?: string
+}
+
+export const requests = {
+  list: (query?: RequestsQuery) =>
+    apiFetch<PaginatedResponse<WorkRequest>>('/requests', { params: query }),
+
+  get: (id: string) => apiFetch<WorkRequest>(`/requests/${id}`),
+
+  create: (data: Partial<WorkRequest>) =>
+    apiFetch<WorkRequest>('/requests', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: Partial<WorkRequest>) =>
+    apiFetch<WorkRequest>(`/requests/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  approve: (id: string, data: { priority: string; assigned_to_id?: string; due_date?: string }) =>
+    apiFetch<WorkRequest>(`/requests/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  reject: (id: string, reason: string) =>
+    apiFetch<WorkRequest>(`/requests/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+
+  queue: () =>
+    apiFetch<WorkRequest[]>('/requests/queue'),
+}
+
+// ─── Reference Cards ──────────────────────────────────────────────────────────
+
+export const referenceCards = {
+  list: (query?: { asset_id?: string }) =>
+    apiFetch<ReferenceCard[]>('/reference-cards', { params: query }),
+
+  get: (id: string) => apiFetch<ReferenceCard>(`/reference-cards/${id}`),
+
+  create: (data: Partial<ReferenceCard>) =>
+    apiFetch<ReferenceCard>('/reference-cards', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: Partial<ReferenceCard>) =>
+    apiFetch<ReferenceCard>(`/reference-cards/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    apiFetch<void>(`/reference-cards/${id}`, { method: 'DELETE' }),
+
+  forAsset: (assetId: string) =>
+    apiFetch<ReferenceCard | null>(`/reference-cards/for-asset/${assetId}`),
+
+  addSection: (cardId: string, data: Partial<ReferenceCardSection>) =>
+    apiFetch<ReferenceCardSection>(`/reference-cards/${cardId}/sections`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateSection: (cardId: string, sectionId: string, data: Partial<ReferenceCardSection>) =>
+    apiFetch<ReferenceCardSection>(`/reference-cards/${cardId}/sections/${sectionId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteSection: (cardId: string, sectionId: string) =>
+    apiFetch<void>(`/reference-cards/${cardId}/sections/${sectionId}`, { method: 'DELETE' }),
+
+  versions: (cardId: string) =>
+    apiFetch<ReferenceCardVersion[]>(`/reference-cards/${cardId}/versions`),
+}
+
 // ─── Named export for convenience ─────────────────────────────────────────────
 
-const apiClient = { auth, assets, workOrders, pmSchedules, parts, dashboard, users }
+const apiClient = { auth, assets, workOrders, pmSchedules, parts, dashboard, users, requests, referenceCards }
 export default apiClient

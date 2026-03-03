@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('Invalid email or password', 401)
     }
 
-    const token = signToken({ user_id: user.id, org_id: user.organization_id })
+    const token = signToken({ user_id: user.id, org_id: user.organization_id, role: user.role as import('@/types').UserRole })
 
     return NextResponse.json({
       access_token: token,

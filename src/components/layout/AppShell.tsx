@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import RouteGuard from './RouteGuard'
 import { useAuth } from '@/hooks/useAuth'
 import { USE_MOCK } from '@/lib/config'
 
@@ -61,7 +62,7 @@ export default function AppShell({ children }: AppShellProps) {
           id="main-content"
           className="flex-1 overflow-y-auto p-4 sm:p-6"
         >
-          {children}
+          <RouteGuard>{children}</RouteGuard>
         </main>
       </div>
     </div>

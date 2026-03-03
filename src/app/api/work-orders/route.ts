@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth, requireRole } from '@/lib/auth'
 import { handleApiError, paginate, parsePagination, computeDueStatus } from '@/lib/api-helpers'
 import type { Prisma } from '@prisma/client'
 
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireAuth(request)
+    const user = await requireRole(request, 'admin', 'manager', 'technician')
     const body = await request.json()
 
     // Auto-generate WO number

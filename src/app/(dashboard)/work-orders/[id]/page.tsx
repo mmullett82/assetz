@@ -9,6 +9,7 @@ import {
 import { useWorkOrder } from '@/hooks/useWorkOrder'
 import StatusWorkflow from '@/components/work-orders/StatusWorkflow'
 import CommentThread from '@/components/work-orders/CommentThread'
+import ReferenceCardCollapsible from '@/components/reference-cards/ReferenceCardCollapsible'
 import LaborLog from '@/components/work-orders/LaborLog'
 import CompletionSummaryModal from '@/components/work-orders/CompletionSummaryModal'
 import WorkOrderPriorityBadge from '@/components/work-orders/WorkOrderPriorityBadge'
@@ -295,6 +296,14 @@ export default function WorkOrderDetailPage({ params }: Props) {
             onTransition={handleTransition}
             isUpdating={isUpdating}
           />
+
+          {/* Reference Card — inline guide for this asset */}
+          {wo.asset_id && (
+            <ReferenceCardCollapsible
+              assetId={wo.asset_id}
+              assetModel={asset ? `${asset.manufacturer} ${asset.model}` : undefined}
+            />
+          )}
 
           <CommentThread
             comments={wo.comments ?? []}
