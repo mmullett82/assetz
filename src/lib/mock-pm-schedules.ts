@@ -193,26 +193,26 @@ export function getMockPMSchedule(id: string): PMSchedule | undefined {
 // Fake completion history per PM (last 4 completions before current last_completed_at)
 export const MOCK_PM_HISTORY: Record<string, { completed_at: string; tech: string; notes?: string; actual_hours: number }[]> = {
   'pm-001': [
-    { completed_at: '2025-02-25T10:00:00Z', tech: 'Jake Hayes',  actual_hours: 3.5, notes: 'Replaced separator element and belt. All within spec.' },
-    { completed_at: '2024-02-22T10:00:00Z', tech: 'Jake Hayes',  actual_hours: 3.0 },
-    { completed_at: '2023-02-18T10:00:00Z', tech: 'Sara Park',   actual_hours: 4.0, notes: 'Replaced drive belt — worn to wear indicator.' },
+    { completed_at: '2025-02-25T10:00:00Z', tech: 'Eon Jones',  actual_hours: 3.5, notes: 'Replaced separator element and belt. All within spec.' },
+    { completed_at: '2024-02-22T10:00:00Z', tech: 'Eon Jones',  actual_hours: 3.0 },
+    { completed_at: '2023-02-18T10:00:00Z', tech: 'Gary Clack',   actual_hours: 4.0, notes: 'Replaced drive belt — worn to wear indicator.' },
   ],
   'pm-004': [
-    { completed_at: '2025-10-15T10:00:00Z', tech: 'Jake Hayes',  actual_hours: 1.5 },
-    { completed_at: '2025-07-12T10:00:00Z', tech: 'Jake Hayes',  actual_hours: 1.5 },
-    { completed_at: '2025-04-08T10:00:00Z', tech: 'Sara Park',   actual_hours: 2.0, notes: 'Separator element replaced — pressure differential was 10 PSI.' },
-    { completed_at: '2025-01-10T10:00:00Z', tech: 'Jake Hayes',  actual_hours: 1.5 },
+    { completed_at: '2025-10-15T10:00:00Z', tech: 'Eon Jones',  actual_hours: 1.5 },
+    { completed_at: '2025-07-12T10:00:00Z', tech: 'Eon Jones',  actual_hours: 1.5 },
+    { completed_at: '2025-04-08T10:00:00Z', tech: 'Gary Clack',   actual_hours: 2.0, notes: 'Separator element replaced — pressure differential was 10 PSI.' },
+    { completed_at: '2025-01-10T10:00:00Z', tech: 'Eon Jones',  actual_hours: 1.5 },
   ],
   'pm-003': [
-    { completed_at: '2026-01-23T09:00:00Z', tech: 'Sara Park', actual_hours: 1.0 },
-    { completed_at: '2025-12-20T09:00:00Z', tech: 'Sara Park', actual_hours: 1.0 },
-    { completed_at: '2025-11-18T09:00:00Z', tech: 'Sara Park', actual_hours: 1.25, notes: 'Z-axis was slightly out of home — adjusted.' },
-    { completed_at: '2025-10-21T09:00:00Z', tech: 'Jake Hayes', actual_hours: 1.0 },
+    { completed_at: '2026-01-23T09:00:00Z', tech: 'Gary Clack', actual_hours: 1.0 },
+    { completed_at: '2025-12-20T09:00:00Z', tech: 'Gary Clack', actual_hours: 1.0 },
+    { completed_at: '2025-11-18T09:00:00Z', tech: 'Gary Clack', actual_hours: 1.25, notes: 'Z-axis was slightly out of home — adjusted.' },
+    { completed_at: '2025-10-21T09:00:00Z', tech: 'Eon Jones', actual_hours: 1.0 },
   ],
   'pm-002': [
-    { completed_at: '2026-02-19T10:00:00Z', tech: 'Sara Park',  actual_hours: 0.75 },
-    { completed_at: '2026-01-20T10:00:00Z', tech: 'Sara Park',  actual_hours: 1.0, notes: 'Replaced exhaust filter bank — was at 80% load.' },
-    { completed_at: '2025-12-18T10:00:00Z', tech: 'Jake Hayes', actual_hours: 0.75 },
-    { completed_at: '2025-11-19T10:00:00Z', tech: 'Sara Park',  actual_hours: 1.0 },
+    { completed_at: '2026-02-19T10:00:00Z', tech: 'Gary Clack',  actual_hours: 0.75 },
+    { completed_at: '2026-01-20T10:00:00Z', tech: 'Gary Clack',  actual_hours: 1.0, notes: 'Replaced exhaust filter bank — was at 80% load.' },
+    { completed_at: '2025-12-18T10:00:00Z', tech: 'Eon Jones', actual_hours: 0.75 },
+    { completed_at: '2025-11-19T10:00:00Z', tech: 'Gary Clack',  actual_hours: 1.0 },
   ],
 }

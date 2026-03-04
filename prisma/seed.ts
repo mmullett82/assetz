@@ -78,16 +78,18 @@ async function main() {
   }
   console.log('  Created', departments.length, 'departments')
 
-  // 4. Users
+  // 4. Users (from SOLLiD Cabinetry Asset Essentials export)
   const users = [
-    { id: 'usr-admin', full_name: 'Matt Mullett', email: 'matt@solidcabinetry.com', role: 'admin', phone: '604-555-0101' },
-    { id: 'usr-mgr1', full_name: 'Dan Cooper', email: 'dan@solidcabinetry.com', role: 'manager', phone: '604-555-0102' },
-    { id: 'usr-tech1', full_name: 'Jake Morrison', email: 'jake@solidcabinetry.com', role: 'technician', phone: '604-555-0103' },
-    { id: 'usr-tech2', full_name: 'Sara Chen', email: 'sara@solidcabinetry.com', role: 'technician', phone: '604-555-0104' },
-    { id: 'usr-tech3', full_name: 'Mike Okafor', email: 'mike@solidcabinetry.com', role: 'technician', phone: '604-555-0105' },
-    { id: 'usr-tech4', full_name: 'Priya Nair', email: 'priya@solidcabinetry.com', role: 'technician' },
-    { id: 'usr-tech5', full_name: 'Tom Larsen', email: 'tom@solidcabinetry.com', role: 'technician' },
-    { id: 'usr-req1', full_name: 'Lisa Park', email: 'lisa@solidcabinetry.com', role: 'requester', is_active: false },
+    { id: 'usr-admin',  full_name: 'Matt Mullett',     email: 'matt@solidcabinetry.com',       role: 'admin' },
+    { id: 'usr-admin2', full_name: 'Jeremiah Tinkham', email: 'jeremiah@solidcabinetry.com',   role: 'admin' },
+    { id: 'usr-mgr1',   full_name: 'Matt Pryor',       email: 'matt.pryor@solidcabinetry.com', role: 'manager' },
+    { id: 'usr-tech1',  full_name: 'Eon Jones',        email: 'eon@solidcabinetry.com',        role: 'technician' },
+    { id: 'usr-tech2',  full_name: 'Gary Clack',       email: 'gary@solidcabinetry.com',       role: 'technician' },
+    { id: 'usr-tech3',  full_name: 'Frank Zapata',     email: 'frank@solidcabinetry.com',      role: 'technician' },
+    { id: 'usr-tech4',  full_name: 'Dominic Arbizu',   email: 'dominic@solidcabinetry.com',    role: 'technician' },
+    { id: 'usr-tech5',  full_name: 'Raul Gonzalez',    email: 'raul@solidcabinetry.com',       role: 'technician' },
+    { id: 'usr-tech6',  full_name: 'Mike Grimaldi',    email: 'mike.g@solidcabinetry.com',     role: 'technician' },
+    { id: 'usr-mgr2',   full_name: 'Braden Bond',      email: 'braden@solidcabinetry.com',     role: 'manager' },
   ]
   for (const u of users) {
     await prisma.user.create({
@@ -98,8 +100,7 @@ async function main() {
         password_hash: passwordHash,
         full_name: u.full_name,
         role: u.role,
-        is_active: u.is_active !== false,
-        phone: u.phone,
+        is_active: true,
       },
     })
   }
@@ -515,9 +516,8 @@ async function main() {
 
   // 15. Crews
   const crews = [
-    { id: 'crew-1', name: 'Day Shift A', lead_user_id: 'usr-tech1', members: ['usr-tech1', 'usr-tech2', 'usr-tech3'] },
-    { id: 'crew-2', name: 'Day Shift B', lead_user_id: 'usr-tech4', members: ['usr-tech4', 'usr-tech5'] },
-    { id: 'crew-3', name: 'Management', lead_user_id: 'usr-mgr1', members: ['usr-admin', 'usr-mgr1'] },
+    { id: 'crew-1', name: 'Maintenance', lead_user_id: 'usr-admin', members: ['usr-admin', 'usr-mgr2', 'usr-tech1', 'usr-tech2', 'usr-tech3', 'usr-tech4', 'usr-tech5', 'usr-tech6'] },
+    { id: 'crew-2', name: 'Management', lead_user_id: 'usr-admin', members: ['usr-admin', 'usr-admin2', 'usr-mgr1', 'usr-mgr2'] },
   ]
 
   for (const c of crews) {

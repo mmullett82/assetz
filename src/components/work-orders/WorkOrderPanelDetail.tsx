@@ -84,11 +84,11 @@ export default function WorkOrderPanelDetail({ workOrderId, onEdit, onClose }: W
     const newComment: WorkOrderComment = {
       id: `cmt-${Date.now()}`,
       work_order_id: wo!.id,
-      user_id: 'usr-mgr1',
+      user_id: 'usr-admin',
       user: {
-        id: 'usr-mgr1', organization_id: 'org-solid',
-        email: 'matt@solid.com', full_name: 'Matt M.',
-        role: 'manager', is_active: true,
+        id: 'usr-admin', organization_id: 'org-solid',
+        email: 'matt@solidcabinetry.com', full_name: 'Matt Mullett',
+        role: 'admin', is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
