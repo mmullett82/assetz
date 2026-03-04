@@ -87,7 +87,7 @@ export default function WorkOrderPanelDetail({ workOrderId, onEdit, onClose }: W
       user_id: 'usr-admin',
       user: {
         id: 'usr-admin', organization_id: 'org-solid',
-        email: 'matt@solidcabinetry.com', full_name: 'Matt Mullett',
+        email: 'matt.mullett@sollidcabinetry.com', full_name: 'Matt Mullett',
         role: 'admin', is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

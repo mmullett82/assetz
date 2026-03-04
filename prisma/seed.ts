@@ -80,16 +80,16 @@ async function main() {
 
   // 4. Users (from SOLLiD Cabinetry Asset Essentials export)
   const users = [
-    { id: 'usr-admin',  full_name: 'Matt Mullett',     email: 'matt@solidcabinetry.com',       role: 'admin' },
-    { id: 'usr-admin2', full_name: 'Jeremiah Tinkham', email: 'jeremiah@solidcabinetry.com',   role: 'admin' },
-    { id: 'usr-mgr1',   full_name: 'Matt Pryor',       email: 'matt.pryor@solidcabinetry.com', role: 'manager' },
-    { id: 'usr-tech1',  full_name: 'Eon Jones',        email: 'eon@solidcabinetry.com',        role: 'technician' },
-    { id: 'usr-tech2',  full_name: 'Gary Clack',       email: 'gary@solidcabinetry.com',       role: 'technician' },
-    { id: 'usr-tech3',  full_name: 'Frank Zapata',     email: 'frank@solidcabinetry.com',      role: 'technician' },
-    { id: 'usr-tech4',  full_name: 'Dominic Arbizu',   email: 'dominic@solidcabinetry.com',    role: 'technician' },
-    { id: 'usr-tech5',  full_name: 'Raul Gonzalez',    email: 'raul@solidcabinetry.com',       role: 'technician' },
-    { id: 'usr-tech6',  full_name: 'Mike Grimaldi',    email: 'mike.g@solidcabinetry.com',     role: 'technician' },
-    { id: 'usr-mgr2',   full_name: 'Braden Bond',      email: 'braden@solidcabinetry.com',     role: 'manager' },
+    { id: 'usr-admin',  full_name: 'Matt Mullett',     email: 'matt.mullett@sollidcabinetry.com',     role: 'admin' },
+    { id: 'usr-admin2', full_name: 'Jeremiah Tinkham', email: 'jeremiah.tinkham@sollidcabinetry.com', role: 'admin' },
+    { id: 'usr-mgr1',   full_name: 'Matt Pryor',       email: 'matthew.pryor@sollidcabinetry.com',   role: 'manager' },
+    { id: 'usr-tech1',  full_name: 'Eon Jones',        email: 'eon.jones@sollidcabinetry.com',       role: 'technician' },
+    { id: 'usr-tech2',  full_name: 'Gary Clack',       email: 'gary.clack@sollidcabinetry.com',     role: 'technician' },
+    { id: 'usr-tech3',  full_name: 'Frank Zapata',     email: 'frank.zapata@sollidcabinetry.com',   role: 'technician' },
+    { id: 'usr-tech4',  full_name: 'Dominic Arbizu',   email: 'dominic.arbizu@sollidcabinetry.com', role: 'technician' },
+    { id: 'usr-tech5',  full_name: 'Raul Gonzalez',    email: 'raul.gonzalez@sollidcabinetry.com',  role: 'technician' },
+    { id: 'usr-tech6',  full_name: 'Mike Grimaldi',    email: 'mikeg@sollidcabinetry.com',          role: 'technician' },
+    { id: 'usr-mgr2',   full_name: 'Braden Bond',      email: 'braden.bond@sollidcabinetry.com',    role: 'manager' },
   ]
   for (const u of users) {
     await prisma.user.create({

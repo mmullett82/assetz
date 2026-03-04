@@ -15,7 +15,7 @@ const URGENCY_OPTIONS: { value: RequestUrgency; label: string; desc: string; col
   { value: 'low', label: 'Low', desc: 'When you get a chance', color: 'border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-400' },
   { value: 'normal', label: 'Normal', desc: 'Standard priority', color: 'border-blue-300 bg-blue-50 text-blue-700 hover:border-blue-400' },
   { value: 'high', label: 'High', desc: 'Affecting production', color: 'border-orange-300 bg-orange-50 text-orange-700 hover:border-orange-400' },
-  { value: 'emergency', label: 'Emergency', desc: 'Machine down / safety', color: 'border-red-300 bg-red-50 text-red-700 hover:border-red-400' },
+  { value: 'critical', label: 'Critical', desc: 'Machine down / safety', color: 'border-red-300 bg-red-50 text-red-700 hover:border-red-400' },
 ]
 
 export default function RequestForm({ prefillAsset }: Props) {

@@ -229,7 +229,17 @@ function ColumnMapStep({
   onBack: () => void
 }) {
   const fields = ENTITY_FIELDS[entityType]
-  const requiredUnmapped = mappings.filter(m => m.required && !m.targetField && !m.skip)
+
+  // For users: full_name is satisfied when first_name + last_name are both mapped
+  const mappedTargets = new Set(mappings.filter(m => m.targetField && !m.skip).map(m => m.targetField))
+  const nameIsSatisfied = entityType === 'users' && mappedTargets.has('first_name') && mappedTargets.has('last_name')
+
+  const requiredFields = fields.filter(f => f.required).map(f => f.field)
+  // full_name is effectively required for users, but satisfied by first+last
+  const effectiveRequired = entityType === 'users' && !nameIsSatisfied
+    ? [...requiredFields, 'full_name']
+    : requiredFields
+  const requiredUnmapped = effectiveRequired.filter(field => !mappedTargets.has(field))
 
   return (
     <div>
@@ -282,6 +292,15 @@ function ColumnMapStep({
           </tbody>
         </table>
       </div>
+
+      {nameIsSatisfied && (
+        <div className="flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-200 p-3 mb-4">
+          <CheckCircle2 className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+          <p className="text-sm text-blue-800">
+            First Name + Last Name will be combined into Full Name automatically.
+          </p>
+        </div>
+      )}
 
       {requiredUnmapped.length > 0 && (
         <div className="flex items-start gap-2 rounded-lg bg-yellow-50 border border-yellow-200 p-3 mb-4">
@@ -596,18 +615,39 @@ export default function CSVWizard() {
   // Validate rows when advancing from column map
   const buildValidation = useCallback(() => {
     const activeMappings = mappings.filter(m => m.targetField && !m.skip)
+    const hasFirstName = activeMappings.some(m => m.targetField === 'first_name')
+    const hasLastName = activeMappings.some(m => m.targetField === 'last_name')
+    const hasFullName = activeMappings.some(m => m.targetField === 'full_name')
+    const canConcatName = hasFirstName && hasLastName && !hasFullName
+
     const validated: ImportValidationRow[] = rawRows.slice(0, 50).map((row, idx) => {
       const data: Record<string, string> = {}
       activeMappings.forEach(m => {
         data[m.targetField!] = row[m.sourceColumn] ?? ''
       })
+
+      // Concatenate first_name + last_name → full_name when both are mapped
+      if (canConcatName) {
+        const first = (data.first_name ?? '').trim()
+        const last = (data.last_name ?? '').trim()
+        data.full_name = [first, last].filter(Boolean).join(' ')
+      }
+
       const errors: string[] = []
       const warnings: string[] = []
       activeMappings.forEach(m => {
+        // Skip required check on first/last name since they feed into full_name
+        if (canConcatName && (m.targetField === 'first_name' || m.targetField === 'last_name')) return
         if (m.required && !data[m.targetField!]) {
           errors.push(`Missing required: ${m.targetField}`)
         }
       })
+
+      // If we're concatenating, check that full_name ended up non-empty
+      if (canConcatName && !data.full_name) {
+        errors.push('Missing required: full_name (both first and last name are empty)')
+      }
+
       return { rowIndex: idx, data, errors, warnings }
     })
     setValidationRows(validated)

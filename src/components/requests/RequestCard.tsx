@@ -7,7 +7,7 @@ import RequestStatusBadge from './RequestStatusBadge'
 import QueuePositionBadge from './QueuePositionBadge'
 
 const URGENCY_STYLES: Record<RequestUrgency, string> = {
-  emergency: 'bg-red-100 text-red-700',
+  critical: 'bg-red-100 text-red-700',
   high: 'bg-orange-100 text-orange-700',
   normal: 'bg-blue-100 text-blue-700',
   low: 'bg-slate-100 text-slate-600',

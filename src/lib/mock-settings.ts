@@ -280,16 +280,16 @@ export const MOCK_PARTS_DEFAULTS: MockPartsDefaults = {
 // ─── Users ────────────────────────────────────────────────────────────────────
 
 export const MOCK_USERS: MockUser[] = [
-  { id: 'usr-admin',  full_name: 'Matt Mullett',      email: 'matt@solidcabinetry.com',      role: 'admin',      is_active: true  },
-  { id: 'usr-admin2', full_name: 'Jeremiah Tinkham',  email: 'jeremiah@solidcabinetry.com',  role: 'admin',      is_active: true  },
-  { id: 'usr-mgr1',   full_name: 'Matt Pryor',        email: 'matt.pryor@solidcabinetry.com',role: 'manager',    is_active: true  },
-  { id: 'usr-tech1',  full_name: 'Eon Jones',         email: 'eon@solidcabinetry.com',       role: 'technician', is_active: true  },
-  { id: 'usr-tech2',  full_name: 'Gary Clack',        email: 'gary@solidcabinetry.com',      role: 'technician', is_active: true  },
-  { id: 'usr-tech3',  full_name: 'Frank Zapata',      email: 'frank@solidcabinetry.com',     role: 'technician', is_active: true  },
-  { id: 'usr-tech4',  full_name: 'Dominic Arbizu',    email: 'dominic@solidcabinetry.com',   role: 'technician', is_active: true  },
-  { id: 'usr-tech5',  full_name: 'Raul Gonzalez',     email: 'raul@solidcabinetry.com',      role: 'technician', is_active: true  },
-  { id: 'usr-tech6',  full_name: 'Mike Grimaldi',     email: 'mike.g@solidcabinetry.com',    role: 'technician', is_active: true  },
-  { id: 'usr-mgr2',   full_name: 'Braden Bond',       email: 'braden@solidcabinetry.com',    role: 'manager',    is_active: true  },
+  { id: 'usr-admin',  full_name: 'Matt Mullett',      email: 'matt.mullett@sollidcabinetry.com',    role: 'admin',      is_active: true  },
+  { id: 'usr-admin2', full_name: 'Jeremiah Tinkham',  email: 'jeremiah.tinkham@sollidcabinetry.com', role: 'admin',  is_active: true  },
+  { id: 'usr-mgr1',   full_name: 'Matt Pryor',        email: 'matthew.pryor@sollidcabinetry.com',   role: 'manager',    is_active: true  },
+  { id: 'usr-tech1',  full_name: 'Eon Jones',         email: 'eon.jones@sollidcabinetry.com',       role: 'technician', is_active: true  },
+  { id: 'usr-tech2',  full_name: 'Gary Clack',        email: 'gary.clack@sollidcabinetry.com',     role: 'technician', is_active: true  },
+  { id: 'usr-tech3',  full_name: 'Frank Zapata',      email: 'frank.zapata@sollidcabinetry.com',   role: 'technician', is_active: true  },
+  { id: 'usr-tech4',  full_name: 'Dominic Arbizu',    email: 'dominic.arbizu@sollidcabinetry.com', role: 'technician', is_active: true  },
+  { id: 'usr-tech5',  full_name: 'Raul Gonzalez',     email: 'raul.gonzalez@sollidcabinetry.com',  role: 'technician', is_active: true  },
+  { id: 'usr-tech6',  full_name: 'Mike Grimaldi',     email: 'mikeg@sollidcabinetry.com',          role: 'technician', is_active: true  },
+  { id: 'usr-mgr2',   full_name: 'Braden Bond',       email: 'braden.bond@sollidcabinetry.com',    role: 'manager',    is_active: true  },
 ]
 
 // ─── Crews ────────────────────────────────────────────────────────────────────

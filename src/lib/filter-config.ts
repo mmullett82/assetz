@@ -127,8 +127,8 @@ export const WO_SAVED_FILTERS: SavedFilter[] = [
     filters: [{ key: 'overdue', label: 'Overdue', value: 'true', displayValue: 'Yes' }],
   },
   {
-    id: 'emergency',
-    label: 'Emergency',
+    id: 'critical',
+    label: 'Critical',
     filters: [{ key: 'priority', label: 'Priority', value: 'critical', displayValue: 'Critical' }],
   },
 ]

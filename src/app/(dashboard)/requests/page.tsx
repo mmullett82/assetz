@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Plus, Inbox, ListFilter } from 'lucide-react'
+import { Plus, Inbox, ListFilter, Tv2 } from 'lucide-react'
 import { useRequests } from '@/hooks/useRequests'
 import { useRequestQueue } from '@/hooks/useRequestQueue'
 import { usePermissions } from '@/hooks/usePermissions'
@@ -50,14 +50,23 @@ export default function RequestsPage() {
             {canTriage ? 'Review and triage maintenance requests' : 'Track your maintenance requests'}
           </p>
         </div>
-        <Can action="submit_requests">
+        <div className="flex items-center gap-2">
           <Link
-            href="/requests/new"
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            href="/kiosk/requests"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
           >
-            <Plus className="h-4 w-4" /> New Request
+            <Tv2 className="h-4 w-4" />
+            TV Mode
           </Link>
-        </Can>
+          <Can action="submit_requests">
+            <Link
+              href="/requests/new"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="h-4 w-4" /> New Request
+            </Link>
+          </Can>
+        </div>
       </div>
 
       {/* Tabs */}

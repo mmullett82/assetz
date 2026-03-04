@@ -64,7 +64,9 @@ export const ENTITY_FIELDS: Record<ImportEntityType, AssetZField[]> = {
     { field: 'notes',             label: 'Notes',             required: false, type: 'string' },
   ],
   users: [
-    { field: 'full_name',         label: 'Full Name',         required: true,  type: 'string' },
+    { field: 'full_name',         label: 'Full Name',         required: false, type: 'string' },
+    { field: 'first_name',        label: 'First Name',        required: false, type: 'string' },
+    { field: 'last_name',         label: 'Last Name',         required: false, type: 'string' },
     { field: 'email',             label: 'Email',             required: true,  type: 'string' },
     { field: 'role',              label: 'Role',              required: true,  type: 'enum'   },
     { field: 'phone',             label: 'Phone',             required: false, type: 'string' },
@@ -132,6 +134,8 @@ const COLUMN_PATTERNS: Record<ImportEntityType, Record<string, string[]>> = {
   },
   users: {
     full_name:         ['name', 'full name', 'employee name', 'user name', 'display name'],
+    first_name:        ['first name', 'first', 'fname', 'given name', 'firstname'],
+    last_name:         ['last name', 'last', 'lname', 'surname', 'family name', 'lastname'],
     email:             ['email', 'email address', 'e-mail', 'login', 'username'],
     role:              ['role', 'user role', 'access level', 'permission', 'type'],
     phone:             ['phone', 'phone number', 'cell', 'mobile', 'telephone'],

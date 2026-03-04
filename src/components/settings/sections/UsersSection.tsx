@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { Mail, UserPlus, Loader2 } from 'lucide-react'
 import type { SectionId } from '@/app/(dashboard)/settings/page'
 import type { UserRole } from '@/types'
 import ToggleSwitch from '../ToggleSwitch'
@@ -28,6 +29,14 @@ const ROLE_LABELS: Record<UserRole, string> = {
   technician: 'Technician',
   requester: 'Requester',
   viewer: 'Viewer',
+}
+
+const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
+  admin: 'Full access — manage users, settings, and all data',
+  manager: 'Create/edit assets, WOs, PMs, triage requests',
+  technician: 'View assigned work, update WO status, log labor',
+  requester: 'Submit maintenance requests and track status',
+  viewer: 'Read-only access to dashboards and reports',
 }
 
 interface UsersSectionProps {
@@ -146,6 +155,164 @@ function CrewModal({ crew, users, onSave, onClose }: CrewModalProps) {
   )
 }
 
+// ─── Invite User Modal ────────────────────────────────────────────────────────
+interface InviteModalProps {
+  onInvite: (data: { full_name: string; email: string; role: UserRole }) => void
+  onClose: () => void
+}
+
+function InviteUserModal({ onInvite, onClose }: InviteModalProps) {
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail]       = useState('')
+  const [role, setRole]         = useState<UserRole>('requester')
+  const [sending, setSending]   = useState(false)
+  const [sent, setSent]         = useState(false)
+  const overlayRef = useRef<HTMLDivElement>(null)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!fullName.trim() || !email.trim()) return
+    setSending(true)
+    // Simulate sending invite email
+    await new Promise((r) => setTimeout(r, 800))
+    onInvite({ full_name: fullName.trim(), email: email.trim().toLowerCase(), role })
+    setSending(false)
+    setSent(true)
+  }
+
+  if (sent) {
+    return (
+      <div
+        ref={overlayRef}
+        onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
+        className="fixed inset-0 z-50 flex items-end sm:items-center p-4 bg-black/50"
+      >
+        <div className="w-full max-w-md mx-auto rounded-2xl bg-white shadow-2xl p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
+            <Mail className="h-6 w-6 text-green-600" />
+          </div>
+          <h2 className="text-lg font-semibold text-slate-900">Invite Sent</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            An invitation has been sent to <strong className="text-slate-700">{email}</strong>.
+            They&apos;ll receive a link to set their password and join assetZ.
+          </p>
+          <button
+            onClick={onClose}
+            className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      ref={overlayRef}
+      onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
+      className="fixed inset-0 z-50 flex items-end sm:items-center p-4 bg-black/50"
+    >
+      <div className="w-full max-w-md mx-auto rounded-2xl bg-white shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100 sticky top-0 bg-white">
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+            <UserPlus className="h-4 w-4 text-blue-600" />
+            Add User
+          </h2>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+            <input
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="e.g. Jane Smith"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <input
+              required
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g. jane@sollidcabinetry.com"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Role</label>
+            <div className="space-y-2">
+              {(Object.keys(ROLE_LABELS) as UserRole[]).map((r) => (
+                <label
+                  key={r}
+                  className={[
+                    'flex items-start gap-3 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors',
+                    role === r
+                      ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500/20'
+                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50',
+                  ].join(' ')}
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    value={r}
+                    checked={role === r}
+                    onChange={() => setRole(r)}
+                    className="mt-0.5 h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-slate-900">{ROLE_LABELS[r]}</div>
+                    <div className="text-xs text-slate-500">{ROLE_DESCRIPTIONS[r]}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={sending || !fullName.trim() || !email.trim()}
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4" />
+                  Send Invite
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function UsersSection({ sectionId }: UsersSectionProps) {
   const initialIdx = Math.max(0, USER_TABS.indexOf(sectionId))
@@ -157,6 +324,19 @@ export default function UsersSection({ sectionId }: UsersSectionProps) {
   const [saved, setSaved]   = useState(false)
 
   const [crewModal, setCrewModal] = useState<{ crew?: MockCrew } | null>(null)
+  const [showInvite, setShowInvite] = useState(false)
+
+  function handleInvite(data: { full_name: string; email: string; role: UserRole }) {
+    const newUser: MockUser = {
+      id: `usr-${Date.now()}`,
+      full_name: data.full_name,
+      email: data.email,
+      role: data.role,
+      is_active: true,
+    }
+    setUsers(prev => [...prev, newUser])
+    setShowInvite(false)
+  }
 
   function updateUserField(id: string, field: keyof MockUser, value: unknown) {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, [field]: value } : u))
@@ -211,10 +391,11 @@ export default function UsersSection({ sectionId }: UsersSectionProps) {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => console.log('TODO: invite user')}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                onClick={() => setShowInvite(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
               >
-                Invite User
+                <UserPlus className="h-3.5 w-3.5" />
+                Add User
               </button>
               <button
                 onClick={handleSaveUsers}
@@ -260,6 +441,7 @@ export default function UsersSection({ sectionId }: UsersSectionProps) {
                         <option value="manager">Manager</option>
                         <option value="technician">Technician</option>
                         <option value="requester">Requester</option>
+                        <option value="viewer">Viewer</option>
                       </select>
                     </td>
                     <td className="px-4 py-3 text-slate-500 text-xs">{user.phone ?? '—'}</td>
@@ -380,6 +562,14 @@ export default function UsersSection({ sectionId }: UsersSectionProps) {
           users={users}
           onSave={handleSaveCrew}
           onClose={() => setCrewModal(null)}
+        />
+      )}
+
+      {/* Invite user modal */}
+      {showInvite && (
+        <InviteUserModal
+          onInvite={handleInvite}
+          onClose={() => setShowInvite(false)}
         />
       )}
     </div>

@@ -349,7 +349,7 @@ export interface User {
 // ─── Work Request ────────────────────────────────────────────────────────────
 
 export type RequestStatus = 'submitted' | 'approved' | 'rejected' | 'cancelled'
-export type RequestUrgency = 'low' | 'normal' | 'high' | 'emergency'
+export type RequestUrgency = 'low' | 'normal' | 'high' | 'critical'
 
 export interface WorkRequest {
   id: string

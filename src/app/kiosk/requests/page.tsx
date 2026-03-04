@@ -8,7 +8,7 @@ import QueuePositionBadge from '@/components/requests/QueuePositionBadge'
 import type { RequestUrgency } from '@/types'
 
 const URGENCY_COLORS: Record<RequestUrgency, string> = {
-  emergency: 'border-l-red-500 bg-red-950/30',
+  critical: 'border-l-red-500 bg-red-950/30',
   high: 'border-l-orange-500 bg-orange-950/20',
   normal: 'border-l-blue-500 bg-blue-950/20',
   low: 'border-l-slate-500 bg-slate-800/50',
@@ -70,9 +70,9 @@ export default function KioskRequestsPage() {
         </div>
         <div className="text-center">
           <p className="text-3xl font-bold tabular-nums text-red-400">
-            {queue.filter((r) => r.urgency === 'emergency' || r.urgency === 'high').length}
+            {queue.filter((r) => r.urgency === 'critical' || r.urgency === 'high').length}
           </p>
-          <p className="text-xs text-slate-400 uppercase">High/Emergency</p>
+          <p className="text-xs text-slate-400 uppercase">High / Critical</p>
         </div>
         <div className="text-center">
           <p className="text-3xl font-bold tabular-nums text-green-400">0</p>

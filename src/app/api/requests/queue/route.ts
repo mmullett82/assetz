@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth'
 import { handleApiError } from '@/lib/api-helpers'
 
 const URGENCY_WEIGHT: Record<string, number> = {
-  emergency: 100,
+  critical: 100,
   high: 75,
   normal: 50,
   low: 25,

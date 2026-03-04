@@ -50,7 +50,7 @@ export const MOCK_TECH_SCORES: TechnicianScore[] = [
   {
     user_id: 'usr-tech1',
     name: 'Eon Jones',
-    email: 'eon@solidcabinetry.com',
+    email: 'eon.jones@sollidcabinetry.com',
     assigned_wos: 0,
     completed_wos: 0,
     pm_completion_pct: 0,
@@ -63,7 +63,7 @@ export const MOCK_TECH_SCORES: TechnicianScore[] = [
   {
     user_id: 'usr-tech2',
     name: 'Gary Clack',
-    email: 'gary@solidcabinetry.com',
+    email: 'gary.clack@sollidcabinetry.com',
     assigned_wos: 0,
     completed_wos: 0,
     pm_completion_pct: 0,
@@ -76,7 +76,7 @@ export const MOCK_TECH_SCORES: TechnicianScore[] = [
   {
     user_id: 'usr-tech3',
     name: 'Frank Zapata',
-    email: 'frank@solidcabinetry.com',
+    email: 'frank.zapata@sollidcabinetry.com',
     assigned_wos: 0,
     completed_wos: 0,
     pm_completion_pct: 0,
@@ -89,7 +89,7 @@ export const MOCK_TECH_SCORES: TechnicianScore[] = [
   {
     user_id: 'usr-tech4',
     name: 'Dominic Arbizu',
-    email: 'dominic@solidcabinetry.com',
+    email: 'dominic.arbizu@sollidcabinetry.com',
     assigned_wos: 0,
     completed_wos: 0,
     pm_completion_pct: 0,
@@ -102,7 +102,7 @@ export const MOCK_TECH_SCORES: TechnicianScore[] = [
   {
     user_id: 'usr-tech5',
     name: 'Raul Gonzalez',
-    email: 'raul@solidcabinetry.com',
+    email: 'raul.gonzalez@sollidcabinetry.com',
     assigned_wos: 0,
     completed_wos: 0,
     pm_completion_pct: 0,
@@ -115,7 +115,7 @@ export const MOCK_TECH_SCORES: TechnicianScore[] = [
   {
     user_id: 'usr-tech6',
     name: 'Mike Grimaldi',
-    email: 'mike.g@solidcabinetry.com',
+    email: 'mikeg@sollidcabinetry.com',
     assigned_wos: 0,
     completed_wos: 0,
     pm_completion_pct: 0,

@@ -7,7 +7,7 @@ import { MOCK_REQUESTS } from '@/lib/mock-requests'
 import { USE_MOCK } from '@/lib/config'
 
 const URGENCY_WEIGHT: Record<string, number> = {
-  emergency: 100,
+  critical: 100,
   high: 75,
   normal: 50,
   low: 25,
