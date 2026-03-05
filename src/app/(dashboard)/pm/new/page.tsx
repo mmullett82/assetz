@@ -2,7 +2,12 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import PMForm from '@/components/pm/PMForm'
 
-export default function NewPMPage() {
+export default async function NewPMPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ asset_id?: string; duplicate?: string }>
+}) {
+  const params = await searchParams
   return (
     <div className="space-y-5 max-w-2xl">
       <div className="flex items-center gap-3">
@@ -20,7 +25,7 @@ export default function NewPMPage() {
         <p className="text-sm text-slate-500 mt-1">Define a recurring maintenance task for an asset.</p>
       </div>
 
-      <PMForm />
+      <PMForm defaultAssetId={params.asset_id} duplicateId={params.duplicate} />
     </div>
   )
 }

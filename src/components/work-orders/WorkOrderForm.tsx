@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { WorkOrder, WorkOrderType, WorkOrderPriority, WorkOrderStatus } from '@/types'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
+import { TextareaWithVoice } from '@/components/ui/VoiceInput'
+import AICompletionHelper from './AICompletionHelper'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import { MOCK_USERS } from '@/lib/mock-settings'
 import apiClient from '@/lib/api-client'
@@ -87,9 +89,10 @@ const ORIGIN_TYPE_LABELS: Record<string, string> = {
 interface WorkOrderFormProps {
   workOrder?: WorkOrder
   defaultAssetId?: string
+  duplicateId?: string
 }
 
-export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFormProps) {
+export default function WorkOrderForm({ workOrder, defaultAssetId, duplicateId }: WorkOrderFormProps) {
   const router    = useRouter()
   const isEditing = !!workOrder
 
@@ -100,6 +103,20 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
   })
   const [isSaving, setSaving] = useState(false)
   const [errors, setErrors]   = useState<Partial<Record<keyof WOFormData, string>>>({})
+
+  // Load duplicate data
+  useEffect(() => {
+    if (!duplicateId || workOrder) return
+    apiClient.workOrders.get(duplicateId).then((wo) => {
+      const data = woToFormData(wo)
+      data.title = `Copy of ${data.title}`
+      data.status = 'open'
+      data.completed_datetime = ''
+      data.action_taken = ''
+      data.root_cause = ''
+      setForm(data)
+    }).catch(() => {})
+  }, [duplicateId, workOrder])
 
   function set(field: keyof WOFormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -192,12 +209,11 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Description
           </label>
-          <textarea
+          <TextareaWithVoice
             value={form.description}
             onChange={(e) => set('description', e.target.value)}
             rows={4}
             placeholder="Detailed description of the issue or work required…"
-            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
           />
         </div>
 
@@ -305,12 +321,11 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Resolution / remedy
           </label>
-          <textarea
+          <TextareaWithVoice
             value={form.remedy}
             onChange={(e) => set('remedy', e.target.value)}
             rows={3}
             placeholder="What was done to fix the issue…"
-            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
           />
         </div>
       </fieldset>
@@ -319,6 +334,14 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
       {isEditing && (
         <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
           <legend className="text-sm font-semibold text-slate-700 px-1">Action Taken</legend>
+
+          <AICompletionHelper
+            assetName={workOrder?.asset?.name}
+            onApply={(data) => {
+              if (data.action_taken) set('action_taken', data.action_taken)
+              if (data.root_cause) set('root_cause', data.root_cause)
+            }}
+          />
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -334,12 +357,11 @@ export default function WorkOrderForm({ workOrder, defaultAssetId }: WorkOrderFo
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Action Taken</label>
-            <textarea
+            <TextareaWithVoice
               value={form.action_taken}
               onChange={(e) => set('action_taken', e.target.value)}
               rows={4}
               placeholder="Describe what was done to resolve the issue…"
-              className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
             />
           </div>
 

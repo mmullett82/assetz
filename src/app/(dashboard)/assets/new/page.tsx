@@ -5,7 +5,12 @@ import AssetForm from '@/components/assets/AssetForm'
 
 export const metadata: Metadata = { title: 'New Asset' }
 
-export default function NewAssetPage() {
+export default async function NewAssetPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ duplicate?: string }>
+}) {
+  const params = await searchParams
   return (
     <div className="space-y-5">
       <div>
@@ -19,7 +24,7 @@ export default function NewAssetPage() {
         <h1 className="mt-2 text-2xl font-bold text-slate-900">New Asset</h1>
       </div>
 
-      <AssetForm />
+      <AssetForm duplicateId={params.duplicate} />
     </div>
   )
 }

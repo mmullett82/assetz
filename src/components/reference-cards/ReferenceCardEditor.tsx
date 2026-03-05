@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Save, Trash2, GripVertical, Loader2 } from 'lucide-react'
+import { Plus, Save, Trash2, GripVertical, Loader2, Sparkles } from 'lucide-react'
 import type { ReferenceCard, ReferenceCardSection, ReferenceCardSectionType } from '@/types'
 import apiClient from '@/lib/api-client'
 import { USE_MOCK } from '@/lib/config'
+import SectionEditor from './SectionEditor'
+import { showToast } from '@/hooks/useToast'
 
 const SECTION_TYPES: { value: ReferenceCardSectionType; label: string }[] = [
   { value: 'safety', label: 'Safety Warnings' },
@@ -30,7 +32,7 @@ interface DraftSection {
   section_type: ReferenceCardSectionType
   title: string
   sort_order: number
-  content: string // JSON string for editing
+  content: Record<string, unknown>
   isNew?: boolean
 }
 
@@ -45,10 +47,11 @@ export default function ReferenceCardEditor({ card, assetId, onSave }: Props) {
       section_type: s.section_type as ReferenceCardSectionType,
       title: s.title,
       sort_order: s.sort_order,
-      content: JSON.stringify(s.content, null, 2),
+      content: (typeof s.content === 'object' && s.content !== null ? s.content : {}) as Record<string, unknown>,
     }))
   )
   const [saving, setSaving] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
   function addSection() {
     setSections((prev) => [
@@ -58,7 +61,7 @@ export default function ReferenceCardEditor({ card, assetId, onSave }: Props) {
         section_type: 'custom',
         title: 'New Section',
         sort_order: prev.length,
-        content: '{}',
+        content: {},
         isNew: true,
       },
     ])
@@ -68,7 +71,7 @@ export default function ReferenceCardEditor({ card, assetId, onSave }: Props) {
     setSections((prev) => prev.filter((s) => s.id !== id))
   }
 
-  function updateSection(id: string, field: keyof DraftSection, value: string | number) {
+  function updateSection(id: string, field: keyof DraftSection, value: string | number | Record<string, unknown>) {
     setSections((prev) =>
       prev.map((s) => (s.id === id ? { ...s, [field]: value } : s))
     )
@@ -86,30 +89,63 @@ export default function ReferenceCardEditor({ card, assetId, onSave }: Props) {
 
         // Save sections
         for (const section of sections) {
-          let parsed: Record<string, unknown> = {}
-          try { parsed = JSON.parse(section.content) } catch { /* keep empty */ }
-
           if (section.isNew) {
             await apiClient.referenceCards.addSection(card.id, {
               section_type: section.section_type,
               title: section.title,
               sort_order: section.sort_order,
-              content: parsed,
+              content: section.content,
             })
           } else {
             await apiClient.referenceCards.updateSection(card.id, section.id, {
               section_type: section.section_type,
               title: section.title,
               sort_order: section.sort_order,
-              content: parsed,
+              content: section.content,
             })
           }
         }
       }
+      showToast('success', 'Reference card saved')
       onSave?.()
       router.push(`/assets/${assetId}/reference-card`)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Save failed')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleGenerateAI() {
+    if (!assetModel.trim()) {
+      showToast('error', 'Enter an asset model name first')
+      return
+    }
+    setGenerating(true)
+    try {
+      const res = await fetch('/api/agent/generate-reference-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: assetModel }),
+      })
+      if (!res.ok) throw new Error('Failed to generate')
+      const data = await res.json()
+      if (data.sections && Array.isArray(data.sections)) {
+        setSections(data.sections.map((s: { section_type: string; title: string; content: Record<string, unknown> }, i: number) => ({
+          id: `ai-${Date.now()}-${i}`,
+          section_type: s.section_type as ReferenceCardSectionType,
+          title: s.title,
+          sort_order: i,
+          content: s.content,
+          isNew: true,
+        })))
+        if (data.title) setTitle(data.title)
+        showToast('success', 'AI-generated draft ready for review')
+      }
+    } catch {
+      showToast('error', 'Could not generate reference card. Try again.')
+    } finally {
+      setGenerating(false)
     }
   }
 
@@ -147,6 +183,19 @@ export default function ReferenceCardEditor({ card, assetId, onSave }: Props) {
           />
           <span className="text-sm text-slate-700">Published (visible to all users)</span>
         </label>
+
+        {/* AI Generate button */}
+        {sections.length === 0 && (
+          <button
+            type="button"
+            onClick={handleGenerateAI}
+            disabled={generating || !assetModel.trim()}
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all"
+          >
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {generating ? 'Generating...' : 'Generate with AI'}
+          </button>
+        )}
       </div>
 
       {/* Sections */}
@@ -188,12 +237,10 @@ export default function ReferenceCardEditor({ card, assetId, onSave }: Props) {
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
-              <textarea
-                value={section.content}
-                onChange={(e) => updateSection(section.id, 'content', e.target.value)}
-                rows={6}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                placeholder="JSON content..."
+              <SectionEditor
+                sectionType={section.section_type}
+                content={section.content}
+                onChange={(newContent) => updateSection(section.id, 'content', newContent)}
               />
             </div>
           ))}

@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import { Plus, CalendarClock, ArrowLeft } from 'lucide-react'
 import { usePMSchedules } from '@/hooks/usePMSchedules'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import apiClient from '@/lib/api-client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { showToast } from '@/hooks/useToast'
 import PMTable from '@/components/pm/PMTable'
 import PMPanelDetail from '@/components/pm/PMPanelDetail'
 import CompleteModal from '@/components/pm/CompleteModal'
@@ -71,6 +74,24 @@ export default function PMPage() {
   const [completing, setCompleting]   = useState<PMSchedule | null>(null)
 
   const { pmSchedules, isLoading, mutate } = usePMSchedules()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await apiClient.pmSchedules.delete(deleteTarget.id)
+      await mutate()
+      showToast('success', `"${deleteTarget.title}" deleted`)
+      if (selectedId === deleteTarget.id) setSelectedId(null)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete PM schedule')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
 
   const filtered = useMemo(() => applyFilters(pmSchedules, activeFilters), [pmSchedules, activeFilters])
   const sorted   = useMemo(() => applySort(filtered, sortState), [filtered, sortState])
@@ -228,7 +249,8 @@ export default function PMPage() {
                         { label: 'Edit',        onClick: () => router.push(`/pm/${pm.id}/edit`) },
                         { label: 'View Detail', onClick: () => router.push(`/pm/${pm.id}`) },
                         { separator: true, label: 'Complete', onClick: () => setCompleting(pm) },
-                        { label: 'Delete',      onClick: () => console.log('TODO'), destructive: true },
+                        { label: 'Duplicate',   onClick: () => router.push(`/pm/new?duplicate=${pm.id}`) },
+                        { label: 'Delete',      onClick: () => setDeleteTarget({ id: pm.id, title: pm.title }), destructive: true },
                       ]}
                     />
                   </div>
@@ -291,6 +313,17 @@ export default function PMPage() {
           onCancel={() => setCompleting(null)}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete PM Schedule"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

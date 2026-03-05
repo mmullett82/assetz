@@ -2,7 +2,12 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import PartForm from '@/components/parts/PartForm'
 
-export default function NewPartPage() {
+export default async function NewPartPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ duplicate?: string }>
+}) {
+  const params = await searchParams
   return (
     <div className="space-y-5 max-w-2xl">
       <div className="flex items-center gap-3">
@@ -20,7 +25,7 @@ export default function NewPartPage() {
         <p className="text-sm text-slate-500 mt-1">Add a part or component to the inventory.</p>
       </div>
 
-      <PartForm />
+      <PartForm duplicateId={params.duplicate} />
     </div>
   )
 }

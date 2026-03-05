@@ -5,11 +5,12 @@ import WorkOrderForm from '@/components/work-orders/WorkOrderForm'
 
 export const metadata: Metadata = { title: 'New Work Order' }
 
-export default function NewWorkOrderPage({
+export default async function NewWorkOrderPage({
   searchParams,
 }: {
-  searchParams: Promise<{ asset_id?: string }>
+  searchParams: Promise<{ asset_id?: string; duplicate?: string }>
 }) {
+  const params = await searchParams
   return (
     <div className="space-y-5">
       <div>
@@ -23,7 +24,7 @@ export default function NewWorkOrderPage({
         <h1 className="mt-2 text-2xl font-bold text-slate-900">New Work Order</h1>
       </div>
 
-      <WorkOrderForm />
+      <WorkOrderForm defaultAssetId={params.asset_id} duplicateId={params.duplicate} />
     </div>
   )
 }

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import RouteGuard from './RouteGuard'
+import ToastContainer from '@/components/ui/Toast'
+import AgentChatPanel from '@/components/agent/AgentChatPanel'
 import { useAuth } from '@/hooks/useAuth'
 import { USE_MOCK } from '@/lib/config'
 
@@ -65,6 +67,8 @@ export default function AppShell({ children }: AppShellProps) {
           <RouteGuard>{children}</RouteGuard>
         </main>
       </div>
+      <ToastContainer />
+      <AgentChatPanel />
     </div>
   )
 }

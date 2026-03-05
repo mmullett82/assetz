@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Part, PartStatus } from '@/types'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
+import { TextareaWithVoice } from '@/components/ui/VoiceInput'
 import { Camera, Paperclip } from 'lucide-react'
 import apiClient from '@/lib/api-client'
 import { USE_MOCK } from '@/lib/config'
@@ -87,9 +88,10 @@ const STATUS_OPTIONS: { value: PartStatus; label: string }[] = [
 
 interface PartFormProps {
   part?: Part
+  duplicateId?: string
 }
 
-export default function PartForm({ part }: PartFormProps) {
+export default function PartForm({ part, duplicateId }: PartFormProps) {
   const router    = useRouter()
   const isEditing = !!part
 
@@ -98,6 +100,17 @@ export default function PartForm({ part }: PartFormProps) {
   )
   const [isSaving, setSaving] = useState(false)
   const [errors, setErrors]   = useState<Partial<Record<keyof PartFormData, string>>>({})
+
+  // Load duplicate data
+  useEffect(() => {
+    if (!duplicateId || part) return
+    apiClient.parts.get(duplicateId).then((src) => {
+      const data = partToFormData(src)
+      data.name = `Copy of ${data.name}`
+      data.quantity_on_hand = '0'
+      setForm(data)
+    }).catch(() => {})
+  }, [duplicateId, part])
 
   function set<K extends keyof PartFormData>(field: K, value: PartFormData[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -164,12 +177,11 @@ export default function PartForm({ part }: PartFormProps) {
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Description <span className="font-normal text-slate-400">(optional)</span>
           </label>
-          <textarea
+          <TextareaWithVoice
             value={form.description}
             onChange={(e) => set('description', e.target.value)}
             rows={2}
             placeholder="Brief description of this part…"
-            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
           />
         </div>
 

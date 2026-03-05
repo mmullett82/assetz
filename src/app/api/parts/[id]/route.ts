@@ -77,3 +77,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return handleApiError(err)
   }
 }
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  try {
+    const user = await requireAuth(request)
+    const { id } = await context.params
+
+    const existing = await prisma.part.findFirst({
+      where: { id, organization_id: user.organization_id },
+    })
+    if (!existing) return errorResponse('Part not found', 404)
+
+    await prisma.part.delete({ where: { id } })
+    return new NextResponse(null, { status: 204 })
+  } catch (err) {
+    return handleApiError(err)
+  }
+}

@@ -84,3 +84,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return handleApiError(err)
   }
 }
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  try {
+    const user = await requireAuth(request)
+    const { id } = await context.params
+
+    const existing = await prisma.workOrder.findFirst({
+      where: { id, organization_id: user.organization_id },
+    })
+    if (!existing) return errorResponse('Work order not found', 404)
+
+    await prisma.workOrder.delete({ where: { id } })
+    return new NextResponse(null, { status: 204 })
+  } catch (err) {
+    return handleApiError(err)
+  }
+}

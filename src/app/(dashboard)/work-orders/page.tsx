@@ -6,6 +6,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Plus, ClipboardList, ArrowLeft } from 'lucide-react'
 import { useWorkOrders } from '@/hooks/useWorkOrders'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import apiClient from '@/lib/api-client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { showToast } from '@/hooks/useToast'
 import WorkOrderTable from '@/components/work-orders/WorkOrderTable'
 import WorkOrderPanelDetail from '@/components/work-orders/WorkOrderPanelDetail'
 import WorkOrderStatusBadge from '@/components/work-orders/WorkOrderStatusBadge'
@@ -105,7 +108,25 @@ function WorkOrdersPageContent() {
   const [selectedId, setSelectedId]   = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  const { workOrders, isLoading } = useWorkOrders()
+  const { workOrders, isLoading, mutate } = useWorkOrders()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await apiClient.workOrders.delete(deleteTarget.id)
+      await mutate()
+      showToast('success', `"${deleteTarget.title}" deleted`)
+      if (selectedId === deleteTarget.id) setSelectedId(null)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete work order')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
 
   const assetFiltered = useMemo(() =>
     assetIdFilter
@@ -270,7 +291,8 @@ function WorkOrdersPageContent() {
                         { label: 'Edit',        onClick: () => router.push(`/work-orders/${wo.id}/edit`) },
                         { label: 'View Detail', onClick: () => router.push(`/work-orders/${wo.id}`) },
                         { separator: true, label: 'Show Asset', onClick: () => router.push(`/assets/${wo.asset_id}`) },
-                        { label: 'Delete',      onClick: () => console.log('TODO'), destructive: true },
+                        { label: 'Duplicate',   onClick: () => router.push(`/work-orders/new?duplicate=${wo.id}`) },
+                        { label: 'Delete',      onClick: () => setDeleteTarget({ id: wo.id, title: wo.title }), destructive: true },
                       ]}
                     />
                   </div>
@@ -323,6 +345,17 @@ function WorkOrdersPageContent() {
           onItemClick={setSelectedId}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete Work Order"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

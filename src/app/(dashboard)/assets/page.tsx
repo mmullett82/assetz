@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Search, Plus, Cpu, ArrowLeft } from 'lucide-react'
 import { useAssets } from '@/hooks/useAssets'
+import apiClient from '@/lib/api-client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { showToast } from '@/hooks/useToast'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import AssetTable from '@/components/assets/AssetTable'
 import AssetPanelDetail from '@/components/assets/AssetPanelDetail'
@@ -76,7 +79,25 @@ export default function AssetsPage() {
   const [selectedId, setSelectedId]   = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  const { assets, isLoading } = useAssets()
+  const { assets, isLoading, mutate } = useAssets()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await apiClient.assets.delete(deleteTarget.id)
+      await mutate()
+      showToast('success', `"${deleteTarget.name}" deleted`)
+      if (selectedId === deleteTarget.id) setSelectedId(null)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete asset')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
 
   const searched = useMemo(() => assets.filter((a) => matchesSearch(a, search)), [assets, search])
   const filtered = useMemo(() => applyFilters(searched, activeFilters), [searched, activeFilters])
@@ -211,8 +232,9 @@ export default function AssetsPage() {
                     items={[
                       { label: 'Edit',             onClick: () => router.push(`/assets/${asset.id}/edit`) },
                       { label: 'View Detail',      onClick: () => router.push(`/assets/${asset.id}`) },
-                      { separator: true, label: 'Create Work Order', onClick: () => console.log('TODO') },
-                      { label: 'Delete',           onClick: () => console.log('TODO'), destructive: true },
+                      { separator: true, label: 'Create Work Order', onClick: () => router.push(`/work-orders/new?asset_id=${asset.id}`) },
+                      { label: 'Duplicate',        onClick: () => router.push(`/assets/new?duplicate=${asset.id}`) },
+                      { label: 'Delete',           onClick: () => setDeleteTarget({ id: asset.id, name: asset.name }), destructive: true },
                     ]}
                   />
                 </div>
@@ -238,7 +260,7 @@ export default function AssetsPage() {
                 <AssetPanelDetail
                   assetId={selectedId}
                   onEdit={() => router.push(`/assets/${selectedId}/edit`)}
-                  onCreateWO={() => console.log('TODO: create WO for', selectedId)}
+                  onCreateWO={() => router.push(`/work-orders/new?asset_id=${selectedId}`)}
                   onClose={() => setSelectedId(null)}
                 />
               </>
@@ -259,6 +281,17 @@ export default function AssetsPage() {
           onSelectionChange={setSelectedIds}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete Asset"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

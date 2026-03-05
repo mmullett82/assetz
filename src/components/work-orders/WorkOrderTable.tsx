@@ -1,10 +1,14 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Edit, Eye, Cpu, Copy, Trash2 } from 'lucide-react'
 import type { WorkOrder } from '@/types'
+import apiClient from '@/lib/api-client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { showToast } from '@/hooks/useToast'
+import { useWorkOrders } from '@/hooks/useWorkOrders'
 import WorkOrderStatusBadge from './WorkOrderStatusBadge'
 import WorkOrderPriorityBadge from './WorkOrderPriorityBadge'
 import DueStatusBadge from '@/components/ui/DueStatusBadge'
@@ -44,6 +48,24 @@ export default function WorkOrderTable({ workOrders, selectedIds = new Set(), on
   const router = useRouter()
   const [visibility, setColumn] = useColumnVisibility('wo-columns', COLUMN_DEFAULTS)
   const headerCheckRef = useRef<HTMLInputElement>(null)
+  const { mutate } = useWorkOrders()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await apiClient.workOrders.delete(deleteTarget.id)
+      await mutate()
+      showToast('success', `"${deleteTarget.title}" deleted`)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete work order')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
 
   function resetColumns() {
     COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
@@ -211,13 +233,13 @@ export default function WorkOrderTable({ workOrders, selectedIds = new Set(), on
                         {
                           label: 'Duplicate',
                           icon: <Copy className="h-4 w-4" />,
-                          onClick: () => console.log('TODO: duplicate WO', wo.id),
+                          onClick: () => router.push(`/work-orders/new?duplicate=${wo.id}`),
                         },
                         {
                           separator: true,
                           label: 'Delete',
                           icon: <Trash2 className="h-4 w-4" />,
-                          onClick: () => console.log('TODO: delete WO', wo.id),
+                          onClick: () => setDeleteTarget({ id: wo.id, title: wo.title }),
                           destructive: true,
                         },
                       ]}
@@ -229,6 +251,16 @@ export default function WorkOrderTable({ workOrders, selectedIds = new Set(), on
           </tbody>
         </table>
       </div>
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete Work Order"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   )
 }

@@ -6,6 +6,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Plus, Package, ArrowLeft } from 'lucide-react'
 import { useParts } from '@/hooks/useParts'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import apiClient from '@/lib/api-client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { showToast } from '@/hooks/useToast'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import PartTable from '@/components/parts/PartTable'
 import PartPanelDetail from '@/components/parts/PartPanelDetail'
@@ -75,6 +78,24 @@ function PartsPageContent() {
   const [reserving, setReserving]     = useState<Part | null>(null)
 
   const { parts, isLoading, mutate } = useParts()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await apiClient.parts.delete(deleteTarget.id)
+      await mutate()
+      showToast('success', `"${deleteTarget.name}" deleted`)
+      if (selectedId === deleteTarget.id) setSelectedId(null)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete part')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
 
   const assetFiltered = useMemo(() =>
     assetIdFilter
@@ -263,8 +284,8 @@ function PartsPageContent() {
                         { separator: true, label: 'View Associated Assets', onClick: () => router.push(`/assets?part_id=${part.id}`) },
                         { label: 'View Work Orders', onClick: () => router.push(`/work-orders?part_id=${part.id}`) },
                         { separator: true, label: 'Reserve Stock', onClick: () => avail > 0 ? setReserving(part) : undefined },
-                        { label: 'Duplicate',   onClick: () => console.log('TODO: duplicate', part.id) },
-                        { separator: true, label: 'Delete', onClick: () => console.log('TODO: delete', part.id), destructive: true },
+                        { label: 'Duplicate',   onClick: () => router.push(`/parts/new?duplicate=${part.id}`) },
+                        { separator: true, label: 'Delete', onClick: () => setDeleteTarget({ id: part.id, name: part.name }), destructive: true },
                       ]}
                     />
                   </div>
@@ -321,6 +342,17 @@ function PartsPageContent() {
           onCancel={() => setReserving(null)}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete Part"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

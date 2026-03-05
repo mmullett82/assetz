@@ -1,10 +1,14 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { BookmarkPlus, Edit, Eye, Cpu, BookMarked, Trash2 } from 'lucide-react'
+import { BookmarkPlus, Edit, Eye, Cpu, BookMarked, Copy, Trash2 } from 'lucide-react'
 import type { Part } from '@/types'
+import apiClient from '@/lib/api-client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { showToast } from '@/hooks/useToast'
+import { useParts } from '@/hooks/useParts'
 import PartStockBadge, { availableQty } from './PartStockBadge'
 import DotsMenu from '@/components/ui/DotsMenu'
 import ColumnChooser, { type ColumnDef } from '@/components/ui/ColumnChooser'
@@ -49,6 +53,24 @@ export default function PartTable({ parts, onReserve, selectedIds = new Set(), o
   const router = useRouter()
   const [visibility, setColumn] = useColumnVisibility('parts-columns', COLUMN_DEFAULTS)
   const headerCheckRef = useRef<HTMLInputElement>(null)
+  const { mutate } = useParts()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await apiClient.parts.delete(deleteTarget.id)
+      await mutate()
+      showToast('success', `"${deleteTarget.name}" deleted`)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete part')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
 
   function resetColumns() {
     COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
@@ -270,13 +292,13 @@ export default function PartTable({ parts, onReserve, selectedIds = new Set(), o
                           },
                           {
                             label: 'Duplicate',
-                            onClick: () => console.log('TODO: duplicate', part.id),
+                            onClick: () => router.push(`/parts/new?duplicate=${part.id}`),
                           },
                           {
                             separator: true,
                             label: 'Delete',
                             icon: <Trash2 className="h-4 w-4" />,
-                            onClick: () => console.log('TODO: delete part', part.id),
+                            onClick: () => setDeleteTarget({ id: part.id, name: part.name }),
                             destructive: true,
                           },
                         ]}
@@ -289,6 +311,16 @@ export default function PartTable({ parts, onReserve, selectedIds = new Set(), o
           </tbody>
         </table>
       </div>
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete Part"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   )
 }

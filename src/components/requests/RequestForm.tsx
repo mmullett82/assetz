@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { TextareaWithVoice } from '@/components/ui/VoiceInput'
 import { Send, Camera, Loader2 } from 'lucide-react'
 import type { RequestUrgency, Asset } from '@/types'
 import apiClient from '@/lib/api-client'
@@ -78,12 +79,11 @@ export default function RequestForm({ prefillAsset }: Props) {
         <label className="block text-sm font-medium text-slate-700 mb-1">
           Tell us more
         </label>
-        <textarea
+        <TextareaWithVoice
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
           placeholder="Any details that would help — when it started, what you were doing, error codes..."
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         />
       </div>
 

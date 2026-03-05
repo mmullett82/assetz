@@ -9,7 +9,9 @@ import Button from '@/components/ui/Button'
 import { buildFacilityAssetId, buildAssetNumber } from '@/lib/asset-id'
 import { MOCK_DEPARTMENTS } from '@/lib/mock-data'
 import { MOCK_USERS } from '@/lib/mock-settings'
-import { RefreshCw, AlertTriangle, Camera, Paperclip } from 'lucide-react'
+import { RefreshCw, AlertTriangle, Camera, Paperclip, ChevronDown } from 'lucide-react'
+import { TextareaWithVoice } from '@/components/ui/VoiceInput'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 import apiClient from '@/lib/api-client'
 import { USE_MOCK } from '@/lib/config'
 
@@ -193,9 +195,10 @@ const ACTIVE_TECHS = MOCK_USERS.filter((u) => u.is_active && (u.role === 'techni
 
 interface AssetFormProps {
   asset?: Asset   // undefined = new asset
+  duplicateId?: string
 }
 
-export default function AssetForm({ asset }: AssetFormProps) {
+export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
   const router = useRouter()
   const isEditing = !!asset
 
@@ -204,6 +207,20 @@ export default function AssetForm({ asset }: AssetFormProps) {
   )
   const [isSaving, setIsSaving] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof AssetFormData, string>>>({})
+  const [quickCreate, setQuickCreate] = useState(!asset && !duplicateId)
+
+  // Load duplicate data
+  useEffect(() => {
+    if (!duplicateId || asset) return
+    apiClient.assets.get(duplicateId).then((src) => {
+      const data = assetToFormData(src)
+      data.name = `Copy of ${data.name}`
+      data.serial_number = ''
+      data.tag_number = ''
+      data.rfid = ''
+      setForm(data)
+    }).catch(() => {})
+  }, [duplicateId, asset])
 
   // Auto-derive department_code from selected department_id
   useEffect(() => {
@@ -295,6 +312,29 @@ export default function AssetForm({ asset }: AssetFormProps) {
         </div>
       )}
 
+      {/* Quick Create toggle */}
+      {!isEditing && (
+        <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3">
+          <div>
+            <p className="text-sm font-medium text-slate-700">Quick Create</p>
+            <p className="text-xs text-slate-500">Show only required fields</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setQuickCreate((v) => !v)}
+            className={[
+              'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+              quickCreate ? 'bg-blue-600' : 'bg-slate-200',
+            ].join(' ')}
+          >
+            <span className={[
+              'inline-block h-4 w-4 rounded-full bg-white shadow transition-transform',
+              quickCreate ? 'translate-x-6' : 'translate-x-1',
+            ].join(' ')} />
+          </button>
+        </div>
+      )}
+
       {/* 1. Basic info */}
       <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
         <legend className="text-sm font-semibold text-slate-700 px-1">Basic Information</legend>
@@ -374,6 +414,7 @@ export default function AssetForm({ asset }: AssetFormProps) {
         <legend className="flex items-center gap-2 text-sm font-semibold text-slate-700 px-1">
           <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
           Facility Asset ID
+          <InfoTooltip text="Auto-generated structured ID: COMPANY-BUILDING-DEPT-SYSTEM-UNIT-[L/C/U]GROUP-SEQUENCE. Dashes separate fields, underscores join multi-word values (e.g. EDGE_BANDER). This ID is unique per asset and encodes its location and type." />
         </legend>
         <p className="text-xs text-slate-500">
           Format: <code className="font-mono bg-slate-100 px-1 rounded">COMPANY-BUILDING-DEPT-SYSTEM-UNIT-C1-01</code>
@@ -406,14 +447,19 @@ export default function AssetForm({ asset }: AssetFormProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="System type"
-            value={form.system_type}
-            onChange={(e) => set('system_type', e.target.value.toUpperCase())}
-            placeholder="EDGE"
-            error={errors.system_type}
-            hint="Equipment category (e.g. EDGE, CNC, AIR)"
-          />
+          <div>
+            <div className="flex items-center gap-1 mb-1.5">
+              <label className="text-sm font-medium text-slate-700">System type</label>
+              <InfoTooltip text="The broad equipment category this asset belongs to. Examples: CNC (routers, boring), EDGE (edge banders), SPRAY (spray booths), AIR (compressors), DUST (dust collection). Groups similar machines for reporting." />
+            </div>
+            <Input
+              value={form.system_type}
+              onChange={(e) => set('system_type', e.target.value.toUpperCase())}
+              placeholder="EDGE"
+              error={errors.system_type}
+              hint="Equipment category (e.g. EDGE, CNC, AIR)"
+            />
+          </div>
           <Input
             label="Unit type"
             value={form.unit_type}
@@ -425,16 +471,21 @@ export default function AssetForm({ asset }: AssetFormProps) {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <Select
-            label="Dependency code"
-            value={form.dependency_code}
-            onChange={(e) => set('dependency_code', e.target.value as DependencyCode)}
-            options={[
-              { value: 'C', label: 'C — Cell (independent)' },
-              { value: 'L', label: 'L — Line (direct)'      },
-              { value: 'U', label: 'U — Utility'            },
-            ]}
-          />
+          <div>
+            <div className="flex items-center gap-1 mb-1.5">
+              <label className="text-sm font-medium text-slate-700">Dependency code</label>
+              <InfoTooltip text="L (Line) = equipment is directly coupled in a production line — if one stops, the line stops. C (Cell) = independent group of same-type machines, not mechanically dependent. U (Utility) = serves multiple departments (compressors, dust collection, HVAC)." />
+            </div>
+            <Select
+              value={form.dependency_code}
+              onChange={(e) => set('dependency_code', e.target.value as DependencyCode)}
+              options={[
+                { value: 'C', label: 'C — Cell (independent)' },
+                { value: 'L', label: 'L — Line (direct)'      },
+                { value: 'U', label: 'U — Utility'            },
+              ]}
+            />
+          </div>
           <Input
             label="Group #"
             type="number"
@@ -456,6 +507,18 @@ export default function AssetForm({ asset }: AssetFormProps) {
         </div>
       </fieldset>
 
+      {quickCreate && (
+        <button
+          type="button"
+          onClick={() => setQuickCreate(false)}
+          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+        >
+          <ChevronDown className="h-4 w-4" />
+          Show all fields ({Object.keys(DEFAULT_FORM).length - 5} more)
+        </button>
+      )}
+
+      {!quickCreate && <>
       {/* 3. Barcode / Asset Number */}
       <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
         <legend className="text-sm font-semibold text-slate-700 px-1">
@@ -709,12 +772,11 @@ export default function AssetForm({ asset }: AssetFormProps) {
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Assessment Notes</label>
-          <textarea
+          <TextareaWithVoice
             value={form.assessment_note}
             onChange={(e) => set('assessment_note', e.target.value)}
             rows={3}
             placeholder="Notes about current condition…"
-            className={textareaClass}
           />
         </div>
 
@@ -755,56 +817,51 @@ export default function AssetForm({ asset }: AssetFormProps) {
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Safety Notes</label>
-            <textarea
+            <TextareaWithVoice
               value={form.safety_note}
               onChange={(e) => set('safety_note', e.target.value)}
               rows={4}
               placeholder="General safety warnings and PPE requirements…"
-              className={textareaClass}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Training Notes</label>
-            <textarea
+            <TextareaWithVoice
               value={form.training_note}
               onChange={(e) => set('training_note', e.target.value)}
               rows={4}
               placeholder="Required training or certifications…"
-              className={textareaClass}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Shutdown Procedure</label>
-            <textarea
+            <TextareaWithVoice
               value={form.shutdown_procedure_note}
               onChange={(e) => set('shutdown_procedure_note', e.target.value)}
               rows={4}
               placeholder="Step-by-step shutdown procedure…"
-              className={textareaClass}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">LOTO Procedure</label>
-            <textarea
+            <TextareaWithVoice
               value={form.loto_procedure_note}
               onChange={(e) => set('loto_procedure_note', e.target.value)}
               rows={4}
               placeholder="Lockout / Tagout steps…"
-              className={textareaClass}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Emergency Notes</label>
-            <textarea
+            <TextareaWithVoice
               value={form.emergency_note}
               onChange={(e) => set('emergency_note', e.target.value)}
               rows={4}
               placeholder="Emergency contacts, procedures, and escalation…"
-              className={textareaClass}
             />
           </div>
         </div>
@@ -884,6 +941,8 @@ export default function AssetForm({ asset }: AssetFormProps) {
           Attach Files
         </button>
       </div>
+
+      </>}
 
       {/* Actions */}
       <div className="flex items-center gap-3">

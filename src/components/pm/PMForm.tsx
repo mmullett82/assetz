@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { PMSchedule, PMFrequency, WorkOrderStatus } from '@/types'
 import Input from '@/components/ui/Input'
@@ -8,7 +8,9 @@ import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { MOCK_ASSETS, MOCK_DEPARTMENTS } from '@/lib/mock-data'
 import { MOCK_PARTS } from '@/lib/mock-parts'
+import { TextareaWithVoice } from '@/components/ui/VoiceInput'
 import { X } from 'lucide-react'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 import apiClient from '@/lib/api-client'
 import { USE_MOCK } from '@/lib/config'
 
@@ -126,17 +128,31 @@ const MOCK_CAUSE_CODES = [
 
 interface PMFormProps {
   pmSchedule?: PMSchedule
+  defaultAssetId?: string
+  duplicateId?: string
 }
 
-export default function PMForm({ pmSchedule }: PMFormProps) {
+export default function PMForm({ pmSchedule, defaultAssetId, duplicateId }: PMFormProps) {
   const router    = useRouter()
   const isEditing = !!pmSchedule
 
-  const [form, setForm]       = useState<PMFormData>(() =>
-    pmSchedule ? pmToFormData(pmSchedule) : DEFAULT
-  )
+  const [form, setForm]       = useState<PMFormData>(() => {
+    const base = pmSchedule ? pmToFormData(pmSchedule) : { ...DEFAULT }
+    if (defaultAssetId && !base.asset_id) base.asset_id = defaultAssetId
+    return base
+  })
   const [isSaving, setSaving] = useState(false)
   const [errors, setErrors]   = useState<Partial<Record<keyof PMFormData, string>>>({})
+
+  // Load duplicate data
+  useEffect(() => {
+    if (!duplicateId || pmSchedule) return
+    apiClient.pmSchedules.get(duplicateId).then((pm) => {
+      const data = pmToFormData(pm)
+      data.title = `Copy of ${data.title}`
+      setForm(data)
+    }).catch(() => {})
+  }, [duplicateId, pmSchedule])
 
   // Parts picker state
   const [pickerPartId, setPickerPartId] = useState('')
@@ -234,12 +250,11 @@ export default function PMForm({ pmSchedule }: PMFormProps) {
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Description <span className="font-normal text-slate-400">(optional)</span>
           </label>
-          <textarea
+          <TextareaWithVoice
             value={form.description}
             onChange={(e) => set('description', e.target.value)}
             rows={2}
             placeholder="Brief summary of what this PM covers…"
-            className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
           />
         </div>
 
@@ -258,7 +273,10 @@ export default function PMForm({ pmSchedule }: PMFormProps) {
 
       {/* Schedule Type */}
       <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
-        <legend className="text-sm font-semibold text-slate-700 px-1">Schedule Type</legend>
+        <legend className="flex items-center gap-2 text-sm font-semibold text-slate-700 px-1">
+          Schedule Type
+          <InfoTooltip text="Time-Based: triggers on a calendar schedule (daily, weekly, monthly, etc.). Meter-Based: triggers when an asset's meter (hours, cycles, miles) reaches a threshold. Time + Meter Override: uses calendar schedule but triggers early if the meter threshold is hit first." />
+        </legend>
 
         <div className="flex rounded-lg border border-slate-200 overflow-hidden">
           {([
@@ -299,17 +317,22 @@ export default function PMForm({ pmSchedule }: PMFormProps) {
           )}
 
           {isMeterBased && (
-            <Input
-              label="Meter interval"
-              type="number"
-              min="1"
-              value={form.meter_interval}
-              onChange={(e) => set('meter_interval', e.target.value)}
-              error={errors.meter_interval}
-              placeholder="e.g. 500"
-              hint="Units depend on the asset's meter type"
-              required
-            />
+            <div>
+              <div className="flex items-center gap-1 mb-1.5">
+                <label className="text-sm font-medium text-slate-700">Meter interval</label>
+                <InfoTooltip text="The number of meter units between each PM. For example, if the asset tracks run-hours and you set 500, the PM triggers every 500 hours. Units depend on the asset's meter type (hours, cycles, miles, etc.)." />
+              </div>
+              <Input
+                type="number"
+                min="1"
+                value={form.meter_interval}
+                onChange={(e) => set('meter_interval', e.target.value)}
+                error={errors.meter_interval}
+                placeholder="e.g. 500"
+                hint="Units depend on the asset's meter type"
+                required
+              />
+            </div>
           )}
 
           {isMonthly && (
@@ -556,12 +579,11 @@ export default function PMForm({ pmSchedule }: PMFormProps) {
         <p className="text-xs text-slate-400">
           Enter each step on its own line. Steps will appear as a checklist on the PM detail page.
         </p>
-        <textarea
+        <TextareaWithVoice
           value={form.instructions}
           onChange={(e) => set('instructions', e.target.value)}
           rows={8}
           placeholder={'1. Check oil level\n2. Drain condensate\n3. Replace air filter element\n4. Check belt tension…'}
-          className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y font-mono"
         />
       </fieldset>
 

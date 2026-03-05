@@ -188,6 +188,9 @@ export const workOrders = {
       body: JSON.stringify({ body }),
     }),
 
+  delete: (id: string) =>
+    apiFetch<void>(`/work-orders/${id}`, { method: 'DELETE' }),
+
   uploadPhoto: (id: string, formData: FormData) =>
     apiFetch<WorkOrder>(`/work-orders/${id}/photos`, {
       method: 'POST',
@@ -232,6 +235,9 @@ export const pmSchedules = {
       body: JSON.stringify({ completed_at: completedAt ?? new Date().toISOString() }),
     }),
 
+  delete: (id: string) =>
+    apiFetch<void>(`/pm-schedules/${id}`, { method: 'DELETE' }),
+
   // AI-generated PM from equipment manual
   generateFromManual: (assetId: string) =>
     apiFetch<PMSchedule[]>(`/pm-schedules/generate`, {
@@ -265,6 +271,9 @@ export const parts = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+
+  delete: (id: string) =>
+    apiFetch<void>(`/parts/${id}`, { method: 'DELETE' }),
 
   reserve: (partId: string, workOrderId: string, quantity: number) =>
     apiFetch<void>(`/parts/${partId}/reserve`, {

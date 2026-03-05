@@ -3,11 +3,15 @@
  */
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Edit, Eye, CalendarClock, ClipboardList, Package, Copy, Trash2 } from 'lucide-react'
 import type { Asset } from '@/types'
+import apiClient from '@/lib/api-client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { showToast } from '@/hooks/useToast'
+import { useAssets } from '@/hooks/useAssets'
 import AssetStatusBadge from '@/components/ui/AssetStatusBadge'
 import DependencyBadge from './DependencyBadge'
 import DotsMenu from '@/components/ui/DotsMenu'
@@ -44,6 +48,24 @@ export default function AssetTable({ assets, selectedIds = new Set(), onSelectio
   const router = useRouter()
   const [visibility, setColumn] = useColumnVisibility('assets-columns', COLUMN_DEFAULTS)
   const headerCheckRef = useRef<HTMLInputElement>(null)
+  const { mutate } = useAssets()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await apiClient.assets.delete(deleteTarget.id)
+      await mutate()
+      showToast('success', `"${deleteTarget.name}" deleted`)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete asset')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
 
   function resetColumns() {
     COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
@@ -212,12 +234,12 @@ export default function AssetTable({ assets, selectedIds = new Set(), onSelectio
                         separator: true,
                         label: 'Create Work Order',
                         icon: <ClipboardList className="h-4 w-4" />,
-                        onClick: () => console.log('TODO: create WO for', asset.id),
+                        onClick: () => router.push(`/work-orders/new?asset_id=${asset.id}`),
                       },
                       {
                         label: 'Create PM',
                         icon: <CalendarClock className="h-4 w-4" />,
-                        onClick: () => console.log('TODO: create PM for', asset.id),
+                        onClick: () => router.push(`/pm/new?asset_id=${asset.id}`),
                       },
                       {
                         label: 'Show Parts',
@@ -228,12 +250,12 @@ export default function AssetTable({ assets, selectedIds = new Set(), onSelectio
                         separator: true,
                         label: 'Duplicate',
                         icon: <Copy className="h-4 w-4" />,
-                        onClick: () => console.log('TODO: duplicate', asset.id),
+                        onClick: () => router.push(`/assets/new?duplicate=${asset.id}`),
                       },
                       {
                         label: 'Delete',
                         icon: <Trash2 className="h-4 w-4" />,
-                        onClick: () => console.log('TODO: delete', asset.id),
+                        onClick: () => setDeleteTarget({ id: asset.id, name: asset.name }),
                         destructive: true,
                       },
                     ]}
@@ -244,6 +266,16 @@ export default function AssetTable({ assets, selectedIds = new Set(), onSelectio
           </tbody>
         </table>
       </div>
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete Asset"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   )
 }

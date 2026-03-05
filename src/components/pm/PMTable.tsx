@@ -1,10 +1,14 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, Edit, Eye, Cpu, Copy, Trash2, Zap } from 'lucide-react'
 import type { PMSchedule } from '@/types'
+import apiClient from '@/lib/api-client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
+import { showToast } from '@/hooks/useToast'
+import { usePMSchedules } from '@/hooks/usePMSchedules'
 import DueStatusBadge from '@/components/ui/DueStatusBadge'
 import PMFrequencyBadge from './PMFrequencyBadge'
 import { daysUntilDue, formatDueDate } from '@/lib/pm-utils'
@@ -44,6 +48,34 @@ export default function PMTable({ pmSchedules, onComplete, selectedIds = new Set
   const router = useRouter()
   const [visibility, setColumn] = useColumnVisibility('pm-columns', COLUMN_DEFAULTS)
   const headerCheckRef = useRef<HTMLInputElement>(null)
+  const { mutate } = usePMSchedules()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await apiClient.pmSchedules.delete(deleteTarget.id)
+      await mutate()
+      showToast('success', `"${deleteTarget.title}" deleted`)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to delete PM schedule')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }
+
+  async function handleGenerateWO(pm: PMSchedule) {
+    try {
+      await apiClient.pmSchedules.complete(pm.id)
+      await mutate()
+      showToast('success', `Work order generated from "${pm.title}"`)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to generate work order')
+    }
+  }
 
   function resetColumns() {
     COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
@@ -225,7 +257,7 @@ export default function PMTable({ pmSchedules, onComplete, selectedIds = new Set
                             separator: true,
                             label: 'Generate WO Now',
                             icon: <Zap className="h-4 w-4" />,
-                            onClick: () => console.log('TODO: generate WO for PM', pm.id),
+                            onClick: () => handleGenerateWO(pm),
                           },
                           {
                             label: 'Show Asset',
@@ -235,13 +267,13 @@ export default function PMTable({ pmSchedules, onComplete, selectedIds = new Set
                           {
                             label: 'Duplicate',
                             icon: <Copy className="h-4 w-4" />,
-                            onClick: () => console.log('TODO: duplicate PM', pm.id),
+                            onClick: () => router.push(`/pm/new?duplicate=${pm.id}`),
                           },
                           {
                             separator: true,
                             label: 'Delete',
                             icon: <Trash2 className="h-4 w-4" />,
-                            onClick: () => console.log('TODO: delete PM', pm.id),
+                            onClick: () => setDeleteTarget({ id: pm.id, title: pm.title }),
                             destructive: true,
                           },
                         ]}
@@ -254,6 +286,16 @@ export default function PMTable({ pmSchedules, onComplete, selectedIds = new Set
           </tbody>
         </table>
       </div>
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete PM Schedule"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   )
 }

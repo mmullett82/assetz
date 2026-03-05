@@ -1,10 +1,19 @@
 'use client'
 
-import { useState } from 'react'
-import { Check, X, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Check, X, Loader2, Sparkles } from 'lucide-react'
 import type { WorkRequest } from '@/types'
 import apiClient from '@/lib/api-client'
 import { USE_MOCK } from '@/lib/config'
+import { TextareaWithVoice } from '@/components/ui/VoiceInput'
+
+interface TriageSuggestion {
+  priority: string
+  priority_reason: string
+  asset_id: string | null
+  asset_match_reason: string
+  urgency_assessment: string
+}
 
 interface Props {
   request: WorkRequest
@@ -18,6 +27,27 @@ export default function TriagePanel({ request, onComplete }: Props) {
   const [dueDate, setDueDate] = useState('')
   const [rejectReason, setRejectReason] = useState('')
   const [loading, setLoading] = useState(false)
+  const [suggestion, setSuggestion] = useState<TriageSuggestion | null>(null)
+  const [sugLoading, setSugLoading] = useState(false)
+
+  // Fetch AI suggestion on mount
+  useEffect(() => {
+    if (USE_MOCK || request.status !== 'submitted') return
+    setSugLoading(true)
+    fetch('/api/agent/triage-suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: request.title,
+        description: request.description,
+        location: request.location_description,
+      }),
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setSuggestion(data) })
+      .catch(() => {})
+      .finally(() => setSugLoading(false))
+  }, [request.id, request.status, request.title, request.description, request.location_description])
 
   async function handleApprove() {
     setLoading(true)
@@ -50,7 +80,33 @@ export default function TriagePanel({ request, onComplete }: Props) {
 
   if (mode === 'idle') {
     return (
-      <div className="flex gap-2 mt-4">
+      <div className="mt-4 space-y-3">
+        {/* AI Suggestion */}
+        {sugLoading && (
+          <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs text-blue-700">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            AI analyzing request...
+          </div>
+        )}
+        {suggestion && !sugLoading && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+              <span className="text-xs font-semibold text-blue-800">AI Suggestion</span>
+            </div>
+            <p className="text-xs text-blue-700">{suggestion.urgency_assessment}</p>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => { setPriority(suggestion.priority); setMode('approve') }}
+                className="px-2 py-0.5 text-[11px] font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-full hover:bg-blue-200 transition-colors"
+              >
+                Priority: {suggestion.priority}
+              </button>
+            </div>
+          </div>
+        )}
+      <div className="flex gap-2">
         <button
           onClick={() => setMode('approve')}
           className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors"
@@ -63,6 +119,7 @@ export default function TriagePanel({ request, onComplete }: Props) {
         >
           <X className="h-4 w-4" /> Reject
         </button>
+      </div>
       </div>
     )
   }
@@ -134,12 +191,11 @@ export default function TriagePanel({ request, onComplete }: Props) {
 
       <div>
         <label className="block text-xs font-medium text-red-700 mb-1">Reason (required)</label>
-        <textarea
+        <TextareaWithVoice
           value={rejectReason}
           onChange={(e) => setRejectReason(e.target.value)}
           rows={3}
           placeholder="Explain why this request is being rejected..."
-          className="w-full rounded-lg border border-red-300 bg-white px-3 py-2 text-sm"
         />
       </div>
 
