@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
     const todayStart = new Date(now)
     todayStart.setHours(0, 0, 0, 0)
 
+    const openWhere = { organization_id: orgId, status: { notIn: ['completed', 'cancelled'] } } as const
+
     const [
       openWOs,
       overdueWOs,
@@ -32,18 +34,21 @@ export async function GET(request: NextRequest) {
       completedWOsWithHours,
       lowStockParts,
       activeTechs,
+      plannedWOs,
+      reactiveWOs,
+      pendingApproval,
+      newRequestsToday,
+      criticalPriority,
     ] = await Promise.all([
       // Open work orders (not completed/cancelled)
-      prisma.workOrder.count({
-        where: { organization_id: orgId, status: { notIn: ['completed', 'cancelled'] } },
-      }),
+      prisma.workOrder.count({ where: openWhere }),
       // Overdue work orders
       prisma.workOrder.count({
-        where: { organization_id: orgId, status: { notIn: ['completed', 'cancelled'] }, due_date: { lt: now } },
+        where: { ...openWhere, due_date: { lt: now } },
       }),
       // Due today
       prisma.workOrder.count({
-        where: { organization_id: orgId, status: { notIn: ['completed', 'cancelled'] }, due_date: { gte: todayStart, lte: todayEnd } },
+        where: { ...openWhere, due_date: { gte: todayStart, lte: todayEnd } },
       }),
       // Completed this week
       prisma.workOrder.count({
@@ -61,7 +66,7 @@ export async function GET(request: NextRequest) {
       prisma.pMSchedule.count({
         where: { organization_id: orgId, is_active: true },
       }),
-      // PM schedules completed on time (last_completed_at exists and next_due_at is in the future)
+      // PM schedules completed on time (next_due_at is in the future)
       prisma.pMSchedule.count({
         where: { organization_id: orgId, is_active: true, next_due_at: { gt: now } },
       }),
@@ -76,9 +81,29 @@ export async function GET(request: NextRequest) {
       }),
       // Active technicians with open WOs
       prisma.workOrder.findMany({
-        where: { organization_id: orgId, status: { notIn: ['completed', 'cancelled'] }, assigned_to_id: { not: null } },
+        where: { ...openWhere, assigned_to_id: { not: null } },
         select: { assigned_to_id: true },
         distinct: ['assigned_to_id'],
+      }),
+      // Planned (PM-generated) open WOs
+      prisma.workOrder.count({
+        where: { ...openWhere, origin_type: 'pm_generated' },
+      }),
+      // Reactive (manually created) open WOs
+      prisma.workOrder.count({
+        where: { ...openWhere, origin_type: 'manual' },
+      }),
+      // Work requests pending approval
+      prisma.workRequest.count({
+        where: { organization_id: orgId, status: 'submitted' },
+      }),
+      // New work requests submitted today
+      prisma.workRequest.count({
+        where: { organization_id: orgId, created_at: { gte: todayStart, lte: todayEnd } },
+      }),
+      // Critical priority open WOs
+      prisma.workOrder.count({
+        where: { ...openWhere, priority: 'critical' },
       }),
     ])
 
@@ -103,6 +128,11 @@ export async function GET(request: NextRequest) {
       mean_time_to_repair: mttr,
       parts_low_stock: lowStockParts,
       technicians_active: activeTechs.length,
+      planned_wos: plannedWOs,
+      reactive_wos: reactiveWOs,
+      pending_approval: pendingApproval,
+      new_requests_today: newRequestsToday,
+      critical_priority: criticalPriority,
     })
   } catch (err) {
     return handleApiError(err)

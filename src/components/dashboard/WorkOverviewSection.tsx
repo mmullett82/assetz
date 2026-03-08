@@ -21,14 +21,14 @@ const CARDS = [
     label: 'Planned (PM)',
     key: 'planned_wos' as const,
     icon: CalendarClock,
-    href: '/work-orders?origin=pm',
+    href: '/work-orders?origin_type=pm_generated',
     color: 'text-blue-500',
   },
   {
     label: 'Reactive',
     key: 'reactive_wos' as const,
     icon: Wrench,
-    href: '/work-orders?origin=manual',
+    href: '/work-orders?origin_type=manual',
     color: 'text-orange-500',
   },
   {

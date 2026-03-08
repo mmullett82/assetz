@@ -104,7 +104,18 @@ function WorkOrdersPageContent() {
   const [viewMode, setViewMode]       = useLocalStorage<ListViewMode>('work-orders-view', 'table')
   const [sortState, setSortState]     = useLocalStorage<SortState>('work-orders-sort', DEFAULT_SORT)
   const [search, setSearch]           = useState('')
-  const [activeFilters, setFilters]   = useState<ActiveFilter[]>([])
+  const [activeFilters, setFilters]   = useState<ActiveFilter[]>(() => {
+    const filters: ActiveFilter[] = []
+    const overdue = searchParams.get('overdue')
+    if (overdue) filters.push({ key: 'overdue', label: 'Overdue', value: overdue })
+    const originType = searchParams.get('origin_type')
+    if (originType) filters.push({ key: 'origin_type', label: originType === 'pm_generated' ? 'Planned (PM)' : 'Reactive', value: originType })
+    const priority = searchParams.get('priority')
+    if (priority) filters.push({ key: 'priority', label: `Priority: ${priority}`, value: priority })
+    const status = searchParams.get('status')
+    if (status) filters.push({ key: 'status', label: `Status: ${status}`, value: status })
+    return filters
+  })
   const [selectedId, setSelectedId]   = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
