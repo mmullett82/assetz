@@ -35,11 +35,6 @@ export async function GET(request: NextRequest) {
       completedWOsWithHours,
       lowStockParts,
       activeTechs,
-      plannedWOs,
-      reactiveWOs,
-      pendingApproval,
-      newRequestsToday,
-      criticalPriority,
     ] = await Promise.all([
       // Open work orders (not completed/cancelled)
       prisma.workOrder.count({ where: openWhere }),
@@ -86,27 +81,17 @@ export async function GET(request: NextRequest) {
         select: { assigned_to_id: true },
         distinct: ['assigned_to_id'],
       }),
-      // Planned (PM-generated) open WOs
-      prisma.workOrder.count({
-        where: { ...openWhere, origin_type: 'pm_generated' },
-      }),
-      // Reactive (manually created) open WOs
-      prisma.workOrder.count({
-        where: { ...openWhere, origin_type: 'manual' },
-      }),
-      // Work requests pending approval
-      prisma.workRequest.count({
-        where: { organization_id: orgId, status: 'submitted' },
-      }),
-      // New work requests submitted today
-      prisma.workRequest.count({
-        where: { organization_id: orgId, created_at: { gte: todayStart, lte: todayEnd } },
-      }),
-      // Critical priority open WOs
-      prisma.workOrder.count({
-        where: { ...openWhere, priority: 'critical' },
-      }),
     ])
+
+    // Work Overview counts — isolated so a missing table/column doesn't break core KPIs
+    const [plannedWOs, reactiveWOs, criticalPriority, pendingApproval, newRequestsToday] =
+      await Promise.all([
+        prisma.workOrder.count({ where: { ...openWhere, origin_type: 'pm_generated' } }).catch(() => 0),
+        prisma.workOrder.count({ where: { ...openWhere, origin_type: 'manual' } }).catch(() => 0),
+        prisma.workOrder.count({ where: { ...openWhere, priority: 'critical' } }).catch(() => 0),
+        prisma.workRequest.count({ where: { organization_id: orgId, status: 'submitted' } }).catch(() => 0),
+        prisma.workRequest.count({ where: { organization_id: orgId, created_at: { gte: todayStart, lte: todayEnd } } }).catch(() => 0),
+      ])
 
     // Calculate MTTR
     let mttr: number | undefined
