@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
     const todayStart = new Date(now)
     todayStart.setHours(0, 0, 0, 0)
 
-    const openWhere = { organization_id: orgId, status: { notIn: ['completed', 'cancelled'] } } as const
+    const notDone = ['completed', 'cancelled']
+    const openWhere = { organization_id: orgId, status: { notIn: notDone } }
 
     const [
       openWOs,

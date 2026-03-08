@@ -107,13 +107,16 @@ function WorkOrdersPageContent() {
   const [activeFilters, setFilters]   = useState<ActiveFilter[]>(() => {
     const filters: ActiveFilter[] = []
     const overdue = searchParams.get('overdue')
-    if (overdue) filters.push({ key: 'overdue', label: 'Overdue', value: overdue })
+    if (overdue) filters.push({ key: 'overdue', label: 'Overdue', value: overdue, displayValue: 'Yes' })
     const originType = searchParams.get('origin_type')
-    if (originType) filters.push({ key: 'origin_type', label: originType === 'pm_generated' ? 'Planned (PM)' : 'Reactive', value: originType })
+    if (originType) {
+      const display = originType === 'pm_generated' ? 'Planned (PM)' : 'Reactive'
+      filters.push({ key: 'origin_type', label: display, value: originType, displayValue: display })
+    }
     const priority = searchParams.get('priority')
-    if (priority) filters.push({ key: 'priority', label: `Priority: ${priority}`, value: priority })
+    if (priority) filters.push({ key: 'priority', label: 'Priority', value: priority, displayValue: priority.charAt(0).toUpperCase() + priority.slice(1) })
     const status = searchParams.get('status')
-    if (status) filters.push({ key: 'status', label: `Status: ${status}`, value: status })
+    if (status) filters.push({ key: 'status', label: 'Status', value: status, displayValue: status.replace(/_/g, ' ') })
     return filters
   })
   const [selectedId, setSelectedId]   = useState<string | null>(null)
