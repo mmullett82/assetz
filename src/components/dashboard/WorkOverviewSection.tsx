@@ -8,6 +8,8 @@ import {
   AlertOctagon,
   CheckCircle2,
   Timer,
+  Inbox,
+  ClipboardCheck,
 } from 'lucide-react'
 import type { DashboardKPIs } from '@/types'
 
@@ -28,6 +30,9 @@ interface CardDef {
   textColor: (v: number) => string
 }
 
+// 8 cards — renders as 4×2 grid filling the 2/3 column
+// Row 1: work types / urgency
+// Row 2: outcomes + requests
 const CARDS: CardDef[] = [
   {
     label: 'Planned (PM)',
@@ -83,13 +88,31 @@ const CARDS: CardDef[] = [
     border: (v) => v > 8 ? 'border-l-red-500' : v > 4 ? 'border-l-yellow-400' : 'border-l-green-500',
     textColor: (v) => v > 8 ? 'text-red-600' : v > 4 ? 'text-yellow-600' : 'text-slate-900',
   },
+  {
+    label: 'Pending Approval',
+    key: 'pending_approval',
+    icon: ClipboardCheck,
+    href: '/requests?status=submitted',
+    formatValue: (v) => String(v),
+    border: (v) => v > 0 ? 'border-l-yellow-400' : 'border-l-slate-200',
+    textColor: (v) => v > 0 ? 'text-yellow-600' : 'text-slate-900',
+  },
+  {
+    label: 'New Requests Today',
+    key: 'new_requests_today',
+    icon: Inbox,
+    href: '/requests?period=today',
+    formatValue: (v) => String(v),
+    border: () => 'border-l-purple-400',
+    textColor: () => 'text-slate-900',
+  },
 ]
 
 export default function WorkOverviewSection({ kpis, loading }: WorkBreakdownProps) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Work Breakdown</p>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {CARDS.map((card) => {
           const raw = ((kpis?.[card.key] as number | undefined) ?? 0)
           const display = card.formatValue(raw)

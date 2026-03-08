@@ -1,19 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { Package, Truck, Clock, Inbox } from 'lucide-react'
+import { Package, Truck } from 'lucide-react'
 import type { DashboardKPIs } from '@/types'
 
-interface InventoryRequestsProps {
+interface InventoryProps {
   kpis: DashboardKPIs | undefined
   loading?: boolean
 }
 
-export default function PurchasingSection({ kpis, loading }: InventoryRequestsProps) {
+export default function PurchasingSection({ kpis, loading }: InventoryProps) {
   const partsLow = kpis?.parts_low_stock ?? 0
   const backorder = kpis?.parts_on_backorder ?? 0
-  const pending = kpis?.pending_approval ?? 0
-  const newToday = kpis?.new_requests_today ?? 0
 
   const cards = [
     {
@@ -32,28 +30,12 @@ export default function PurchasingSection({ kpis, loading }: InventoryRequestsPr
       border: backorder > 0 ? 'border-l-red-500' : 'border-l-green-500',
       textColor: backorder > 0 ? 'text-red-600' : 'text-slate-900',
     },
-    {
-      label: 'Pending Approval',
-      value: pending,
-      icon: Clock,
-      href: '/requests?status=submitted',
-      border: pending > 0 ? 'border-l-yellow-400' : 'border-l-slate-200',
-      textColor: pending > 0 ? 'text-yellow-600' : 'text-slate-900',
-    },
-    {
-      label: 'New Requests Today',
-      value: newToday,
-      icon: Inbox,
-      href: '/requests?period=today',
-      border: 'border-l-purple-400',
-      textColor: 'text-slate-900',
-    },
   ]
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Inventory & Requests</p>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Inventory</p>
+      <div className="flex flex-col gap-3">
         {cards.map((card) => {
           if (loading) {
             return (
