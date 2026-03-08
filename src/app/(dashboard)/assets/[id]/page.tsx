@@ -14,6 +14,9 @@ import {
   Package,
 } from 'lucide-react'
 import { useAsset } from '@/hooks/useAsset'
+import { useAssetDependencies } from '@/hooks/useAssetDependencies'
+import { useWorkOrders } from '@/hooks/useWorkOrders'
+import { useParts } from '@/hooks/useParts'
 import ReferenceCardCollapsible from '@/components/reference-cards/ReferenceCardCollapsible'
 import AssetStatusBadge from '@/components/ui/AssetStatusBadge'
 import DependencyBadge from '@/components/assets/DependencyBadge'
@@ -22,9 +25,6 @@ import PartStockBadge, { availableQty } from '@/components/parts/PartStockBadge'
 import WorkOrderStatusBadge from '@/components/work-orders/WorkOrderStatusBadge'
 import WorkOrderPriorityBadge from '@/components/work-orders/WorkOrderPriorityBadge'
 import { dependencyCodeLabel } from '@/lib/asset-id'
-import { MOCK_ASSETS } from '@/lib/mock-data'
-import { MOCK_PARTS } from '@/lib/mock-parts'
-import { MOCK_WORK_ORDERS } from '@/lib/mock-work-orders'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -33,6 +33,9 @@ interface Props {
 export default function AssetDetailPage({ params }: Props) {
   const { id } = use(params)
   const { asset, isLoading, error } = useAsset(id)
+  const { dependencies } = useAssetDependencies(id)
+  const { workOrders } = useWorkOrders({ asset_id: id })
+  const { parts } = useParts({ asset_id: id })
 
   if (isLoading) {
     return (
@@ -56,10 +59,9 @@ export default function AssetDetailPage({ params }: Props) {
     )
   }
 
-  // Resolve related asset names for dependency display
-  const dependsOnAssets  = (asset.depends_on ?? []).map((aid) => MOCK_ASSETS.find((a) => a.id === aid))
-  const feedsAssets      = (asset.feeds ?? []).map((aid) => MOCK_ASSETS.find((a) => a.id === aid))
-  const dependentAssets  = (asset.dependents ?? []).map((aid) => MOCK_ASSETS.find((a) => a.id === aid))
+  const recentWOs = [...workOrders]
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 5)
 
   return (
     <div className="space-y-5 max-w-4xl">
@@ -155,18 +157,15 @@ export default function AssetDetailPage({ params }: Props) {
               {dependencyCodeLabel(asset.dependency_code)}
             </p>
 
-            {dependsOnAssets.length > 0 && (
+            {dependencies.depends_on.length > 0 && (
               <div className="mt-2">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
-                  Depends on (DEPENDS_ON)
+                  Depends on
                 </p>
                 <ul className="space-y-1">
-                  {dependsOnAssets.map((a) => a && (
+                  {dependencies.depends_on.map((a) => (
                     <li key={a.id}>
-                      <Link
-                        href={`/assets/${a.id}`}
-                        className="text-sm text-blue-600 hover:underline font-mono"
-                      >
+                      <Link href={`/assets/${a.id}`} className="text-sm text-blue-600 hover:underline font-mono">
                         {a.facility_asset_id}
                       </Link>
                       <span className="text-xs text-slate-400 ml-2">{a.name}</span>
@@ -176,18 +175,15 @@ export default function AssetDetailPage({ params }: Props) {
               </div>
             )}
 
-            {feedsAssets.length > 0 && (
+            {dependencies.feeds.length > 0 && (
               <div className="mt-2">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
-                  Feeds (FEEDS)
+                  Feeds
                 </p>
                 <ul className="space-y-1">
-                  {feedsAssets.map((a) => a && (
+                  {dependencies.feeds.map((a) => (
                     <li key={a.id}>
-                      <Link
-                        href={`/assets/${a.id}`}
-                        className="text-sm text-blue-600 hover:underline font-mono"
-                      >
+                      <Link href={`/assets/${a.id}`} className="text-sm text-blue-600 hover:underline font-mono">
                         {a.facility_asset_id}
                       </Link>
                       <span className="text-xs text-slate-400 ml-2">{a.name}</span>
@@ -197,18 +193,15 @@ export default function AssetDetailPage({ params }: Props) {
               </div>
             )}
 
-            {dependentAssets.length > 0 && (
+            {dependencies.dependents.length > 0 && (
               <div className="mt-2">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
                   Dependents
                 </p>
                 <ul className="space-y-1">
-                  {dependentAssets.map((a) => a && (
+                  {dependencies.dependents.map((a) => (
                     <li key={a.id}>
-                      <Link
-                        href={`/assets/${a.id}`}
-                        className="text-sm text-blue-600 hover:underline font-mono"
-                      >
+                      <Link href={`/assets/${a.id}`} className="text-sm text-blue-600 hover:underline font-mono">
                         {a.facility_asset_id}
                       </Link>
                       <span className="text-xs text-slate-400 ml-2">{a.name}</span>
@@ -255,86 +248,73 @@ export default function AssetDetailPage({ params }: Props) {
           </Section>
 
           {/* Associated Parts */}
-          {(() => {
-            const assetParts = MOCK_PARTS.filter((p) => p.compatible_assets?.includes(asset.id))
-            return (
-              <Section title="Associated Parts" icon={<Package className="h-4 w-4" />}>
-                {assetParts.length === 0 ? (
-                  <p className="text-sm text-slate-400 italic py-2">No parts linked to this asset.</p>
-                ) : (
-                  <ul className="divide-y divide-slate-100">
-                    {assetParts.map((p) => {
-                      const avail = availableQty(p)
-                      return (
-                        <li key={p.id} className="flex items-center justify-between gap-2 py-2.5">
-                          <div className="min-w-0 flex-1">
-                            <Link
-                              href={`/parts/${p.id}`}
-                              className="text-sm font-medium text-blue-600 hover:underline truncate block"
-                            >
-                              {p.name}
-                            </Link>
-                            <p className="text-xs text-slate-400 font-mono mt-0.5">{p.part_number}</p>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <PartStockBadge status={p.status} />
-                            <span className="text-xs text-slate-400">{avail} avail</span>
-                          </div>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
-                <Link
-                  href={`/parts?asset_id=${asset.id}`}
-                  className="block mt-2 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
-                >
-                  View All Parts →
-                </Link>
-              </Section>
-            )
-          })()}
+          <Section title="Associated Parts" icon={<Package className="h-4 w-4" />}>
+            {parts.length === 0 ? (
+              <p className="text-sm text-slate-400 italic py-2">No parts linked to this asset.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {parts.map((p) => {
+                  const avail = availableQty(p)
+                  return (
+                    <li key={p.id} className="flex items-center justify-between gap-2 py-2.5">
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={`/parts/${p.id}`}
+                          className="text-sm font-medium text-blue-600 hover:underline truncate block"
+                        >
+                          {p.name}
+                        </Link>
+                        <p className="text-xs text-slate-400 font-mono mt-0.5">{p.part_number}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <PartStockBadge status={p.status} />
+                        <span className="text-xs text-slate-400">{avail} avail</span>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+            <Link
+              href={`/parts?asset_id=${asset.id}`}
+              className="block mt-2 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              View All Parts →
+            </Link>
+          </Section>
 
           {/* Recent Work Orders */}
-          {(() => {
-            const assetWOs = MOCK_WORK_ORDERS
-              .filter((wo) => wo.asset_id === asset.id)
-              .sort((a, b) => b.created_at.localeCompare(a.created_at))
-              .slice(0, 5)
-            return (
-              <Section title="Recent Work Orders" icon={<ClipboardList className="h-4 w-4" />}>
-                {assetWOs.length === 0 ? (
-                  <p className="text-sm text-slate-400 italic py-2">No work orders for this asset.</p>
-                ) : (
-                  <ul className="divide-y divide-slate-100">
-                    {assetWOs.map((wo) => (
-                      <li key={wo.id} className="flex items-center justify-between gap-2 py-2.5">
-                        <div className="min-w-0 flex-1">
-                          <Link
-                            href={`/work-orders/${wo.id}`}
-                            className="text-sm font-medium text-blue-600 hover:underline truncate block"
-                          >
-                            {wo.title}
-                          </Link>
-                          <p className="text-xs text-slate-400 font-mono mt-0.5">{wo.work_order_number}</p>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <WorkOrderStatusBadge status={wo.status} />
-                          <WorkOrderPriorityBadge priority={wo.priority} />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <Link
-                  href={`/work-orders?asset_id=${asset.id}`}
-                  className="block mt-2 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
-                >
-                  View All Work Orders →
-                </Link>
-              </Section>
-            )
-          })()}
+          <Section title="Recent Work Orders" icon={<ClipboardList className="h-4 w-4" />}>
+            {recentWOs.length === 0 ? (
+              <p className="text-sm text-slate-400 italic py-2">No work orders for this asset.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {recentWOs.map((wo) => (
+                  <li key={wo.id} className="flex items-center justify-between gap-2 py-2.5">
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/work-orders/${wo.id}`}
+                        className="text-sm font-medium text-blue-600 hover:underline truncate block"
+                      >
+                        {wo.title}
+                      </Link>
+                      <p className="text-xs text-slate-400 font-mono mt-0.5">{wo.work_order_number}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <WorkOrderStatusBadge status={wo.status} />
+                      <WorkOrderPriorityBadge priority={wo.priority} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link
+              href={`/work-orders?asset_id=${asset.id}`}
+              className="block mt-2 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              View All Work Orders →
+            </Link>
+          </Section>
 
           {/* Reference Card */}
           <ReferenceCardCollapsible

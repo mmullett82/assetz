@@ -155,6 +155,7 @@ export interface WorkOrdersQuery {
   priority?: string
   asset_id?: string
   assigned_to_id?: string
+  pm_schedule_id?: string
   search?: string
 }
 

@@ -7,12 +7,14 @@ import {
   ClipboardList, Clock, CalendarClock, History,
 } from 'lucide-react'
 import { usePMSchedule } from '@/hooks/usePMSchedule'
+import { useWorkOrders } from '@/hooks/useWorkOrders'
 import CompleteModal from '@/components/pm/CompleteModal'
 import PMFrequencyBadge from '@/components/pm/PMFrequencyBadge'
 import DueStatusBadge from '@/components/ui/DueStatusBadge'
 import ReferenceCardCollapsible from '@/components/reference-cards/ReferenceCardCollapsible'
-import { MOCK_ASSETS } from '@/lib/mock-data'
-import { MOCK_PM_HISTORY } from '@/lib/mock-pm-schedules'
+import WorkOrderStatusBadge from '@/components/work-orders/WorkOrderStatusBadge'
+import apiClient from '@/lib/api-client'
+import { USE_MOCK } from '@/lib/config'
 import { daysUntilDue, formatDueDate, parseInstructions, calculateNextDue } from '@/lib/pm-utils'
 
 interface Props {
@@ -22,6 +24,7 @@ interface Props {
 export default function PMDetailPage({ params }: Props) {
   const { id }                     = use(params)
   const { pmSchedule, isLoading, error, mutate } = usePMSchedule(id)
+  const { workOrders: linkedWOs } = useWorkOrders({ pm_schedule_id: id, status: 'completed' })
   const [completing, setCompleting] = useState(false)
   const [checkedSteps, setChecked]  = useState<Set<number>>(new Set())
 
@@ -45,9 +48,11 @@ export default function PMDetailPage({ params }: Props) {
     )
   }
 
-  const asset    = MOCK_ASSETS.find((a) => a.id === pmSchedule.asset_id)
+  const asset    = pmSchedule.asset
   const steps    = parseInstructions(pmSchedule.instructions)
-  const history  = MOCK_PM_HISTORY[id] ?? []
+  const history  = [...linkedWOs].sort((a, b) =>
+    (b.completed_at ?? b.created_at).localeCompare(a.completed_at ?? a.created_at)
+  )
   const days     = daysUntilDue(pmSchedule.next_due_at)
   const isActive = pmSchedule.is_active
 
@@ -61,6 +66,9 @@ export default function PMDetailPage({ params }: Props) {
 
   async function handleComplete(data: { completedAt: string; notes: string; actualHours: string }) {
     const nextDue = calculateNextDue(data.completedAt, pmSchedule!.frequency, pmSchedule!.interval_value)
+    if (!USE_MOCK) {
+      await apiClient.pmSchedules.complete(pmSchedule!.id)
+    }
     await mutate(
       (prev) => prev ? {
         ...prev,
@@ -70,7 +78,6 @@ export default function PMDetailPage({ params }: Props) {
       } : prev,
       { revalidate: false }
     )
-    // TODO: await apiClient.pmSchedules.complete(pmSchedule.id, data.completedAt)
     setCompleting(false)
     setChecked(new Set())
   }
@@ -275,24 +282,35 @@ export default function PMDetailPage({ params }: Props) {
           </h2>
 
           {history.length === 0 ? (
-            <p className="text-sm text-slate-400 italic">No history recorded.</p>
+            <p className="text-sm text-slate-400 italic">No completions recorded yet.</p>
           ) : (
             <ul className="space-y-3">
-              {history.map((entry, i) => (
-                <li key={i} className="flex gap-3">
+              {history.map((wo) => (
+                <li key={wo.id} className="flex gap-3">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-slate-700">
-                        {formatDueDate(entry.completed_at)}
+                        {wo.completed_at ? formatDueDate(wo.completed_at) : formatDueDate(wo.created_at)}
                       </span>
-                      <span className="text-xs text-slate-400">{entry.tech}</span>
-                      <span className="text-xs text-slate-400">· {entry.actual_hours}h</span>
+                      {wo.assigned_to && (
+                        <span className="text-xs text-slate-400">{(wo.assigned_to as { full_name?: string }).full_name}</span>
+                      )}
+                      {wo.actual_hours && (
+                        <span className="text-xs text-slate-400">· {wo.actual_hours}h</span>
+                      )}
+                      <WorkOrderStatusBadge status={wo.status} />
                     </div>
-                    {entry.notes && (
-                      <p className="mt-0.5 text-xs text-slate-500">{entry.notes}</p>
+                    <Link
+                      href={`/work-orders/${wo.id}`}
+                      className="text-xs text-blue-600 hover:underline font-mono mt-0.5 block"
+                    >
+                      {wo.work_order_number}
+                    </Link>
+                    {wo.action_taken && (
+                      <p className="mt-0.5 text-xs text-slate-500 truncate">{wo.action_taken}</p>
                     )}
                   </div>
                 </li>

@@ -18,10 +18,11 @@ function mockFetcher(query?: WorkOrdersQuery): PaginatedResponse<WorkOrder> {
         wo.description.toLowerCase().includes(q)
     )
   }
-  if (query?.status)        data = data.filter((wo) => wo.status === query.status)
-  if (query?.priority)      data = data.filter((wo) => wo.priority === query.priority)
-  if (query?.asset_id)      data = data.filter((wo) => wo.asset_id === query.asset_id)
+  if (query?.status)         data = data.filter((wo) => wo.status === query.status)
+  if (query?.priority)       data = data.filter((wo) => wo.priority === query.priority)
+  if (query?.asset_id)       data = data.filter((wo) => wo.asset_id === query.asset_id)
   if (query?.assigned_to_id) data = data.filter((wo) => wo.assigned_to_id === query.assigned_to_id)
+  if (query?.pm_schedule_id) data = data.filter((wo) => (wo as unknown as Record<string, unknown>).pm_schedule_id === query.pm_schedule_id)
 
   // Default sort: open/critical first, then by due_date ascending
   const PRIORITY_WEIGHT: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 }

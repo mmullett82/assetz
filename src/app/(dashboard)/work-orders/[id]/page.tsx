@@ -7,6 +7,7 @@ import {
   AlertTriangle, Camera, Package, CheckCircle,
 } from 'lucide-react'
 import { useWorkOrder } from '@/hooks/useWorkOrder'
+import { useAuth } from '@/hooks/useAuth'
 import StatusWorkflow from '@/components/work-orders/StatusWorkflow'
 import CommentThread from '@/components/work-orders/CommentThread'
 import ReferenceCardCollapsible from '@/components/reference-cards/ReferenceCardCollapsible'
@@ -16,7 +17,8 @@ import WorkOrderPriorityBadge from '@/components/work-orders/WorkOrderPriorityBa
 import WorkOrderStatusBadge from '@/components/work-orders/WorkOrderStatusBadge'
 import DueStatusBadge from '@/components/ui/DueStatusBadge'
 import { computeDueStatus, dueDateLabel, formatDate } from '@/lib/due-status'
-import { MOCK_ASSETS } from '@/lib/mock-data'
+import apiClient from '@/lib/api-client'
+import { USE_MOCK } from '@/lib/config'
 import type { WorkOrderStatus, WorkOrderComment, LaborEntry } from '@/types'
 
 interface Props {
@@ -44,6 +46,7 @@ const ROOT_CAUSE_LABELS: Record<string, string> = {
 export default function WorkOrderDetailPage({ params }: Props) {
   const { id } = use(params)
   const { workOrder: wo, isLoading, error, mutate } = useWorkOrder(id)
+  const { user: currentUser } = useAuth()
   const [isUpdating, setUpdating] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
@@ -70,7 +73,7 @@ export default function WorkOrderDetailPage({ params }: Props) {
     )
   }
 
-  const asset     = MOCK_ASSETS.find((a) => a.id === wo.asset_id)
+  const asset     = wo.asset
   const isActive  = wo.status !== 'completed' && wo.status !== 'cancelled'
   const dueStatus = wo.due_date
     ? computeDueStatus(wo.due_date, wo.completed_at)
@@ -93,11 +96,15 @@ export default function WorkOrderDetailPage({ params }: Props) {
     setValidationError(null)
     setUpdating(true)
     try {
-      await new Promise((r) => setTimeout(r, 500))
-      await mutate(
-        (prev) => prev ? { ...prev, status: next } : prev,
-        { revalidate: false }
-      )
+      if (USE_MOCK) {
+        await mutate(
+          (prev) => prev ? { ...prev, status: next } : prev,
+          { revalidate: false }
+        )
+      } else {
+        const updated = await apiClient.workOrders.updateStatus(wo!.id, next)
+        await mutate(updated, { revalidate: false })
+      }
     } finally {
       setUpdating(false)
     }
@@ -106,11 +113,15 @@ export default function WorkOrderDetailPage({ params }: Props) {
   async function handleConfirmComplete() {
     setUpdating(true)
     try {
-      await new Promise((r) => setTimeout(r, 500))
-      await mutate(
-        (prev) => prev ? { ...prev, status: 'completed', completed_at: new Date().toISOString() } : prev,
-        { revalidate: false }
-      )
+      if (USE_MOCK) {
+        await mutate(
+          (prev) => prev ? { ...prev, status: 'completed', completed_at: new Date().toISOString() } : prev,
+          { revalidate: false }
+        )
+      } else {
+        const updated = await apiClient.workOrders.updateStatus(wo!.id, 'completed')
+        await mutate(updated, { revalidate: false })
+      }
       setShowCompletionModal(false)
     } finally {
       setUpdating(false)
@@ -118,17 +129,23 @@ export default function WorkOrderDetailPage({ params }: Props) {
   }
 
   async function handleAddComment(body: string) {
-    await new Promise((r) => setTimeout(r, 400))
+    if (!USE_MOCK) {
+      const newComment = await apiClient.workOrders.addComment(wo!.id, body)
+      await mutate(
+        (prev) => prev ? { ...prev, comments: [...(prev.comments ?? []), newComment as unknown as WorkOrderComment] } : prev,
+        { revalidate: false }
+      )
+      return
+    }
+    // Mock optimistic update
     const newComment: WorkOrderComment = {
       id: `cmt-${Date.now()}`,
       work_order_id: wo!.id,
-      user_id: 'usr-admin',
-      user: {
-        id: 'usr-admin', organization_id: 'org-solid',
-        email: 'matt.mullett@sollidcabinetry.com', full_name: 'Matt Mullett',
-        role: 'admin', is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+      user_id: currentUser?.id ?? 'usr-unknown',
+      user: currentUser ?? {
+        id: 'usr-unknown', organization_id: '', email: '', full_name: 'You',
+        role: 'technician', is_active: true,
+        created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
       },
       body,
       created_at: new Date().toISOString(),
@@ -140,14 +157,11 @@ export default function WorkOrderDetailPage({ params }: Props) {
   }
 
   async function handleAddLaborEntry(entry: Omit<LaborEntry, 'id' | 'work_order_id' | 'user' | 'created_at'>) {
-    // Find user name for optimistic display
-    const { MOCK_USERS } = await import('@/lib/mock-settings')
-    const user = MOCK_USERS.find((u) => u.id === entry.user_id)
     const newEntry: LaborEntry = {
       id: `le-${Date.now()}`,
       work_order_id: wo!.id,
       user_id: entry.user_id,
-      user: { id: entry.user_id, full_name: user?.full_name ?? 'Technician', role: user?.role ?? 'technician' },
+      user: { id: entry.user_id, full_name: 'Technician', role: 'technician' },
       hours: entry.hours,
       date: entry.date,
       notes: entry.notes,

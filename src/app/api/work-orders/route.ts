@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     if (sp.get('priority')) where.priority = sp.get('priority')!
     if (sp.get('asset_id')) where.asset_id = sp.get('asset_id')!
     if (sp.get('assigned_to_id')) where.assigned_to_id = sp.get('assigned_to_id')!
+    if (sp.get('pm_schedule_id')) where.pm_schedule_id = sp.get('pm_schedule_id')!
     if (sp.get('search')) {
       const q = sp.get('search')!
       where.OR = [

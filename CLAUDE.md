@@ -191,6 +191,15 @@ Augmented/virtual reality integration for hands-on guided maintenance:
 - Remote expert mode: a senior tech or OEM specialist can see what the field tech sees and guide them through the repair in real-time
 - Integration with assetZ WO system — repair steps, time, and parts are logged automatically as the tech works
 
+**Expert Capture Mode (AR-assisted knowledge transfer):**
+A skilled tech who already knows how to perform a procedure uses AR to record and teach the AI agent:
+- Tech puts on AR glasses and performs the task as normal, narrating steps aloud
+- AI agent observes, transcribes, and structures the procedure in real time (step order, parts touched, torque specs mentioned, safety actions taken)
+- AI generates a draft Reference Card from the recorded session — tech reviews and approves
+- Future techs who don't have the same experience can then use AR to follow those AI-learned steps
+- This captures tribal knowledge before it walks out the door when experienced staff retire or leave
+- Sessions are logged as training records — track which techs have been trained on which procedures
+
 ### 10. 3D Equipment Scanning & Virtual Disassembly (Future — Phase 4+)
 Scan physical machines to create interactive 3D models that can be virtually disassembled:
 - **External scanning** via LiDAR/photogrammetry to capture the machine's exterior geometry and produce a 3D rendering
@@ -345,6 +354,18 @@ Activated via the "Map Builder" button in the floor plan UI. This is the self-se
 
 Development: `http://localhost:8000/api`
 The backend API documentation (when running) will be at `http://localhost:8000/docs` (FastAPI auto-generates Swagger UI).
+
+## UX Conventions
+
+### Asset Selection in Forms (WO, PM, Parts, etc.)
+Plain `<select>` dropdowns are unacceptable once the asset registry grows beyond ~20 entries. All asset pickers must use a **searchable combobox** pattern:
+- Text input with instant fuzzy/substring search filtering the list
+- Search matches on: asset name, facility asset ID, asset number/barcode, manufacturer, model
+- Results show as a dropdown list beneath the input — keyboard navigable (arrow keys + Enter)
+- On mobile: same pattern, no native select. The input should open a full-height bottom sheet on small screens if needed.
+- Selected state shows the asset name + facility ID in the field (not just a UUID)
+- A reusable `AssetCombobox` component lives in `src/components/ui/AssetCombobox.tsx` and is used everywhere an asset is selected (WOForm, PMForm, RequestForm, etc.)
+- This pattern applies to any long-list picker: assigned tech, parts selection, etc.
 
 ## Coding Conventions
 
