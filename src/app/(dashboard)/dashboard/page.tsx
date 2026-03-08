@@ -3,12 +3,8 @@
 import {
   ClipboardList,
   AlertTriangle,
-  Clock,
-  CheckCircle2,
   Cpu,
   CalendarClock,
-  Package,
-  Timer,
   Wifi,
   WifiOff,
 } from 'lucide-react'
@@ -22,8 +18,8 @@ import WOTypeBreakdown from '@/components/dashboard/WOTypeBreakdown'
 import DownAssetsAlert from '@/components/dashboard/DownAssetsAlert'
 import CriticalWOList from '@/components/dashboard/CriticalWOList'
 import WorkOverviewSection from '@/components/dashboard/WorkOverviewSection'
-import MyWorkCenter from '@/components/dashboard/MyWorkCenter'
 import PurchasingSection from '@/components/dashboard/PurchasingSection'
+import MyWorkCenter from '@/components/dashboard/MyWorkCenter'
 import QuickLinksSection from '@/components/dashboard/QuickLinksSection'
 import DashboardConfig, { useDashboardSections } from '@/components/dashboard/DashboardConfig'
 import { MOCK_KPI_DELTAS } from '@/lib/mock-dashboard'
@@ -36,10 +32,8 @@ function LiveIndicator() {
       title={connected ? 'Live — real-time updates active' : 'Not connected to live data'}
       className={`inline-flex items-center gap-1.5 text-xs font-medium ${connected ? 'text-green-600' : 'text-slate-400'}`}
     >
-      {connected
-        ? <Wifi className="h-3.5 w-3.5" />
-        : <WifiOff className="h-3.5 w-3.5" />}
-      {connected ? 'Live' : 'Mock data'}
+      {connected ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
+      {connected ? 'Live' : 'Offline'}
     </span>
   )
 }
@@ -64,7 +58,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      {/* Page header */}
+
+      {/* ── Page header ─────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
@@ -80,26 +75,14 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Down-asset alert banner */}
+      {/* ── Alert banner — only renders when assets are down ── */}
       {showFullDashboard && <DownAssetsAlert />}
 
-      {/* KPI grid — visible to admin, manager, viewer */}
+      {/* ── Tier 1: Critical status — always visible ─────────
+           These four cards answer "are we on fire right now?"
+           Order: most urgent → most contextual (F-pattern reading)   */}
       {showFullDashboard && (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <KPICard
-            label="Open Work Orders"
-            value={kpis?.open_work_orders ?? '—'}
-            icon={<ClipboardList className="h-5 w-5" />}
-            status={
-              (kpis?.open_work_orders ?? 0) > 8 ? 'red'
-              : (kpis?.open_work_orders ?? 0) > 4 ? 'yellow'
-              : 'neutral'
-            }
-            delta={{ value: d.open_work_orders.value, positiveIsGood: false }}
-            loading={isLoading}
-            href="/work-orders?status=open,in_progress,on_hold"
-          />
-
           <KPICard
             label="Overdue"
             value={kpis?.overdue_work_orders ?? '—'}
@@ -111,32 +94,8 @@ export default function DashboardPage() {
           />
 
           <KPICard
-            label="Due Today"
-            value={kpis?.work_orders_due_today ?? '—'}
-            icon={<Clock className="h-5 w-5" />}
-            status={(kpis?.work_orders_due_today ?? 0) > 2 ? 'yellow' : 'neutral'}
-            delta={{ value: d.work_orders_due_today.value, positiveIsGood: false }}
-            loading={isLoading}
-            href="/work-orders?due_today=true"
-          />
-
-          <KPICard
-            label="Completed This Week"
-            value={kpis?.work_orders_completed_this_week ?? '—'}
-            icon={<CheckCircle2 className="h-5 w-5" />}
-            status="green"
-            delta={{ value: d.work_orders_completed_this_week.value, positiveIsGood: true }}
-            loading={isLoading}
-            href="/work-orders?status=completed&period=week"
-          />
-
-          <KPICard
             label="Assets Down"
-            value={
-              kpis
-                ? `${kpis.assets_down} / ${kpis.total_assets}`
-                : '—'
-            }
+            value={kpis ? `${kpis.assets_down} / ${kpis.total_assets}` : '—'}
             icon={<Cpu className="h-5 w-5" />}
             status={(kpis?.assets_down ?? 0) > 0 ? 'red' : 'green'}
             delta={{ value: d.assets_down.value, positiveIsGood: false }}
@@ -157,41 +116,41 @@ export default function DashboardPage() {
           />
 
           <KPICard
-            label="Parts Low Stock"
-            value={kpis?.parts_low_stock ?? '—'}
-            icon={<Package className="h-5 w-5" />}
-            status={(kpis?.parts_low_stock ?? 0) > 0 ? 'yellow' : 'green'}
-            delta={{ value: d.parts_low_stock.value, positiveIsGood: false }}
-            loading={isLoading}
-            href="/parts?status=low_stock,out_of_stock"
-          />
-
-          <KPICard
-            label="MTTR"
-            value={kpis?.mean_time_to_repair ? `${kpis.mean_time_to_repair}h` : '—'}
-            icon={<Timer className="h-5 w-5" />}
+            label="Open Work Orders"
+            value={kpis?.open_work_orders ?? '—'}
+            icon={<ClipboardList className="h-5 w-5" />}
             status={
-              (kpis?.mean_time_to_repair ?? 0) > 8 ? 'red'
-              : (kpis?.mean_time_to_repair ?? 0) > 4 ? 'yellow'
-              : 'green'
+              (kpis?.open_work_orders ?? 0) > 8 ? 'red'
+              : (kpis?.open_work_orders ?? 0) > 4 ? 'yellow'
+              : 'neutral'
             }
-            delta={{ value: d.mean_time_to_repair.value, unit: 'h', positiveIsGood: false }}
-            sublabel="Mean time to repair"
+            delta={{ value: d.open_work_orders.value, positiveIsGood: false }}
             loading={isLoading}
-            href="/reports/scoreboard"
+            href="/work-orders"
           />
         </div>
       )}
 
-      {/* Quick Links */}
-      {sections.quickLinks && <QuickLinksSection />}
-
-      {/* Work Overview — admin/manager only */}
-      {sections.workOverview && showFullDashboard && (
-        <WorkOverviewSection kpis={kpis} loading={isLoading} />
+      {/* ── Tier 2: Work Breakdown + Inventory side-by-side ──
+           Left (2/3): 6 work-state cards — planned, reactive,
+             due today, critical, completed this week, MTTR
+           Right (1/3): 4 inventory + request cards — all
+             parts and requests info in one column              */}
+      {sections.workBreakdown && showFullDashboard && (
+        <div className="grid gap-5 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <WorkOverviewSection kpis={kpis} loading={isLoading} />
+          </div>
+          <div>
+            <PurchasingSection kpis={kpis} loading={isLoading} />
+          </div>
+        </div>
       )}
 
-      {/* My Work Center — technicians, managers, admins */}
+      {/* ── Quick Actions ────────────────────────────────────── */}
+      {sections.quickLinks && <QuickLinksSection />}
+
+      {/* ── My Work Center — personal queue for all staff ──── */}
       {sections.myWorkCenter && showMyWork && (
         <MyWorkCenter
           workOrders={workOrders}
@@ -200,7 +159,7 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Requester view — show "My Requests" instead of My Work Center */}
+      {/* ── Requester view ───────────────────────────────────── */}
       {role === 'requester' && showMyRequests && (
         <div className="rounded-lg border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-2">My Requests</h2>
@@ -214,9 +173,14 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Charts — admin, manager, viewer */}
+      {/* ── Charts & Trends — analytical, below operational ── */}
       {sections.charts && showFullDashboard && (
         <>
+          <div className="flex items-center gap-2 pt-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Charts & Trends</p>
+            <div className="flex-1 border-t border-slate-200" />
+          </div>
+
           <div className="grid gap-5 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <WOTrendChart />
@@ -237,10 +201,6 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Purchasing & Inventory — admin/manager */}
-      {sections.purchasing && showFullDashboard && (
-        <PurchasingSection kpis={kpis} loading={isLoading} />
-      )}
     </div>
   )
 }

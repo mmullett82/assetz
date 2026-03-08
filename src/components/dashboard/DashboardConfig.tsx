@@ -4,30 +4,28 @@ import { useState, useEffect } from 'react'
 import { Settings2, X } from 'lucide-react'
 
 export interface DashboardSections {
-  workOverview: boolean
+  workBreakdown: boolean
   myWorkCenter: boolean
-  purchasing: boolean
   quickLinks: boolean
   charts: boolean
 }
 
 const DEFAULTS: DashboardSections = {
-  workOverview: true,
+  workBreakdown: true,
   myWorkCenter: true,
-  purchasing: true,
   quickLinks: true,
   charts: true,
 }
 
 const LABELS: Record<keyof DashboardSections, string> = {
-  workOverview: 'Work Overview',
+  workBreakdown: 'Work & Inventory Breakdown',
   myWorkCenter: 'My Work Center',
-  purchasing: 'Purchasing & Inventory',
   quickLinks: 'Quick Actions',
-  charts: 'Charts',
+  charts: 'Charts & Trends',
 }
 
-const STORAGE_KEY = 'dashboard-sections'
+// v2 key — old localStorage key had different shape, avoid conflicts
+const STORAGE_KEY = 'dashboard-sections-v2'
 
 export function useDashboardSections() {
   const [sections, setSections] = useState<DashboardSections>(() => {
@@ -69,13 +67,14 @@ export default function DashboardConfig({ sections, onChange }: DashboardConfigP
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-20 mt-1 w-56 rounded-lg border border-slate-200 bg-white py-2 shadow-lg">
+          <div className="absolute right-0 top-full z-20 mt-1 w-60 rounded-lg border border-slate-200 bg-white py-2 shadow-lg">
             <div className="flex items-center justify-between px-3 pb-2 border-b border-slate-100">
               <span className="text-xs font-semibold text-slate-700">Show Sections</span>
               <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
+            <p className="px-3 pt-2 pb-1 text-xs text-slate-400">Status cards are always shown</p>
             {(Object.keys(LABELS) as (keyof DashboardSections)[]).map((key) => (
               <label
                 key={key}

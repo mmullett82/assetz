@@ -1,42 +1,65 @@
 'use client'
 
 import Link from 'next/link'
-import { PackageMinus, Truck } from 'lucide-react'
+import { Package, Truck, Clock, Inbox } from 'lucide-react'
 import type { DashboardKPIs } from '@/types'
 
-interface PurchasingSectionProps {
+interface InventoryRequestsProps {
   kpis: DashboardKPIs | undefined
   loading?: boolean
 }
 
-export default function PurchasingSection({ kpis, loading }: PurchasingSectionProps) {
+export default function PurchasingSection({ kpis, loading }: InventoryRequestsProps) {
+  const partsLow = kpis?.parts_low_stock ?? 0
+  const backorder = kpis?.parts_on_backorder ?? 0
+  const pending = kpis?.pending_approval ?? 0
+  const newToday = kpis?.new_requests_today ?? 0
+
   const cards = [
     {
-      label: 'Parts Require Reorder',
-      value: kpis?.parts_low_stock ?? 0,
-      icon: PackageMinus,
-      href: '/parts?low_stock_only=true',
-      color: (kpis?.parts_low_stock ?? 0) > 0 ? 'border-l-yellow-400' : 'border-l-green-500',
+      label: 'Parts Low Stock',
+      value: partsLow,
+      icon: Package,
+      href: '/parts?status=low_stock,out_of_stock',
+      border: partsLow > 0 ? 'border-l-yellow-400' : 'border-l-green-500',
+      textColor: partsLow > 0 ? 'text-yellow-600' : 'text-slate-900',
     },
     {
       label: 'Parts on Backorder',
-      value: kpis?.parts_on_backorder ?? 0,
+      value: backorder,
       icon: Truck,
       href: '/parts?on_backorder=true',
-      color: (kpis?.parts_on_backorder ?? 0) > 0 ? 'border-l-red-500' : 'border-l-green-500',
+      border: backorder > 0 ? 'border-l-red-500' : 'border-l-green-500',
+      textColor: backorder > 0 ? 'text-red-600' : 'text-slate-900',
+    },
+    {
+      label: 'Pending Approval',
+      value: pending,
+      icon: Clock,
+      href: '/requests?status=submitted',
+      border: pending > 0 ? 'border-l-yellow-400' : 'border-l-slate-200',
+      textColor: pending > 0 ? 'text-yellow-600' : 'text-slate-900',
+    },
+    {
+      label: 'New Requests Today',
+      value: newToday,
+      icon: Inbox,
+      href: '/requests?period=today',
+      border: 'border-l-purple-400',
+      textColor: 'text-slate-900',
     },
   ]
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-slate-900 mb-3">Purchasing & Inventory</h2>
-      <div className="grid grid-cols-2 gap-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Inventory & Requests</p>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
         {cards.map((card) => {
           if (loading) {
             return (
-              <div key={card.label} className="rounded-lg border border-slate-200 bg-white p-4 animate-pulse">
+              <div key={card.label} className="rounded-lg border border-slate-200 border-l-4 border-l-slate-100 bg-white p-3 animate-pulse">
                 <div className="h-3 w-28 rounded bg-slate-100" />
-                <div className="mt-2 h-8 w-10 rounded bg-slate-100" />
+                <div className="mt-2 h-7 w-10 rounded bg-slate-100" />
               </div>
             )
           }
@@ -45,16 +68,16 @@ export default function PurchasingSection({ kpis, loading }: PurchasingSectionPr
               key={card.label}
               href={card.href}
               className={[
-                'rounded-lg border border-slate-200 bg-white p-4 border-l-4',
+                'rounded-lg border border-slate-200 border-l-4 bg-white p-3',
                 'hover:shadow-md hover:ring-1 hover:ring-blue-300 transition-shadow',
-                card.color,
+                card.border,
               ].join(' ')}
             >
-              <div className="flex items-center gap-2">
-                <card.icon className="h-4 w-4 text-slate-400" />
+              <div className="flex items-center gap-1.5">
+                <card.icon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                 <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{card.label}</span>
               </div>
-              <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">{card.value}</p>
+              <p className={`mt-1.5 text-2xl font-bold tabular-nums ${card.textColor}`}>{card.value}</p>
             </Link>
           )
         })}
