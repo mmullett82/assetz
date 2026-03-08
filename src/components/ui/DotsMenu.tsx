@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { MoreHorizontal } from 'lucide-react'
 import type { ContextMenuItem } from './ContextMenu'
 
@@ -12,33 +13,61 @@ interface DotsMenuProps {
 
 export default function DotsMenu({ items, align = 'right', size = 'md' }: DotsMenuProps) {
   const [open, setOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ top: number; left?: number; right?: number }>({ top: 0 })
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const dropRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
+
     function handleOutside(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+      if (
+        btnRef.current?.contains(e.target as Node) ||
+        dropRef.current?.contains(e.target as Node)
+      ) return
+      setOpen(false)
     }
     function handleEsc(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false)
     }
+    // Close on any scroll so the menu doesn't float away from its button
+    function handleScroll() { setOpen(false) }
+
     document.addEventListener('mousedown', handleOutside)
     document.addEventListener('keydown', handleEsc)
+    document.addEventListener('scroll', handleScroll, true)
+    window.addEventListener('resize', handleScroll)
+
     return () => {
       document.removeEventListener('mousedown', handleOutside)
       document.removeEventListener('keydown', handleEsc)
+      document.removeEventListener('scroll', handleScroll, true)
+      window.removeEventListener('resize', handleScroll)
     }
   }, [open])
+
+  function handleButtonClick(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setPos({
+        top: rect.bottom + 4,
+        ...(align === 'right'
+          ? { right: window.innerWidth - rect.right }
+          : { left: rect.left }),
+      })
+    }
+    setOpen((v) => !v)
+  }
 
   const btnSize = size === 'sm' ? 'h-7 w-7' : 'h-8 w-8'
 
   return (
-    <div ref={wrapRef} className="relative inline-block">
+    <>
       <button
+        ref={btnRef}
         type="button"
-        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
+        onClick={handleButtonClick}
         className={[
           'flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors',
           btnSize,
@@ -50,12 +79,16 @@ export default function DotsMenu({ items, align = 'right', size = 'md' }: DotsMe
         <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
       </button>
 
-      {open && (
+      {open && typeof document !== 'undefined' && createPortal(
         <div
-          className={[
-            'absolute top-full mt-1 z-20 rounded-xl bg-white shadow-2xl border border-slate-100 py-1.5 min-w-[180px]',
-            align === 'right' ? 'right-0' : 'left-0',
-          ].join(' ')}
+          ref={dropRef}
+          style={{
+            position: 'fixed',
+            top: pos.top,
+            ...(pos.right !== undefined ? { right: pos.right } : { left: pos.left }),
+            zIndex: 9999,
+          }}
+          className="rounded-xl bg-white shadow-2xl border border-slate-100 py-1.5 min-w-[180px]"
           role="menu"
         >
           {items.map((item, i) => (
@@ -79,8 +112,9 @@ export default function DotsMenu({ items, align = 'right', size = 'md' }: DotsMe
               </button>
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   )
 }

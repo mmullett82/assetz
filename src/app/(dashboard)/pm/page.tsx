@@ -93,6 +93,16 @@ export default function PMPage() {
     }
   }
 
+  async function handleGenerateWO(pm: PMSchedule) {
+    try {
+      await apiClient.pmSchedules.complete(pm.id)
+      await mutate()
+      showToast('success', `Work order generated from "${pm.title}"`)
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Failed to generate work order')
+    }
+  }
+
   const filtered = useMemo(() => applyFilters(pmSchedules, activeFilters), [pmSchedules, activeFilters])
   const sorted   = useMemo(() => applySort(filtered, sortState), [filtered, sortState])
 
@@ -246,11 +256,13 @@ export default function PMPage() {
                       size="sm"
                       align="left"
                       items={[
-                        { label: 'Edit',        onClick: () => router.push(`/pm/${pm.id}/edit`) },
-                        { label: 'View Detail', onClick: () => router.push(`/pm/${pm.id}`) },
-                        { separator: true, label: 'Complete', onClick: () => setCompleting(pm) },
-                        { label: 'Duplicate',   onClick: () => router.push(`/pm/new?duplicate=${pm.id}`) },
-                        { label: 'Delete',      onClick: () => setDeleteTarget({ id: pm.id, title: pm.title }), destructive: true },
+                        { label: 'Edit',             onClick: () => router.push(`/pm/${pm.id}/edit`) },
+                        { label: 'View Detail',      onClick: () => router.push(`/pm/${pm.id}`) },
+                        { separator: true, label: 'Complete',        onClick: () => setCompleting(pm) },
+                        { label: 'Generate WO Now',  onClick: () => handleGenerateWO(pm) },
+                        { label: 'Show Asset',       onClick: () => router.push(`/assets/${pm.asset_id}`) },
+                        { separator: true, label: 'Duplicate', onClick: () => router.push(`/pm/new?duplicate=${pm.id}`) },
+                        { label: 'Delete',           onClick: () => setDeleteTarget({ id: pm.id, title: pm.title }), destructive: true },
                       ]}
                     />
                   </div>

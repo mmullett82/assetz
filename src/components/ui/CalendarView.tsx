@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export interface CalendarItem {
@@ -167,22 +168,29 @@ export default function CalendarView({ items, onItemClick }: CalendarViewProps) 
                 </div>
 
                 <div className="space-y-0.5">
-                  {(isExpanded ? dayItems : dayItems.slice(0, MAX_VISIBLE)).map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => onItemClick ? onItemClick(item.id) : undefined}
-                      className={[
-                        'block w-full truncate rounded px-1 py-0.5 text-left text-[11px] font-medium transition-colors',
-                        item.isOverdue
-                          ? 'text-red-600 bg-red-50 hover:bg-red-100'
-                          : 'text-slate-700 bg-slate-100 hover:bg-slate-200',
-                      ].join(' ')}
-                      title={item.title}
-                    >
-                      {item.title}
-                    </button>
-                  ))}
+                  {(isExpanded ? dayItems : dayItems.slice(0, MAX_VISIBLE)).map((item) => {
+                    const itemClass = [
+                      'block w-full truncate rounded px-1 py-0.5 text-left text-[11px] font-medium transition-colors',
+                      item.isOverdue
+                        ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                        : 'text-slate-700 bg-slate-100 hover:bg-slate-200',
+                    ].join(' ')
+                    return item.href ? (
+                      <Link key={item.id} href={item.href} className={itemClass} title={item.title}>
+                        {item.title}
+                      </Link>
+                    ) : (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => onItemClick?.(item.id)}
+                        className={itemClass}
+                        title={item.title}
+                      >
+                        {item.title}
+                      </button>
+                    )
+                  })}
                   {!isExpanded && dayItems.length > MAX_VISIBLE && (
                     <button
                       type="button"
@@ -231,22 +239,29 @@ export default function CalendarView({ items, onItemClick }: CalendarViewProps) 
                   {day.getDate()}
                 </div>
                 <div className="space-y-1">
-                  {dayItems.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => onItemClick ? onItemClick(item.id) : undefined}
-                      className={[
-                        'block w-full truncate rounded px-1.5 py-1 text-left text-xs font-medium transition-colors',
-                        item.isOverdue
-                          ? 'text-red-600 bg-red-50 hover:bg-red-100'
-                          : 'text-slate-700 bg-slate-100 hover:bg-slate-200',
-                      ].join(' ')}
-                      title={item.title}
-                    >
-                      {item.title}
-                    </button>
-                  ))}
+                  {dayItems.map((item) => {
+                    const itemClass = [
+                      'block w-full truncate rounded px-1.5 py-1 text-left text-xs font-medium transition-colors',
+                      item.isOverdue
+                        ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                        : 'text-slate-700 bg-slate-100 hover:bg-slate-200',
+                    ].join(' ')
+                    return item.href ? (
+                      <Link key={item.id} href={item.href} className={itemClass} title={item.title}>
+                        {item.title}
+                      </Link>
+                    ) : (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => onItemClick?.(item.id)}
+                        className={itemClass}
+                        title={item.title}
+                      >
+                        {item.title}
+                      </button>
+                    )
+                  })}
                   {dayItems.length === 0 && (
                     <p className="text-xs text-slate-300 px-1">—</p>
                   )}

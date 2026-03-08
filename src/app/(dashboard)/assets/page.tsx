@@ -233,7 +233,9 @@ export default function AssetsPage() {
                       { label: 'Edit',             onClick: () => router.push(`/assets/${asset.id}/edit`) },
                       { label: 'View Detail',      onClick: () => router.push(`/assets/${asset.id}`) },
                       { separator: true, label: 'Create Work Order', onClick: () => router.push(`/work-orders/new?asset_id=${asset.id}`) },
-                      { label: 'Duplicate',        onClick: () => router.push(`/assets/new?duplicate=${asset.id}`) },
+                      { label: 'Create PM',        onClick: () => router.push(`/pm/new?asset_id=${asset.id}`) },
+                      { label: 'Show Parts',       onClick: () => router.push(`/parts?asset_id=${asset.id}`) },
+                      { separator: true, label: 'Duplicate', onClick: () => router.push(`/assets/new?duplicate=${asset.id}`) },
                       { label: 'Delete',           onClick: () => setDeleteTarget({ id: asset.id, name: asset.name }), destructive: true },
                     ]}
                   />
