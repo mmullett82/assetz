@@ -397,7 +397,13 @@ export const referenceCards = {
     apiFetch<ReferenceCardVersion[]>(`/reference-cards/${cardId}/versions`),
 }
 
+// ─── Departments ──────────────────────────────────────────────────────────────
+
+export const departments = {
+  list: () => apiFetch<import('@/types').Department[]>('/departments'),
+}
+
 // ─── Named export for convenience ─────────────────────────────────────────────
 
-const apiClient = { auth, assets, workOrders, pmSchedules, parts, dashboard, users, requests, referenceCards }
+const apiClient = { auth, assets, workOrders, pmSchedules, parts, dashboard, users, requests, referenceCards, departments }
 export default apiClient

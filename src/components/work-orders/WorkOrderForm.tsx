@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button'
 import { TextareaWithVoice } from '@/components/ui/VoiceInput'
 import AICompletionHelper from './AICompletionHelper'
 import { MOCK_USERS } from '@/lib/mock-settings'
-import { useAssets } from '@/hooks/useAssets'
+import AssetCombobox from '@/components/ui/AssetCombobox'
 import apiClient from '@/lib/api-client'
 import { USE_MOCK } from '@/lib/config'
 
@@ -95,7 +95,6 @@ interface WorkOrderFormProps {
 export default function WorkOrderForm({ workOrder, defaultAssetId, duplicateId }: WorkOrderFormProps) {
   const router    = useRouter()
   const isEditing = !!workOrder
-  const { assets } = useAssets()
 
   const [form, setForm]       = useState<WOFormData>(() => {
     const base = workOrder ? woToFormData(workOrder) : DEFAULT
@@ -245,16 +244,15 @@ export default function WorkOrderForm({ workOrder, defaultAssetId, duplicateId }
           />
         </div>
 
-        <Select
+        <AssetCombobox
           label="Asset"
           value={form.asset_id}
-          onChange={(e) => set('asset_id', e.target.value)}
+          onChange={(id) => set('asset_id', id)}
           error={errors.asset_id}
-          placeholder="Select asset"
-          options={assets.map((a) => ({
-            value: a.id,
-            label: `${a.name} — ${a.facility_asset_id}`,
-          }))}
+          initialLabel={workOrder?.asset
+            ? `${(workOrder.asset as { name: string }).name} — ${(workOrder.asset as { facility_asset_id: string }).facility_asset_id}`
+            : undefined}
+          required
         />
       </fieldset>
 

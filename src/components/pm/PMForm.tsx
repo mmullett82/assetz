@@ -6,8 +6,8 @@ import type { PMSchedule, PMFrequency, WorkOrderStatus } from '@/types'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
-import { useAssets } from '@/hooks/useAssets'
 import { useParts } from '@/hooks/useParts'
+import AssetCombobox from '@/components/ui/AssetCombobox'
 import { TextareaWithVoice } from '@/components/ui/VoiceInput'
 import { X } from 'lucide-react'
 import InfoTooltip from '@/components/ui/InfoTooltip'
@@ -135,7 +135,6 @@ interface PMFormProps {
 export default function PMForm({ pmSchedule, defaultAssetId, duplicateId }: PMFormProps) {
   const router    = useRouter()
   const isEditing = !!pmSchedule
-  const { assets } = useAssets()
   const { parts }  = useParts()
 
   const [form, setForm]       = useState<PMFormData>(() => {
@@ -260,16 +259,15 @@ export default function PMForm({ pmSchedule, defaultAssetId, duplicateId }: PMFo
           />
         </div>
 
-        <Select
+        <AssetCombobox
           label="Asset"
           value={form.asset_id}
-          onChange={(e) => set('asset_id', e.target.value)}
+          onChange={(id) => set('asset_id', id)}
           error={errors.asset_id}
-          placeholder="Select asset"
-          options={assets.map((a) => ({
-            value: a.id,
-            label: `${a.name} — ${a.facility_asset_id}`,
-          }))}
+          initialLabel={pmSchedule?.asset
+            ? `${(pmSchedule.asset as { name: string }).name} — ${(pmSchedule.asset as { facility_asset_id: string }).facility_asset_id}`
+            : undefined}
+          required
         />
       </fieldset>
 

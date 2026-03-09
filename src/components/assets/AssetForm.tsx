@@ -7,7 +7,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { buildFacilityAssetId, buildAssetNumber } from '@/lib/asset-id'
-import { MOCK_DEPARTMENTS } from '@/lib/mock-data'
+import { useDepartments } from '@/hooks/useDepartments'
 import { MOCK_USERS } from '@/lib/mock-settings'
 import { RefreshCw, AlertTriangle, Camera, Paperclip, ChevronDown } from 'lucide-react'
 import { TextareaWithVoice } from '@/components/ui/VoiceInput'
@@ -201,6 +201,7 @@ interface AssetFormProps {
 export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
   const router = useRouter()
   const isEditing = !!asset
+  const { departments } = useDepartments()
 
   const [form, setForm] = useState<AssetFormData>(
     asset ? assetToFormData(asset) : DEFAULT_FORM
@@ -224,11 +225,11 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
 
   // Auto-derive department_code from selected department_id
   useEffect(() => {
-    const dept = MOCK_DEPARTMENTS.find((d) => d.id === form.department_id)
+    const dept = departments.find((d) => d.id === form.department_id)
     if (dept) {
       setForm((prev) => ({ ...prev, department_code: dept.code }))
     }
-  }, [form.department_id])
+  }, [form.department_id, departments])
 
   // Computed preview IDs
   const previewFacilityId =
@@ -440,7 +441,7 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
             label="Department"
             value={form.department_id}
             onChange={(e) => set('department_id', e.target.value)}
-            options={MOCK_DEPARTMENTS.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` }))}
+            options={departments.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` }))}
             placeholder="Select department"
             error={errors.department_id}
           />
