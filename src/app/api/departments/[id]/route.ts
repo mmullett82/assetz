@@ -16,15 +16,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     })
     if (!existing) return errorResponse('Department not found', 404)
 
-    const dept = await prisma.department.update({
+    const updated = await prisma.department.update({
       where: { id },
       data: {
-        name: body.name ?? existing.name,
-        code: body.code ? body.code.toUpperCase() : existing.code,
-        sub_locations: body.sub_locations ?? existing.sub_locations,
+        ...(body.name !== undefined && { name: body.name }),
+        ...(body.code !== undefined && { code: body.code.toUpperCase() }),
+        ...(body.sub_locations !== undefined && { sub_locations: body.sub_locations }),
       },
     })
-    return NextResponse.json({ ...dept, sub_locations: (dept.sub_locations as string[] | null) ?? [] })
+
+    return NextResponse.json({ ...updated, sub_locations: (updated.sub_locations as string[] | null) ?? [] })
   } catch (err) {
     return handleApiError(err)
   }

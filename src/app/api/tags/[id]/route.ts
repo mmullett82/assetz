@@ -16,15 +16,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     })
     if (!existing) return errorResponse('Tag not found', 404)
 
-    const tag = await prisma.tag.update({
+    const updated = await prisma.tag.update({
       where: { id },
       data: {
-        name: body.name ?? existing.name,
-        color: body.color ?? existing.color,
-        sort_order: body.sort_order ?? existing.sort_order,
+        ...(body.name !== undefined && { name: body.name }),
+        ...(body.color !== undefined && { color: body.color }),
+        ...(body.sort_order !== undefined && { sort_order: body.sort_order }),
       },
     })
-    return NextResponse.json(tag)
+
+    return NextResponse.json(updated)
   } catch (err) {
     return handleApiError(err)
   }
@@ -32,7 +33,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const user = await requireRole(request, 'admin', 'manager')
+    const user = await requireRole(request, 'admin')
     const { id } = await context.params
 
     const existing = await prisma.tag.findFirst({
