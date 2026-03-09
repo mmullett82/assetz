@@ -142,7 +142,7 @@ export default function PartDetailPage({ params }: Props) {
             </p>
             <p className="text-xs text-slate-500 mt-0.5">Available</p>
           </div>
-          {part.reorder_point !== undefined && (
+          {part.reorder_point != null && (
             <div className="text-center hidden sm:block">
               <p className="text-2xl font-bold text-slate-400">{part.reorder_point}</p>
               <p className="text-xs text-slate-500 mt-0.5">Reorder Pt</p>
@@ -230,19 +230,19 @@ export default function PartDetailPage({ params }: Props) {
                 <dt className="text-xs text-slate-400">Unit of Measure</dt>
                 <dd className="text-sm font-medium text-slate-700">{part.unit_of_measure}</dd>
               </div>
-              {part.unit_cost !== undefined && (
+              {part.unit_cost != null && (
                 <div>
                   <dt className="text-xs text-slate-400">Unit Cost</dt>
                   <dd className="text-sm font-medium text-slate-700">${part.unit_cost.toFixed(2)}</dd>
                 </div>
               )}
-              {part.reorder_point !== undefined && (
+              {part.reorder_point != null && (
                 <div>
                   <dt className="text-xs text-slate-400">Reorder Point</dt>
                   <dd className="text-sm font-medium text-slate-700">{part.reorder_point}</dd>
                 </div>
               )}
-              {part.reorder_quantity !== undefined && (
+              {part.reorder_quantity != null && (
                 <div>
                   <dt className="text-xs text-slate-400">Reorder Qty</dt>
                   <dd className="text-sm font-medium text-slate-700">{part.reorder_quantity}</dd>

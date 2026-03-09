@@ -133,7 +133,7 @@ export default function AssetDetailPage({ params }: Props) {
           </Section>
 
           {/* Meter / runtime */}
-          {asset.current_meter_value !== undefined && (
+          {asset.current_meter_value != null && (
             <Section title="Meter Reading" icon={<Gauge className="h-4 w-4" />}>
               <div className="py-2">
                 <p className="text-3xl font-bold text-slate-900">

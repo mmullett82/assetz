@@ -254,7 +254,7 @@ export default function WorkOrderDetailPage({ params }: Props) {
             </div>
           )}
 
-          {(wo.estimated_hours !== undefined || wo.actual_hours !== undefined) && (
+          {(wo.estimated_hours != null || wo.actual_hours != null) && (
             <div>
               <dt className="text-xs text-slate-400 flex items-center gap-1">
                 <Clock className="h-3 w-3" /> Hours
@@ -398,7 +398,7 @@ export default function WorkOrderDetailPage({ params }: Props) {
                     </span>
                     <span className="text-slate-500">
                       × {p.quantity_used}
-                      {p.unit_cost !== undefined && (
+                      {p.unit_cost != null && (
                         <span className="ml-2 text-xs text-slate-400">
                           ${(p.quantity_used * p.unit_cost).toFixed(2)}
                         </span>
