@@ -9,10 +9,14 @@ import PMSection           from '@/components/settings/sections/PMSection'
 import PartsSection        from '@/components/settings/sections/PartsSection'
 import UsersSection        from '@/components/settings/sections/UsersSection'
 import IDSchemaSection     from '@/components/settings/sections/IDSchemaSection'
+import DepartmentsSection  from '@/components/settings/sections/DepartmentsSection'
+import TagsSection         from '@/components/settings/sections/TagsSection'
 
 export type SectionId =
   | 'org-company'
   | 'org-facility'
+  | 'org-departments'
+  | 'org-tags'
   | 'asset-statuses'
   | 'asset-conditions'
   | 'asset-criticality'
@@ -49,8 +53,10 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Organization',
     sections: [
-      { id: 'org-company',  label: 'Company Info'   },
-      { id: 'org-facility', label: 'Facility'        },
+      { id: 'org-company',      label: 'Company Info'   },
+      { id: 'org-facility',     label: 'Facility'        },
+      { id: 'org-departments',  label: 'Departments'     },
+      { id: 'org-tags',         label: 'Asset Labels'    },
     ],
   },
   {
@@ -112,8 +118,10 @@ const ALL_SECTIONS: { id: SectionId; label: string; group: string }[] = NAV_GROU
 )
 
 function renderSection(activeSection: SectionId) {
-  if (activeSection === 'org-company')   return <OrgCompanySection />
-  if (activeSection === 'org-facility')  return <FacilitySection />
+  if (activeSection === 'org-company')      return <OrgCompanySection />
+  if (activeSection === 'org-facility')     return <FacilitySection />
+  if (activeSection === 'org-departments')  return <DepartmentsSection />
+  if (activeSection === 'org-tags')         return <TagsSection />
 
   if (activeSection.startsWith('asset-')) return <AssetConfigSection sectionId={activeSection} />
   if (activeSection.startsWith('wo-'))    return <WOConfigSection    sectionId={activeSection} />

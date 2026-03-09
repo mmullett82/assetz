@@ -7,7 +7,7 @@ import { USE_MOCK } from '@/lib/config'
 import apiClient from '@/lib/api-client'
 
 export function useDepartments() {
-  const { data, error, isLoading } = useSWR<Department[]>(
+  const { data, error, isLoading, mutate } = useSWR<Department[]>(
     'departments',
     () => USE_MOCK ? Promise.resolve(MOCK_DEPARTMENTS) : apiClient.departments.list(),
     { revalidateOnFocus: false }
@@ -17,5 +17,6 @@ export function useDepartments() {
     departments: data ?? [],
     isLoading,
     error,
+    mutate,
   }
 }

@@ -57,8 +57,18 @@ export interface Department {
   // Department code used in Facility Asset ID (e.g., "MIL", "FIN", "FAC")
   // Represents physical location, NOT equipment category
   code: string
+  sub_locations?: string[]  // list of sub-location names managed in Settings
   created_at: string
   updated_at: string
+}
+
+export interface Tag {
+  id: string
+  organization_id: string
+  name: string
+  color?: string   // hex color
+  sort_order: number
+  created_at: string
 }
 
 // ─── Asset ────────────────────────────────────────────────────────────────────
@@ -98,6 +108,8 @@ export interface Asset {
 
   status: AssetStatus
   location_notes?: string
+  sub_location?: string    // structured sub-location within the department (e.g. "Bay A")
+  tags?: Tag[]             // populated tags (when included in API response)
 
   // Graph relationships (populated from Kuzu graph DB)
   depends_on?: string[]       // Asset IDs this asset directly depends on (L equipment)

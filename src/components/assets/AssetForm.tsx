@@ -8,6 +8,7 @@ import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { buildFacilityAssetId, buildAssetNumber } from '@/lib/asset-id'
 import { useDepartments } from '@/hooks/useDepartments'
+import { useTags } from '@/hooks/useTags'
 import { MOCK_USERS } from '@/lib/mock-settings'
 import { RefreshCw, AlertTriangle, Camera, Paperclip, ChevronDown } from 'lucide-react'
 import { TextareaWithVoice } from '@/components/ui/VoiceInput'
@@ -69,6 +70,10 @@ type AssetFormData = {
   shutdown_procedure_note: string
   loto_procedure_note: string
   emergency_note: string
+  // Sub-location
+  sub_location: string
+  // Tag IDs (system labels)
+  tag_ids: string[]
   // Assignment & Tags
   assigned_to_id: string
   emergency_contact_id: string
@@ -122,6 +127,8 @@ const DEFAULT_FORM: AssetFormData = {
   shutdown_procedure_note: '',
   loto_procedure_note: '',
   emergency_note: '',
+  sub_location: '',
+  tag_ids: [],
   assigned_to_id: '',
   emergency_contact_id: '',
   tag_number: '',
@@ -175,6 +182,8 @@ function assetToFormData(asset: Asset): AssetFormData {
     shutdown_procedure_note: asset.shutdown_procedure_note ?? '',
     loto_procedure_note: asset.loto_procedure_note ?? '',
     emergency_note: asset.emergency_note ?? '',
+    sub_location: asset.sub_location ?? '',
+    tag_ids: asset.tags?.map((t) => t.id) ?? [],
     assigned_to_id: asset.assigned_to_id ?? '',
     emergency_contact_id: asset.emergency_contact_id ?? '',
     tag_number: asset.tag_number ?? '',
@@ -202,6 +211,7 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
   const router = useRouter()
   const isEditing = !!asset
   const { departments } = useDepartments()
+  const { tags } = useTags()
 
   const [form, setForm] = useState<AssetFormData>(
     asset ? assetToFormData(asset) : DEFAULT_FORM
@@ -261,6 +271,19 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
     setErrors((prev) => ({ ...prev, [field]: undefined }))
   }
 
+  function toggleTag(tagId: string) {
+    setForm((prev) => ({
+      ...prev,
+      tag_ids: prev.tag_ids.includes(tagId)
+        ? prev.tag_ids.filter((id) => id !== tagId)
+        : [...prev.tag_ids, tagId],
+    }))
+  }
+
+  // Derived: sub_locations for the selected department
+  const selectedDept = departments.find((d) => d.id === form.department_id)
+  const subLocationOptions = selectedDept?.sub_locations ?? []
+
   function validate(): boolean {
     const errs: Partial<Record<keyof AssetFormData, string>> = {}
     if (!form.name.trim())           errs.name = 'Name is required'
@@ -280,9 +303,15 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
       if (USE_MOCK) {
         await new Promise((r) => setTimeout(r, 600))
       } else if (isEditing && asset) {
-        await apiClient.assets.update(asset.id, form as unknown as Partial<Asset>)
+        const { tag_ids, ...rest } = form
+        await apiClient.assets.update(asset.id, rest as unknown as Partial<Asset>)
+        await apiClient.tags.setAssetTags(asset.id, tag_ids)
       } else {
-        await apiClient.assets.create(form as unknown as Partial<Asset>)
+        const { tag_ids, ...rest } = form
+        const created = await apiClient.assets.create(rest as unknown as Partial<Asset>)
+        if (tag_ids.length > 0) {
+          await apiClient.tags.setAssetTags(created.id, tag_ids)
+        }
       }
       router.push('/assets')
       router.refresh()
@@ -446,6 +475,16 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
             error={errors.department_id}
           />
         </div>
+
+        {subLocationOptions.length > 0 && (
+          <Select
+            label="Sub-location"
+            value={form.sub_location}
+            onChange={(e) => set('sub_location', e.target.value)}
+            options={subLocationOptions.map((loc) => ({ value: loc, label: loc }))}
+            placeholder="Select sub-location (optional)"
+          />
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -913,6 +952,37 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
             />
           </div>
         </div>
+
+        {tags.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Asset Labels</label>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => {
+                const selected = form.tag_ids.includes(tag.id)
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    className={[
+                      'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+                      selected
+                        ? 'border-transparent text-white'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300 bg-white',
+                    ].join(' ')}
+                    style={selected ? { backgroundColor: tag.color ?? '#64748b', borderColor: tag.color ?? '#64748b' } : {}}
+                  >
+                    <span
+                      className="inline-block h-2 w-2 rounded-full"
+                      style={{ backgroundColor: selected ? 'rgba(255,255,255,0.6)' : (tag.color ?? '#64748b') }}
+                    />
+                    {tag.name}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </fieldset>
 
       {/* 11. Photos (placeholder) */}

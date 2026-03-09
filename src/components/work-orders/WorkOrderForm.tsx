@@ -295,7 +295,7 @@ export default function WorkOrderForm({ workOrder, defaultAssetId, duplicateId }
         )}
       </fieldset>
 
-      {/* Failure / resolution codes */}
+      {/* Failure codes — classification only on create; resolution captured on completion */}
       <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
         <legend className="text-sm font-semibold text-slate-700 px-1">
           Failure Codes <span className="font-normal text-slate-400">(optional)</span>
@@ -315,21 +315,9 @@ export default function WorkOrderForm({ workOrder, defaultAssetId, duplicateId }
             placeholder="WEAR, BREAK, SETUP…"
           />
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            Resolution / remedy
-          </label>
-          <TextareaWithVoice
-            value={form.remedy}
-            onChange={(e) => set('remedy', e.target.value)}
-            rows={3}
-            placeholder="What was done to fix the issue…"
-          />
-        </div>
       </fieldset>
 
-      {/* Action Taken — edit mode only */}
+      {/* Action Taken — edit mode only; tech fills this in when completing */}
       {isEditing && (
         <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
           <legend className="text-sm font-semibold text-slate-700 px-1">Action Taken</legend>

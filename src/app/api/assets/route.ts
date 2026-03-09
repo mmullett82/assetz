@@ -14,6 +14,8 @@ export async function GET(request: NextRequest) {
 
     if (sp.get('status')) where.status = sp.get('status')!
     if (sp.get('department_id')) where.department_id = sp.get('department_id')!
+    if (sp.get('sub_location')) where.sub_location = sp.get('sub_location')!
+    if (sp.get('tag_id')) where.asset_tags = { some: { tag_id: sp.get('tag_id')! } }
     if (sp.get('search')) {
       const q = sp.get('search')!
       where.OR = [
@@ -33,18 +35,20 @@ export async function GET(request: NextRequest) {
         include: {
           depends_on_edges: { select: { provider_id: true, type: true } },
           provider_edges: { select: { dependent_id: true, type: true } },
+          asset_tags: { include: { tag: true } },
         },
       }),
       prisma.asset.count({ where }),
     ])
 
     const transformed = data.map((a) => {
-      const { depends_on_edges, provider_edges, ...rest } = a
+      const { depends_on_edges, provider_edges, asset_tags, ...rest } = a
       return {
         ...rest,
         depends_on: depends_on_edges.filter((e) => e.type === 'DEPENDS_ON').map((e) => e.provider_id),
         feeds: depends_on_edges.filter((e) => e.type === 'FEEDS').map((e) => e.provider_id),
         dependents: provider_edges.map((e) => e.dependent_id),
+        tags: asset_tags.map((at) => at.tag),
       }
     })
 
@@ -94,6 +98,7 @@ export async function POST(request: NextRequest) {
         dependency_group: body.dependency_group,
         sequence: body.sequence,
         status: body.status || 'operational',
+        sub_location: body.sub_location,
         location_notes: body.location_notes,
         floor_plan_x: body.floor_plan_x,
         floor_plan_y: body.floor_plan_y,

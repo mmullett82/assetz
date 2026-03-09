@@ -117,6 +117,8 @@ export interface AssetsQuery {
   page?: number
   page_size?: number
   department_id?: string
+  sub_location?: string
+  tag_id?: string
   status?: string
   search?: string
 }
@@ -401,9 +403,29 @@ export const referenceCards = {
 
 export const departments = {
   list: () => apiFetch<import('@/types').Department[]>('/departments'),
+  create: (data: { name: string; code: string; sub_locations?: string[] }) =>
+    apiFetch<import('@/types').Department>('/departments', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<{ name: string; code: string; sub_locations: string[] }>) =>
+    apiFetch<import('@/types').Department>(`/departments/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    apiFetch<void>(`/departments/${id}`, { method: 'DELETE' }),
+}
+
+// ─── Tags ──────────────────────────────────────────────────────────────────────
+
+export const tags = {
+  list: () => apiFetch<import('@/types').Tag[]>('/tags'),
+  create: (data: { name: string; color?: string }) =>
+    apiFetch<import('@/types').Tag>('/tags', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<{ name: string; color: string; sort_order: number }>) =>
+    apiFetch<import('@/types').Tag>(`/tags/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    apiFetch<void>(`/tags/${id}`, { method: 'DELETE' }),
+  setAssetTags: (assetId: string, tagIds: string[]) =>
+    apiFetch<void>(`/assets/${assetId}/tags`, { method: 'PUT', body: JSON.stringify({ tag_ids: tagIds }) }),
 }
 
 // ─── Named export for convenience ─────────────────────────────────────────────
 
-const apiClient = { auth, assets, workOrders, pmSchedules, parts, dashboard, users, requests, referenceCards, departments }
+const apiClient = { auth, assets, workOrders, pmSchedules, parts, dashboard, users, requests, referenceCards, departments, tags }
 export default apiClient
