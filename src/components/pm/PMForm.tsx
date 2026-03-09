@@ -6,8 +6,8 @@ import type { PMSchedule, PMFrequency, WorkOrderStatus } from '@/types'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
-import { MOCK_ASSETS, MOCK_DEPARTMENTS } from '@/lib/mock-data'
-import { MOCK_PARTS } from '@/lib/mock-parts'
+import { useAssets } from '@/hooks/useAssets'
+import { useParts } from '@/hooks/useParts'
 import { TextareaWithVoice } from '@/components/ui/VoiceInput'
 import { X } from 'lucide-react'
 import InfoTooltip from '@/components/ui/InfoTooltip'
@@ -135,6 +135,8 @@ interface PMFormProps {
 export default function PMForm({ pmSchedule, defaultAssetId, duplicateId }: PMFormProps) {
   const router    = useRouter()
   const isEditing = !!pmSchedule
+  const { assets } = useAssets()
+  const { parts }  = useParts()
 
   const [form, setForm]       = useState<PMFormData>(() => {
     const base = pmSchedule ? pmToFormData(pmSchedule) : { ...DEFAULT }
@@ -225,7 +227,7 @@ export default function PMForm({ pmSchedule, defaultAssetId, duplicateId }: PMFo
   const isMonthly    = !isMeterBased && form.frequency === 'monthly'
   const showTimeFreq = form.pm_type !== 'meter_based'
 
-  const partOptions = MOCK_PARTS.map((p) => ({
+  const partOptions = parts.map((p) => ({
     value: p.id,
     label: `${p.name} — ${p.part_number}`,
   }))
@@ -264,7 +266,7 @@ export default function PMForm({ pmSchedule, defaultAssetId, duplicateId }: PMFo
           onChange={(e) => set('asset_id', e.target.value)}
           error={errors.asset_id}
           placeholder="Select asset"
-          options={MOCK_ASSETS.map((a) => ({
+          options={assets.map((a) => ({
             value: a.id,
             label: `${a.name} — ${a.facility_asset_id}`,
           }))}
@@ -550,7 +552,7 @@ export default function PMForm({ pmSchedule, defaultAssetId, duplicateId }: PMFo
         {form.required_parts.length > 0 && (
           <ul className="space-y-2">
             {form.required_parts.map((rp) => {
-              const part = MOCK_PARTS.find((p) => p.id === rp.part_id)
+              const part = parts.find((p) => p.id === rp.part_id)
               return (
                 <li key={rp.part_id} className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
                   <div>

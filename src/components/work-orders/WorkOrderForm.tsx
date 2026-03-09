@@ -8,8 +8,8 @@ import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { TextareaWithVoice } from '@/components/ui/VoiceInput'
 import AICompletionHelper from './AICompletionHelper'
-import { MOCK_ASSETS } from '@/lib/mock-data'
 import { MOCK_USERS } from '@/lib/mock-settings'
+import { useAssets } from '@/hooks/useAssets'
 import apiClient from '@/lib/api-client'
 import { USE_MOCK } from '@/lib/config'
 
@@ -95,6 +95,7 @@ interface WorkOrderFormProps {
 export default function WorkOrderForm({ workOrder, defaultAssetId, duplicateId }: WorkOrderFormProps) {
   const router    = useRouter()
   const isEditing = !!workOrder
+  const { assets } = useAssets()
 
   const [form, setForm]       = useState<WOFormData>(() => {
     const base = workOrder ? woToFormData(workOrder) : DEFAULT
@@ -250,7 +251,7 @@ export default function WorkOrderForm({ workOrder, defaultAssetId, duplicateId }
           onChange={(e) => set('asset_id', e.target.value)}
           error={errors.asset_id}
           placeholder="Select asset"
-          options={MOCK_ASSETS.map((a) => ({
+          options={assets.map((a) => ({
             value: a.id,
             label: `${a.name} — ${a.facility_asset_id}`,
           }))}

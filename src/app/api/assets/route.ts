@@ -59,10 +59,23 @@ export async function POST(request: NextRequest) {
     const user = await requireRole(request, 'admin', 'manager')
     const body = await request.json()
 
+    // Auto-derive facility_id from the org if not provided
+    let facilityId = body.facility_id
+    if (!facilityId) {
+      const facility = await prisma.facility.findFirst({
+        where: { organization_id: user.organization_id },
+        select: { id: true },
+      })
+      if (!facility) return errorResponse('No facility found for this organization', 400)
+      facilityId = facility.id
+    }
+
+    const dateField = (v: unknown) => (v ? new Date(v as string) : undefined)
+
     const asset = await prisma.asset.create({
       data: {
         organization_id: user.organization_id,
-        facility_id: body.facility_id,
+        facility_id: facilityId,
         department_id: body.department_id,
         facility_asset_id: body.facility_asset_id,
         asset_number: body.asset_number,
@@ -87,13 +100,38 @@ export async function POST(request: NextRequest) {
         floor_plan_zone: body.floor_plan_zone,
         current_meter_value: body.current_meter_value,
         meter_unit: body.meter_unit,
+        last_meter_update: dateField(body.last_meter_update),
+        // Purchase info
         purchase_price: body.purchase_price,
-        purchase_date: body.purchase_date ? new Date(body.purchase_date) : undefined,
+        purchase_date: dateField(body.purchase_date),
+        purchase_invoice_number: body.purchase_invoice_number,
+        expected_life_years: body.expected_life_years,
+        replacement_cost: body.replacement_cost,
+        salvage_value: body.salvage_value,
+        // Warranty
         warranty_title: body.warranty_title,
-        warranty_expiration_date: body.warranty_expiration_date ? new Date(body.warranty_expiration_date) : undefined,
+        warranty_expiration_date: dateField(body.warranty_expiration_date),
         warranty_vendor: body.warranty_vendor,
+        // Dates
+        date_of_manufacture: dateField(body.date_of_manufacture),
+        date_placed_in_service: dateField(body.date_placed_in_service),
+        date_removed: dateField(body.date_removed),
+        out_of_service_begin: dateField(body.out_of_service_begin),
+        out_of_service_end: dateField(body.out_of_service_end),
+        // Condition
+        current_condition: body.current_condition,
+        condition_date: dateField(body.condition_date),
+        estimated_replace_date: dateField(body.estimated_replace_date),
+        assessment_note: body.assessment_note,
+        // Safety & procedures
         safety_note: body.safety_note,
+        training_note: body.training_note,
+        shutdown_procedure_note: body.shutdown_procedure_note,
+        loto_procedure_note: body.loto_procedure_note,
+        emergency_note: body.emergency_note,
+        // Assignment
         assigned_to_id: body.assigned_to_id,
+        emergency_contact_id: body.emergency_contact_id,
         tag_number: body.tag_number,
         rfid: body.rfid,
       },
