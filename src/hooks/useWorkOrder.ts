@@ -13,7 +13,7 @@ export function useWorkOrder(id: string | null) {
       USE_MOCK
         ? Promise.resolve(getMockWorkOrder(id!) ?? Promise.reject(new Error('Not found')))
         : apiClient.workOrders.get(id!),
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, errorRetryCount: 3 }
   )
 
   return { workOrder: data, isLoading, error, mutate }

@@ -30,7 +30,9 @@ export default function AppShell({ children }: AppShellProps) {
     }
   }, [USE_MOCK, authLoading, isAuthenticated, router])
 
-  if (!USE_MOCK && authLoading) {
+  // Block rendering until auth is confirmed — prevents SWR hooks from firing
+  // API calls with no token (which would cache 401 errors in SWR)
+  if (!USE_MOCK && (authLoading || !isAuthenticated)) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="text-slate-400">Loading...</div>

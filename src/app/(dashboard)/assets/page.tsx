@@ -88,10 +88,11 @@ export default function AssetsPage() {
   const { departments } = useDepartments()
   const { tags } = useTags()
 
-  const { assets, isLoading, mutate } = useAssets({
-    department_id: filterDeptId ?? undefined,
-    tag_id: filterTagId ?? undefined,
-  })
+  // Only pass query when filters are active (avoids changing SWR cache key when no filters are set)
+  const assetQuery = filterDeptId || filterTagId
+    ? { department_id: filterDeptId ?? undefined, tag_id: filterTagId ?? undefined }
+    : undefined
+  const { assets, isLoading, mutate } = useAssets(assetQuery)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [printOpen, setPrintOpen] = useState(false)

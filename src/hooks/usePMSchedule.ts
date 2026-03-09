@@ -18,7 +18,7 @@ export function usePMSchedule(id: string | null) {
       }
       return apiClient.pmSchedules.get(id!)
     },
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, errorRetryCount: 3 }
   )
 
   return { pmSchedule: data, isLoading, error, mutate }

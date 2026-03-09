@@ -38,7 +38,8 @@ function mockFetcher(query?: AssetsQuery): PaginatedResponse<Asset> {
 }
 
 export function useAssets(query?: AssetsQuery) {
-  const key = ['assets', query]
+  // Stable key: only include query when it has values, so unfiltered calls always match
+  const key = query ? ['assets', query] : 'assets'
 
   const { data, error, isLoading, mutate } = useSWR<PaginatedResponse<Asset>>(
     key,
@@ -46,7 +47,7 @@ export function useAssets(query?: AssetsQuery) {
       USE_MOCK
         ? Promise.resolve(mockFetcher(query))
         : apiClient.assets.list(query),
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, errorRetryCount: 3 }
   )
 
   return {
