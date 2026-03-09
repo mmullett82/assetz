@@ -3,11 +3,12 @@
 import { Suspense, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search, Plus, Package, ArrowLeft } from 'lucide-react'
+import { Search, Plus, Package, ArrowLeft, Printer } from 'lucide-react'
 import { useParts } from '@/hooks/useParts'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import apiClient from '@/lib/api-client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
+import PrintLabelsModal, { type LabelItem } from '@/components/ui/PrintLabelsModal'
 import { showToast } from '@/hooks/useToast'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import PartTable from '@/components/parts/PartTable'
@@ -80,6 +81,16 @@ function PartsPageContent() {
   const { parts, isLoading, mutate } = useParts()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [printOpen, setPrintOpen] = useState(false)
+
+  const selectedParts = parts.filter((p) => selectedIds.has(p.id))
+  const labelItems: LabelItem[] = selectedParts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    line1: p.part_number,
+    line2: p.manufacturer ?? undefined,
+    qr_value: p.part_number,
+  }))
 
   async function handleDelete() {
     if (!deleteTarget) return
@@ -343,6 +354,32 @@ function PartsPageContent() {
         />
       )}
 
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+          <span className="text-sm font-semibold text-blue-800">
+            {selectedIds.size} selected
+          </span>
+          <div className="h-4 w-px bg-blue-200" />
+          <button
+            type="button"
+            onClick={() => setPrintOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          >
+            <Printer className="h-4 w-4" />
+            Print Labels
+          </button>
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={() => setSelectedIds(new Set())}
+            className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            Clear selection
+          </button>
+        </div>
+      )}
+
       <ConfirmModal
         open={!!deleteTarget}
         title="Delete Part"
@@ -352,6 +389,13 @@ function PartsPageContent() {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <PrintLabelsModal
+        open={printOpen}
+        items={labelItems}
+        title={`Print Part Labels (${selectedIds.size})`}
+        onClose={() => setPrintOpen(false)}
       />
     </div>
   )

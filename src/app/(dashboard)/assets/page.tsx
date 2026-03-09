@@ -3,12 +3,13 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, Plus, Cpu, ArrowLeft, SlidersHorizontal, Tag, Building2, X } from 'lucide-react'
+import { Search, Plus, Cpu, ArrowLeft, SlidersHorizontal, Tag, Building2, X, Printer } from 'lucide-react'
 import { useAssets } from '@/hooks/useAssets'
 import { useDepartments } from '@/hooks/useDepartments'
 import { useTags } from '@/hooks/useTags'
 import apiClient from '@/lib/api-client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
+import PrintLabelsModal, { type LabelItem } from '@/components/ui/PrintLabelsModal'
 import { showToast } from '@/hooks/useToast'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import AssetTable from '@/components/assets/AssetTable'
@@ -93,8 +94,18 @@ export default function AssetsPage() {
   })
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [printOpen, setPrintOpen] = useState(false)
 
   const hasActiveFilter = filterDeptId !== null || filterTagId !== null
+
+  const selectedAssets = assets.filter((a) => selectedIds.has(a.id))
+  const labelItems: LabelItem[] = selectedAssets.map((a) => ({
+    id: a.id,
+    name: a.name,
+    line1: a.facility_asset_id,
+    line2: a.asset_number,
+    qr_value: a.asset_number,
+  }))
 
   async function handleDelete() {
     if (!deleteTarget) return
@@ -207,6 +218,32 @@ export default function AssetsPage() {
         savedFilters={ASSET_SAVED_FILTERS}
         onApplySaved={setFilters}
       />
+
+      {/* Bulk action bar — shown when items are selected */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+          <span className="text-sm font-semibold text-blue-800">
+            {selectedIds.size} selected
+          </span>
+          <div className="h-4 w-px bg-blue-200" />
+          <button
+            type="button"
+            onClick={() => setPrintOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          >
+            <Printer className="h-4 w-4" />
+            Print Labels
+          </button>
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={() => setSelectedIds(new Set())}
+            className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            Clear selection
+          </button>
+        </div>
+      )}
 
       {/* Two-column layout: sidebar + results */}
       <div className={sidebarOpen && (departments.length > 0 || tags.length > 0) ? 'flex gap-4 items-start' : ''}>
@@ -408,6 +445,13 @@ export default function AssetsPage() {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <PrintLabelsModal
+        open={printOpen}
+        items={labelItems}
+        title={`Print Asset Labels (${selectedIds.size})`}
+        onClose={() => setPrintOpen(false)}
       />
     </div>
   )
