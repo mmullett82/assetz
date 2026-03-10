@@ -14,6 +14,7 @@ import PMFrequencyBadge from './PMFrequencyBadge'
 import { daysUntilDue, formatDueDate } from '@/lib/pm-utils'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import DotsMenu from '@/components/ui/DotsMenu'
+import DuplicateModal from '@/components/ui/DuplicateModal'
 import type { ColumnDef } from '@/components/ui/ColumnChooser'
 
 export type PMCol = 'title' | 'asset' | 'frequency' | 'next_due' | 'last_done' | 'status'
@@ -50,6 +51,7 @@ export default function PMTable({ pmSchedules, visibility, onComplete, selectedI
   const { mutate } = usePMSchedules()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [dupTarget, setDupTarget] = useState<{ id: string; title: string; assetId: string } | null>(null)
 
   async function handleDelete() {
     if (!deleteTarget) return
@@ -252,7 +254,7 @@ export default function PMTable({ pmSchedules, visibility, onComplete, selectedI
                           {
                             label: 'Duplicate',
                             icon: <Copy className="h-4 w-4" />,
-                            onClick: () => router.push(`/pm/new?duplicate=${pm.id}`),
+                            onClick: () => setDupTarget({ id: pm.id, title: pm.title, assetId: pm.asset_id }),
                           },
                           {
                             separator: true,
@@ -271,6 +273,14 @@ export default function PMTable({ pmSchedules, visibility, onComplete, selectedI
           </tbody>
         </table>
       </div>
+      <DuplicateModal
+        open={!!dupTarget}
+        type="pm"
+        sourceId={dupTarget?.id ?? ''}
+        currentAssetId={dupTarget?.assetId}
+        itemTitle={dupTarget?.title ?? ''}
+        onClose={() => setDupTarget(null)}
+      />
       <ConfirmModal
         open={!!deleteTarget}
         title="Delete PM Schedule"

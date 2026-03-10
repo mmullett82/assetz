@@ -114,9 +114,11 @@ export default function WorkOrderForm({ workOrder, defaultAssetId, duplicateId }
       data.completed_datetime = ''
       data.action_taken = ''
       data.root_cause = ''
+      // If a different asset was selected via Smart Duplicate, override
+      if (defaultAssetId) data.asset_id = defaultAssetId
       setForm(data)
     }).catch(() => {})
-  }, [duplicateId, workOrder])
+  }, [duplicateId, workOrder, defaultAssetId])
 
   function set(field: keyof WOFormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))

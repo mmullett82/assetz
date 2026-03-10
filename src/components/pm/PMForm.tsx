@@ -151,9 +151,11 @@ export default function PMForm({ pmSchedule, defaultAssetId, duplicateId }: PMFo
     apiClient.pmSchedules.get(duplicateId).then((pm) => {
       const data = pmToFormData(pm)
       data.title = `Copy of ${data.title}`
+      // If a different asset was selected via Smart Duplicate, override
+      if (defaultAssetId) data.asset_id = defaultAssetId
       setForm(data)
     }).catch(() => {})
-  }, [duplicateId, pmSchedule])
+  }, [duplicateId, pmSchedule, defaultAssetId])
 
   // Parts picker state
   const [pickerPartId, setPickerPartId] = useState('')

@@ -15,6 +15,7 @@ import DueStatusBadge from '@/components/ui/DueStatusBadge'
 import { computeDueStatus, formatDate } from '@/lib/due-status'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import DotsMenu from '@/components/ui/DotsMenu'
+import DuplicateModal from '@/components/ui/DuplicateModal'
 import type { ColumnDef } from '@/components/ui/ColumnChooser'
 
 export type WOCol = 'wo_number' | 'title' | 'asset' | 'priority' | 'status' | 'due'
@@ -50,6 +51,7 @@ export default function WorkOrderTable({ workOrders, visibility, selectedIds = n
   const { mutate } = useWorkOrders()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [dupTarget, setDupTarget] = useState<{ id: string; title: string; assetId: string } | null>(null)
 
   async function handleDelete() {
     if (!deleteTarget) return
@@ -216,9 +218,9 @@ export default function WorkOrderTable({ workOrders, visibility, selectedIds = n
                           onClick: () => router.push(`/assets/${wo.asset_id}`),
                         },
                         {
-                          label: 'Duplicate',
-                          icon: <Copy className="h-4 w-4" />,
-                          onClick: () => router.push(`/work-orders/new?duplicate=${wo.id}`),
+                        label: 'Duplicate',
+                        icon: <Copy className="h-4 w-4" />,
+                        onClick: () => setDupTarget({ id: wo.id, title: wo.title, assetId: wo.asset_id }),
                         },
                         {
                           separator: true,
@@ -236,6 +238,14 @@ export default function WorkOrderTable({ workOrders, visibility, selectedIds = n
           </tbody>
         </table>
       </div>
+      <DuplicateModal
+        open={!!dupTarget}
+        type="wo"
+        sourceId={dupTarget?.id ?? ''}
+        currentAssetId={dupTarget?.assetId}
+        itemTitle={dupTarget?.title ?? ''}
+        onClose={() => setDupTarget(null)}
+      />
       <ConfirmModal
         open={!!deleteTarget}
         title="Delete Work Order"

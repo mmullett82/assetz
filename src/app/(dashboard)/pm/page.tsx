@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, CalendarClock, ArrowLeft } from 'lucide-react'
+import { Plus, CalendarClock, ArrowLeft, Layers } from 'lucide-react'
 import { usePMSchedules } from '@/hooks/usePMSchedules'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import apiClient from '@/lib/api-client'
@@ -172,13 +172,22 @@ export default function PMPage() {
             {isLoading ? 'Loading…' : `${sorted.length} schedule${sorted.length !== 1 ? 's' : ''}`}
           </p>
         </div>
-        <Link
-          href="/pm/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors min-h-[44px]"
-        >
-          <Plus className="h-4 w-4" />
-          Add Schedule
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/pm/builder"
+            className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors min-h-[44px]"
+          >
+            <Layers className="h-4 w-4" />
+            Stack Builder
+          </Link>
+          <Link
+            href="/pm/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors min-h-[44px]"
+          >
+            <Plus className="h-4 w-4" />
+            Add Schedule
+          </Link>
+        </div>
       </div>
 
       {/* Sort + view controls */}
