@@ -150,13 +150,20 @@ export default function DashboardPage() {
       {/* ── Quick Actions ────────────────────────────────────── */}
       {sections.quickLinks && <QuickLinksSection />}
 
-      {/* ── My Work Center — personal queue for all staff ──── */}
+      {/* ── My Work Center + Open Work Orders — side by side ── */}
       {sections.myWorkCenter && showMyWork && (
-        <MyWorkCenter
-          workOrders={workOrders}
-          userId={user?.id}
-          loading={isLoading}
-        />
+        <div className="grid gap-5 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <MyWorkCenter
+              workOrders={workOrders}
+              userId={user?.id}
+              loading={isLoading}
+            />
+          </div>
+          <div>
+            <CriticalWOList workOrders={workOrders} />
+          </div>
+        </div>
       )}
 
       {/* ── Requester view ───────────────────────────────────── */}
@@ -190,14 +197,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <PMComplianceChart />
-            </div>
-            <div>
-              <CriticalWOList workOrders={workOrders} />
-            </div>
-          </div>
+          <PMComplianceChart />
         </>
       )}
 

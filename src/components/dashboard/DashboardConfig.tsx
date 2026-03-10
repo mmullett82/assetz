@@ -11,10 +11,10 @@ export interface DashboardSections {
 }
 
 const DEFAULTS: DashboardSections = {
-  workBreakdown: true,
+  workBreakdown: false,
   myWorkCenter: true,
   quickLinks: true,
-  charts: true,
+  charts: false,
 }
 
 const LABELS: Record<keyof DashboardSections, string> = {
@@ -24,8 +24,8 @@ const LABELS: Record<keyof DashboardSections, string> = {
   charts: 'Charts & Trends',
 }
 
-// v2 key — old localStorage key had different shape, avoid conflicts
-const STORAGE_KEY = 'dashboard-sections-v2'
+// v3 key — simplified defaults (work breakdown + charts off by default)
+const STORAGE_KEY = 'dashboard-sections-v3'
 
 export function useDashboardSections() {
   const [sections, setSections] = useState<DashboardSections>(() => {
