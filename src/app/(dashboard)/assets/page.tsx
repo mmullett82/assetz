@@ -3,10 +3,8 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, Plus, Cpu, ArrowLeft, SlidersHorizontal, Tag, Building2, X, Printer } from 'lucide-react'
+import { Search, Plus, Cpu, ArrowLeft, Printer } from 'lucide-react'
 import { useAssets } from '@/hooks/useAssets'
-import { useDepartments } from '@/hooks/useDepartments'
-import { useTags } from '@/hooks/useTags'
 import apiClient from '@/lib/api-client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import PrintLabelsModal, { type LabelItem } from '@/components/ui/PrintLabelsModal'
@@ -81,23 +79,11 @@ export default function AssetsPage() {
   const [activeFilters, setFilters]   = useState<ActiveFilter[]>([])
   const [selectedId, setSelectedId]   = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [filterDeptId, setFilterDeptId] = useState<string | null>(null)
-  const [filterTagId, setFilterTagId]   = useState<string | null>(null)
 
-  const { departments } = useDepartments()
-  const { tags } = useTags()
-
-  // Only pass query when filters are active (avoids changing SWR cache key when no filters are set)
-  const assetQuery = filterDeptId || filterTagId
-    ? { department_id: filterDeptId ?? undefined, tag_id: filterTagId ?? undefined }
-    : undefined
-  const { assets, isLoading, mutate } = useAssets(assetQuery)
+  const { assets, isLoading, mutate } = useAssets()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [printOpen, setPrintOpen] = useState(false)
-
-  const hasActiveFilter = filterDeptId !== null || filterTagId !== null
 
   const selectedAssets = assets.filter((a) => selectedIds.has(a.id))
   const labelItems: LabelItem[] = selectedAssets.map((a) => ({
@@ -155,33 +141,13 @@ export default function AssetsPage() {
             {isLoading ? 'Loading…' : `${sorted.length} asset${sorted.length !== 1 ? 's' : ''}`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen((v) => !v)}
-            className={[
-              'inline-flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors min-h-[44px]',
-              sidebarOpen
-                ? 'border-blue-200 bg-blue-50 text-blue-700'
-                : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-50',
-            ].join(' ')}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filters
-            {hasActiveFilter && (
-              <span className="ml-0.5 rounded-full bg-blue-600 px-1.5 py-0.5 text-xs text-white leading-none">
-                {(filterDeptId ? 1 : 0) + (filterTagId ? 1 : 0)}
-              </span>
-            )}
-          </button>
-          <Link
-            href="/assets/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors min-h-[44px]"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Add Asset
-          </Link>
-        </div>
+        <Link
+          href="/assets/new"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors min-h-[44px]"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Add Asset
+        </Link>
       </div>
 
       {/* Search + controls row */}
@@ -246,86 +212,7 @@ export default function AssetsPage() {
         </div>
       )}
 
-      {/* Two-column layout: sidebar + results */}
-      <div className={sidebarOpen && (departments.length > 0 || tags.length > 0) ? 'flex gap-4 items-start' : ''}>
-
-      {/* Filter sidebar */}
-      {sidebarOpen && (departments.length > 0 || tags.length > 0) && (
-        <aside className="hidden lg:block w-48 shrink-0 rounded-xl border border-slate-200 bg-white p-3 space-y-4 sticky top-6">
-          {departments.length > 0 && (
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <Building2 className="h-3.5 w-3.5 text-slate-400" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Department</span>
-              </div>
-              <div className="space-y-0.5">
-                <button
-                  type="button"
-                  onClick={() => setFilterDeptId(null)}
-                  className={[
-                    'w-full text-left rounded-lg px-2.5 py-1.5 text-sm transition-colors',
-                    filterDeptId === null ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50',
-                  ].join(' ')}
-                >
-                  All departments
-                </button>
-                {departments.map((dept) => (
-                  <button
-                    key={dept.id}
-                    type="button"
-                    onClick={() => setFilterDeptId(dept.id === filterDeptId ? null : dept.id)}
-                    className={[
-                      'w-full text-left rounded-lg px-2.5 py-1.5 text-sm transition-colors',
-                      filterDeptId === dept.id ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50',
-                    ].join(' ')}
-                  >
-                    {dept.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {tags.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <Tag className="h-3.5 w-3.5 text-slate-400" />
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Label</span>
-                </div>
-                {filterTagId && (
-                  <button type="button" onClick={() => setFilterTagId(null)} className="text-slate-400 hover:text-slate-600">
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => setFilterTagId(tag.id === filterTagId ? null : tag.id)}
-                    className={[
-                      'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-colors',
-                      filterTagId === tag.id ? 'text-white border-transparent' : 'border-slate-200 text-slate-600 hover:border-slate-300 bg-white',
-                    ].join(' ')}
-                    style={filterTagId === tag.id ? { backgroundColor: tag.color ?? '#64748b' } : {}}
-                  >
-                    <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: filterTagId === tag.id ? 'rgba(255,255,255,0.7)' : (tag.color ?? '#64748b') }}
-                    />
-                    {tag.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </aside>
-      )}
-
       {/* Results */}
-      <div className="flex-1 min-w-0">
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
@@ -433,9 +320,6 @@ export default function AssetsPage() {
           onSelectionChange={setSelectedIds}
         />
       )}
-
-      </div> {/* end flex-1 results */}
-      </div> {/* end two-column layout */}
 
       <ConfirmModal
         open={!!deleteTarget}
