@@ -381,19 +381,35 @@ Plain `<select>` dropdowns are unacceptable once the asset registry grows beyond
 
 ## Current Phase
 
-**Phase 1: Core CMMS (Weeks 1–8)**
-Goal: Functional enough to replace Asset Essentials at SOLLiD for daily operations.
+**Phase 1: Core CMMS — COMPLETE**
 
-Priority build order:
+All Phase 1 items shipped with real PostgreSQL backend (40+ API routes, Prisma 7, JWT auth, RBAC):
 1. ✅ Project scaffolding, auth pages, app shell with sidebar nav
-2. ✅ Asset registry (CRUD, detail views, barcode display)
-3. ✅ Work order management (create, status workflow, comments, photos)
-4. ✅ KPI dashboard with placeholder data
-5. ✅ PM schedule management
+2. ✅ Asset registry (CRUD, detail views, barcode display, sub-locations, tags)
+3. ✅ Work order management (create, status workflow, comments, photos, labor log)
+4. ✅ KPI dashboard (8 KPI cards, charts, enhanced sections, role-based rendering)
+5. ✅ PM schedule management (interactive checklist, complete modal)
 6. ✅ Parts inventory with reservation UI
-7. ✅ Red/Yellow/Green scoreboard
-8. 🟡 Settings and configuration
-9. 🟡 Interactive floor plan (DXF-to-SVG pipeline built, needs correction pass)
+7. ✅ Red/Yellow/Green scoreboard (sortable, expandable, 60s polling)
+8. ✅ Settings and configuration (23-section interface, Departments CRUD, Tags/Labels CRUD)
+9. ✅ Interactive floor plan (DXF-to-SVG pipeline, dark blue canvas, dept zones, layer toggles, Map Builder)
+
+**Phase 1.5: UI Modernization — COMPLETE**
+- Three-view layout (Panel/Table/Calendar) on all 4 modules
+- Universal FilterBar with pills, saved filters, status tab bar
+- Collapsible sidebar (icons-only collapsed state)
+- Per-module sort controls, column chooser, three-dot DotsMenu per row
+- Enterprise form enhancements: AssetForm (12 fieldsets), PMForm, WOForm, PartForm
+
+**Additional Phase 1 Features Shipped:**
+- Real backend: PostgreSQL 16 + Prisma 7 + 40+ API routes
+- JWT auth with 5-role RBAC (admin, manager, technician, requester, viewer)
+- Request Queue (submit/triage/approve workflow, kiosk TV mode)
+- Asset Reference Cards (9 section types, editor, collapsible in WO/PM/Asset views, Fix Mode toggle)
+- Enhanced Dashboard (role-based sections, My Work Center, Quick Links, DashboardConfig)
+- Import System (5-step CSV wizard + 5 platform importers)
+- Bulk QR/barcode label printing for assets and parts (PrintLabelsModal)
+- Asset tags (color-coded labels) and department sub-locations
 
 ## Important Context
 

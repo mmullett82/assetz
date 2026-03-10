@@ -1,5 +1,5 @@
 # assetZ Product Backlog
-## Last Updated: February 26, 2026
+## Last Updated: March 9, 2026
 
 ---
 
@@ -15,16 +15,23 @@
 
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Project scaffolding | 🟢 | Next.js 14, TypeScript, Tailwind, App Router |
-| 2 | Asset registry (CRUD, list, detail) | 🟢 | Basic version |
-| 3 | Work order management | 🟢 | Basic version |
-| 4 | KPI dashboard | 🟢 | Basic cards, no gauge dials yet |
-| 5 | PM schedule management | 🟢 | Basic version |
-| 6 | Parts inventory with reservations | 🟢 | Basic version |
-| 7 | Red/Yellow/Green scoreboard | 🟢 | Row highlighting, no stoplight icons yet |
-| 8 | Settings & configuration | 🟡 | Started, may not be complete |
-| 9 | Enterprise form enhancements | 🟡 | Claude Code started but didn't finish |
-| 10 | Asset floor plan / map | 🟡 | DXF-to-SVG rendering working, needs correction pass (dark blue theme, dept zones, grid, asset orientation) |
+| 1 | Project scaffolding | 🟢 | Next.js 16, TypeScript, Tailwind, App Router |
+| 2 | Asset registry (CRUD, list, detail) | 🟢 | Full CRUD + tags, sub-locations, barcode display |
+| 3 | Work order management | 🟢 | Full workflow, comments, labor log, completion modal |
+| 4 | KPI dashboard | 🟢 | 8 KPI cards, charts, enhanced sections, role-based |
+| 5 | PM schedule management | 🟢 | Interactive checklist, complete modal, PM forms |
+| 6 | Parts inventory with reservations | 🟢 | Transactional reserve/release, 4-tab detail |
+| 7 | Red/Yellow/Green scoreboard | 🟢 | Sortable, expandable rows, team KPI bar |
+| 8 | Settings & configuration | 🟢 | 23-section interface, Departments CRUD, Tags CRUD, all config sections |
+| 9 | Enterprise form enhancements | 🟢 | AssetForm 12 fieldsets, PMForm, WOForm, PartForm fully enhanced |
+| 10 | Asset floor plan / map | 🟢 | DXF-to-SVG, dark blue CAD canvas, dept zones, layer toggles, Map Builder |
+| 11 | Real backend (PostgreSQL + Prisma + API) | 🟢 | 40+ API routes, JWT auth, 5-role RBAC, full data layer |
+| 12 | Request Queue | 🟢 | Submit/triage/approve workflow, kiosk TV mode |
+| 13 | Asset Reference Cards | 🟢 | 9 section types, editor, inline WO/PM/Asset panels, Fix Mode toggle |
+| 14 | Enhanced Dashboard | 🟢 | Role-based sections, My Work Center, DashboardConfig, Quick Links |
+| 15 | Import System | 🟢 | 5-step CSV wizard + 5 platform importers (MaintainX, AE, UpKeep, Fiix, Limble) |
+| 16 | Bulk QR/barcode label printing | 🟢 | Multi-size labels, copies, QR/URL mode — assets and parts |
+| 17 | Asset tags & sub-locations | 🟢 | Color-coded tags, department sub-locations, sidebar filter on assets page |
 
 ---
 
@@ -33,28 +40,28 @@
 ### Three-View System (MaintainX-Inspired)
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Panel View (two-pane: list + detail) | 🔴 | Default view for all modules |
-| 2 | Table View (data grid with column picker) | 🔴 | Sortable, bulk select, inline edit |
-| 3 | Calendar View (WOs and PMs) | 🔴 | Weekly/monthly toggle, overdue in red |
-| 4 | View toggle icons (top-right of list pages) | 🔴 | Persist user's last selection |
+| 1 | Panel View (two-pane: list + detail) | 🟢 | All 4 modules: assets, WOs, PMs, parts |
+| 2 | Table View (data grid with column picker) | 🟢 | Sortable, bulk select, ColumnChooser, DotsMenu |
+| 3 | Calendar View (WOs and PMs) | 🟢 | Month/week calendar grid |
+| 4 | View toggle icons (top-right of list pages) | 🟢 | localStorage-persisted per module |
 
 ### Universal Filter Bar
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 5 | "+ Add Filter" horizontal filter system | 🔴 | Replace sidebar tree filtering |
-| 6 | Filter pills/chips (removable, stackable) | 🔴 | AND logic between multiple filters |
-| 7 | Save Filter combinations (personal + org-wide) | 🔴 | Named saved views |
-| 8 | Default saved filters per module | 🔴 | "My Open WOs", "Low Stock", etc. |
+| 5 | "+ Add Filter" horizontal filter system | 🟢 | FilterBar component on all list pages |
+| 6 | Filter pills/chips (removable, stackable) | 🟢 | AND logic, removable pills |
+| 7 | Save Filter combinations (personal + org-wide) | 🟢 | Named saved views via filter-config.ts |
+| 8 | Default saved filters per module | 🟢 | "My Open WOs", "Low Stock", "Overdue PMs" etc. |
 
 ### Navigation & Layout
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 9 | Sidebar: hamburger toggle at TOP LEFT | 🔴 | Not bottom |
-| 10 | Sidebar: collapsed = icons only (~60px) | 🔴 | Tooltips on hover |
-| 11 | Sidebar: expanded = icons + labels (~220px) | 🔴 | |
-| 12 | Global search bar (per-module) | 🔴 | Searches name, title, ID, description, barcode |
-| 13 | Sort controls dropdown | 🔴 | Smart defaults: WOs = overdue first, then due soonest |
-| 14 | Three-dot menu (⋯) per row | 🔴 | Replaces broken right-click context menu |
+| 9 | Sidebar: hamburger toggle at TOP LEFT | 🟢 | Top-left hamburger, mobile overlay |
+| 10 | Sidebar: collapsed = icons only (~60px) | 🟢 | localStorage-persisted |
+| 11 | Sidebar: expanded = icons + labels (~220px) | 🟢 | |
+| 12 | Global search bar (per-module) | 🟢 | Name, ID, barcode, manufacturer search on all list pages |
+| 13 | Sort controls dropdown | 🟢 | SortDropdown component, localStorage-persisted |
+| 14 | Three-dot menu (⋯) per row | 🟢 | DotsMenu component — edit, view, create WO, delete etc. |
 
 ### Default Sort Logic
 - **Assets:** Alphabetical by name
@@ -69,15 +76,15 @@
 ### Asset Form — Missing Fields
 | # | Field/Section | Status | Notes |
 |---|--------------|--------|-------|
-| 1 | Purchase info (price, date, invoice, expected life, replacement cost, salvage value) | 🟡 | Enhancement pass started |
-| 2 | Warranty tracking (title, expiration, vendor) | 🟡 | |
-| 3 | Dates (manufacture, placed, removed, out-of-service begin/end) | 🟡 | |
-| 4 | Condition assessment (condition, date, est. replace date, assessment note) | 🟡 | |
+| 1 | Purchase info (price, date, invoice, expected life, replacement cost, salvage value) | 🟢 | Full fieldset in AssetForm |
+| 2 | Warranty tracking (title, expiration, vendor) | 🟢 | |
+| 3 | Dates (manufacture, placed, removed, out-of-service begin/end) | 🟢 | |
+| 4 | Condition assessment (condition, date, est. replace date, assessment note) | 🟢 | |
 | 5 | Calculated rollups (Total WO Cost, Total Labor Hrs, Total Downtime) | 🔴 | Read-only, calculated from WO data |
-| 6 | Safety & Procedures notes (safety, training, shutdown, LOTO, emergency) | 🟡 | |
-| 7 | Assigned To (primary tech), Emergency Contact | 🟡 | |
-| 8 | Tag Number, RFID field | 🟡 | |
-| 9 | Photo upload, Document attachments | 🟡 | |
+| 6 | Safety & Procedures notes (safety, training, shutdown, LOTO, emergency) | 🟢 | Collapsible safety fieldset |
+| 7 | Assigned To (primary tech), Emergency Contact | 🟢 | |
+| 8 | Tag Number, RFID field | 🟢 | |
+| 9 | Photo upload, Document attachments | 🟡 | UI placeholder only — file upload not yet wired to storage |
 | 10 | Check-out/sign-out tracking with log | 🔴 | |
 | 11 | Associated Assets (beyond parent-child) | 🔴 | Links to graph DEPENDS_ON/FEEDS |
 | 12 | Electrical Panel & Specs (custom field) | 🔴 | Via custom fields system |
@@ -85,12 +92,12 @@
 ### PM Form — Missing Fields
 | # | Field/Section | Status | Notes |
 |---|--------------|--------|-------|
-| 1 | PM Type: Time-Based, Meter-Based, Time-Based with Meter Override | 🟡 | |
+| 1 | PM Type: Time-Based, Meter-Based, Time-Based with Meter Override | 🟢 | Segmented control in PMForm |
 | 2 | Expected completion (X days, X hours after generation) | 🔴 | |
 | 3 | WO creation time (e.g., generate at 08:00 AM) | 🔴 | |
 | 4 | Default WO Status for generated WOs | 🔴 | |
 | 5 | Pre-filled Problem/Cause codes on PM template | 🔴 | |
-| 6 | End conditions (no end, after X occurrences, on date) | 🔴 | |
+| 6 | End conditions (no end, after X occurrences, on date) | 🟢 | Built in PMForm |
 | 7 | Season start option (seasonal equipment) | 🔴 | |
 | 8 | Dependency-aware skip: "Don't create unless prior PMs completed" | 🔴 | More advanced than simple skip_if_open |
 | 9 | Exclusion Conditions (holidays, shutdowns) | 🔴 | |
@@ -101,22 +108,22 @@
 ### WO Form — Missing Fields
 | # | Field/Section | Status | Notes |
 |---|--------------|--------|-------|
-| 1 | "Breakdown" work type | 🔴 | Add alongside preventive, corrective, emergency, inspection |
-| 2 | Origin Info (origin type, originated date, originator, assigned date) | 🔴 | |
-| 3 | Action Taken (completion datetime + description) | 🔴 | |
+| 1 | "Breakdown" work type | 🟢 | Included in WO type options |
+| 2 | Origin Info (origin type, originated date, originator, assigned date) | 🟢 | Built in WOForm |
+| 3 | Action Taken (completion datetime + description) | 🟢 | Field in WO detail + WOForm |
 | 4 | Planning section (scheduling/resource) | 🔴 | |
 | 5 | Contact User button (reach originator) | 🔴 | |
 | 6 | Signature for completion | 🔴 | MaintainX has this — accountability layer |
 | 7 | Cost tracking (labor cost, travel, parts cost, other) | 🔴 | |
-| 8 | Time tracking (time spent on WO) | 🔴 | |
+| 8 | Time tracking (time spent on WO) | 🟢 | LaborLog component — log hours, date, notes per tech |
 
 ### Parts Form — Missing Fields
 | # | Field/Section | Status | Notes |
 |---|--------------|--------|-------|
-| 1 | Alternate Part # (cross-reference equivalent parts) | 🔴 | |
-| 2 | Manufacturer Barcode | 🔴 | |
-| 3 | Par Quantity (ideal stock level) | 🔴 | |
-| 4 | Min/Max Level reorder method | 🔴 | |
+| 1 | Alternate Part # (cross-reference equivalent parts) | 🟢 | Built in PartForm |
+| 2 | Manufacturer Barcode | 🟢 | Built in PartForm |
+| 3 | Par Quantity (ideal stock level) | 🟢 | Built in PartForm |
+| 4 | Min/Max Level reorder method | 🟢 | Built in PartForm |
 | 5 | Qty on Back Order | 🔴 | |
 | 6 | Multiple storage locations per part | 🔴 | |
 | 7 | Parts Kits (pre-built groups for common tasks) | 🔴 | Pull as a unit for WO |
@@ -130,45 +137,45 @@
 ### Floor Plan / Asset Map ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | DXF-to-SVG vector rendering pipeline | 🟡 | Working but needs density/accuracy corrections |
-| 2 | Dark blue CAD canvas (always dark, `#162032`, regardless of app theme) | 🔴 | Blue-toned linework, not gold |
-| 3 | Pin assets to floor plan positions (drag & drop) | 🔴 | Via Map Builder edit mode |
-| 4 | Real-time status overlay (LED dots on equipment corners) | 🟡 | ⭐ Green=operational, Yellow=PM due, Red=down + red glow, Pulsing=active maint |
-| 5 | Click equipment footprint to see asset detail panel | 🟡 | Working but click target is too small — entire footprint should be clickable |
+| 1 | DXF-to-SVG vector rendering pipeline | 🟢 | scripts/generate-blueprint.mjs, 93KB SVG, 6 layer groups |
+| 2 | Dark blue CAD canvas (always dark, `#162032`, regardless of app theme) | 🟢 | FacilityMap.tsx, always dark regardless of global theme |
+| 3 | Pin assets to floor plan positions (drag & drop) | 🟢 | Via Map Builder edit mode |
+| 4 | Real-time status overlay (LED dots on equipment corners) | 🟢 | ⭐ EquipmentFootprint.tsx — green/yellow/red/grey, pulsing for active |
+| 5 | Click equipment footprint to see asset detail panel | 🟢 | Full footprint rect is click target |
 | 6 | Dependency chain visualization on floor plan | 🔴 | ⭐ DEPENDS_ON = solid red lines, FEEDS = dashed yellow lines |
 | 7 | Ripple effect animation when asset goes down | 🔴 | ⭐ Shows downstream impact visually spreading |
 | 8 | Heat map overlay (failure frequency, cost, downtime) | 🔴 | ⭐ Toggle between different heat map types |
-| 9 | Department zone boundaries (invisible interactive polygons) | 🟡 | Gray labels default, blue on hover/click, needs repositioning |
-| 10 | Multi-floor support (floor selector tabs) | 🔴 | |
-| 11 | Alphanumeric grid overlay (numbers 1-15 top, letters A-F side) | 🔴 | Blueprint-style, replaces raw DXF coordinates |
-| 12 | Zoom + pan with smooth navigation | 🟢 | Working well |
-| 13 | Filter map pins by status, category, department | 🟡 | Status filter working, dept click-to-filter working |
+| 9 | Department zone boundaries (invisible interactive polygons) | 🟢 | 22 zones, hover/click highlights, dept filter working |
+| 10 | Multi-floor support (floor selector tabs) | 🟢 | FloorTabs in Map Builder |
+| 11 | Alphanumeric grid overlay (numbers 1-15 top, letters A-F side) | 🟢 | 15 corrected grid cols, layer toggle |
+| 12 | Zoom + pan with smooth navigation | 🟢 | react-zoom-pan-pinch, initialScale=0.65 |
+| 13 | Filter map pins by status, category, department | 🟢 | Status filter + zone click-to-filter |
 | 14 | "Map View" as 4th view option on Assets page | 🔴 | Alongside Panel/Table/Calendar |
 | 15 | Technician location on map (future: BLE beacons) | 🔴 | Phase 3+ |
 | 16 | Production flow arrows showing material path | 🔴 | ⭐ Visual of how material moves through facility |
 | 17 | Buffer status indicators on FEEDS relationships | 🔴 | "4 hrs of staged parts remaining" |
 | 18 | QR code scanning → auto-centers map on that asset | 🔴 | |
-| 19 | Asset labeling: short label at normal zoom, full facility ID on hover | 🔴 | e.g., ROVER-C3-04 → SC-B1-MIL-CNC-ROVER-C3-04 |
+| 19 | Asset labeling: short label at normal zoom, full facility ID on hover | 🟢 | ROVER-C3-04 label + full ID in hover tooltip |
 
 ### Self-Service Map Builder ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | DXF/CAD import → auto-generates vector floor plan | 🟡 | Working for SOLLiD DXF, needs refinement |
+| 1 | DXF/CAD import → auto-generates vector floor plan | 🟢 | Working for SOLLiD DXF |
 | 2 | Upload floor plan image (JPG, PNG, PDF) as alternative | 🔴 | Per building/floor, for customers without CAD |
-| 3 | Draw department zones on floor plan (polygon drawing tool) | 🔴 | Click to place vertices, close shape, name zone |
-| 4 | Equipment icon library sidebar (blueprint-style SVG footprints) | 🔴 | ⭐ Categorized: CNC, Edge Banders, Saws, Conveyors, Storage, etc. |
-| 5 | Drag & drop equipment from library onto floor plan | 🔴 | On drop: assign asset ID, name, department |
-| 6 | Snap-to-grid option for clean alignment | 🔴 | Toggle grid overlay on/off |
-| 7 | Label placement tool (department names, area labels) | 🔴 | Text overlay on map |
-| 8 | Draw walls/barriers (line drawing tool) | 🔴 | Visual representation of physical layout |
-| 9 | Draw production flow paths (directional arrows) | 🔴 | Show material movement through facility |
-| 10 | Equipment icons stored in `/assets/equipment-icons/` | 🔴 | Named to match DXF block names, e.g., `biesse-rover-1531.svg` |
-| 11 | Undo/redo for all map edits | 🔴 | Essential for builder usability |
-| 12 | Save draft / publish workflow | 🔴 | Work in progress without affecting live map |
-| 13 | Multi-floor builder (add floors, name them, navigate between) | 🔴 | Building > Floor > Map |
-| 14 | Template facility layouts (common manufacturing layouts) | 🔴 | Starting templates to customize |
+| 3 | Draw department zones on floor plan (polygon drawing tool) | 🟢 | Zone drawing in Map Builder |
+| 4 | Equipment icon library sidebar (blueprint-style SVG footprints) | 🟢 | ⭐ 21 SVG icons + index.json, AssetSidebar in builder |
+| 5 | Drag & drop equipment from library onto floor plan | 🟢 | BuilderCanvas drag-and-drop |
+| 6 | Snap-to-grid option for clean alignment | 🟢 | snap() helper in builder-state.ts |
+| 7 | Label placement tool (department names, area labels) | 🟢 | Text/label elements in builder |
+| 8 | Draw walls/barriers (line drawing tool) | 🟢 | Wall drawing tool in BuilderToolbar |
+| 9 | Draw production flow paths (directional arrows) | 🟢 | Flow arrow drawing in builder |
+| 10 | Equipment icons stored in `/assets/equipment-icons/` | 🟢 | Named to match DXF block names |
+| 11 | Undo/redo for all map edits | 🟢 | useHistory hook in builder-state.ts |
+| 12 | Save draft / publish workflow | 🟢 | Draft → localStorage, publish → viewer |
+| 13 | Multi-floor builder (add floors, name them, navigate between) | 🟢 | FloorTabs component |
+| 14 | Template facility layouts (common manufacturing layouts) | 🟢 | TemplateModal with preset layouts |
 | 15 | AI-assisted map building | 🔴 | ⭐ Upload photo of floor → AI suggests zones and asset positions |
-| 16 | Bulk pin placement (CSV import with x,y coordinates) | 🔴 | For large facilities with many assets |
+| 16 | Bulk pin placement (CSV import with x,y coordinates) | 🟢 | CSVImportModal in builder |
 
 *Note: Users who want help building their map can use AI onboarding (Phase 3, Step 3). This self-service builder is for users who want to do it themselves.*
 
@@ -203,7 +210,7 @@
 ### AI Agent ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Sidebar chat (collapsible) | 🔴 | Open-ended conversations, setup, complex queries |
+| 1 | Sidebar chat (collapsible) | 🟢 | AgentChatPanel — collapsible chat sidebar, wired to layout |
 | 2 | Inline smart prompts (contextual suggestions) | 🔴 | Non-intrusive, dismissable, one-tap actions |
 | 3 | Natural language KPI querying | 🔴 | "Show me all overdue PMs in the Mill" |
 | 4 | WO Suggestions (like MaintainX CoPilot) | 🔴 | ⭐ Procedure suggestions based on past WOs + manuals |
@@ -241,7 +248,7 @@
 ### Mobile / PWA
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | PWA manifest and service worker | 🔴 | |
+| 1 | PWA manifest and service worker | 🟢 | public/sw.js — network-first for API, cache-first for static assets |
 | 2 | Offline mode with reliable sync | 🔴 | ⭐ Fix AE's biggest pain point |
 | 3 | Barcode/QR scanning via camera | 🔴 | |
 | 4 | Push notifications | 🔴 | |
@@ -265,17 +272,17 @@
 ### Asset Reference Cards (Quick Reference Guides) ⭐
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Reference Card data model per asset (or per asset MODEL for shared cards) | 🔴 | One card can cover all 4 Biesse Rovers |
-| 2 | Reference Card tab/panel inside Work Order detail view | 🔴 | ⭐ One tap to access — always available when working a WO |
-| 3 | Structured template for reference cards (PM procedures, safety, common failures, parts, lubrication, troubleshooting) | 🔴 | |
+| 1 | Reference Card data model per asset (or per asset MODEL for shared cards) | 🟢 | 3 Prisma models: ReferenceCard, ReferenceCardSection, ReferenceCardVersion. Asset-specific or model-match. |
+| 2 | Reference Card tab/panel inside Work Order detail view | 🟢 | ⭐ ReferenceCardCollapsible inline in WO/PM/Asset detail views |
+| 3 | Structured template for reference cards (PM procedures, safety, common failures, parts, lubrication, troubleshooting) | 🟢 | 9 section types with typed renderers |
 | 4 | Upload PDFs, images, and documents to reference cards | 🔴 | Photos of grease fittings, belt routing, etc. |
-| 5 | Troubleshooting decision tree (symptom → check this first) | 🔴 | Visual flowchart or structured checklist |
+| 5 | Troubleshooting decision tree (symptom → check this first) | 🟡 | Section type exists, renderer built, content editor is JSON |
 | 6 | Links to full manufacturer manuals (stored in graphX) | 🔴 | Reference card is the quick version, manual is the deep version |
-| 7 | Version history and change tracking on reference cards | 🔴 | Living documents, editable over time |
+| 7 | Version history and change tracking on reference cards | 🟢 | ReferenceCardVersion model + versions API route |
 | 8 | AI auto-generates draft reference card from manufacturer manual | 🔴 | ⭐ graphX ingests manual → AI extracts key procedures, parts, and specs into card template |
 | 9 | AI assistant uses reference card + manual as knowledge base during WO | 🔴 | ⭐ Tech asks "how do I tension the drive belt on this?" → AI answers from card/manual |
-| 10 | Fix Only mode — quick answer, minimal explanation, get machine running | 🔴 | ⭐ For time-critical situations |
-| 11 | Fix & Train mode — step-by-step with WHY explanations, builds tech skill | 🔴 | ⭐ For when there's time to learn |
+| 10 | Fix Only mode — quick answer, minimal explanation, get machine running | 🟡 | ⭐ FixModeToggle UI scaffolded — "Coming soon" on AI mode |
+| 11 | Fix & Train mode — step-by-step with WHY explanations, builds tech skill | 🟡 | ⭐ Toggle UI built, AI backend not yet wired |
 | 12 | AI adapts guidance depth based on tech's history with this asset/repair type | 🔴 | ⭐ First time replacing this belt? Full walkthrough. Done it 5 times? Just the spec. |
 
 *Note: Reference cards are immediately useful even without AI — maintenance teams create them as standard operating procedures. AI enhancement layers on top over time. The Fix Only vs Fix & Train toggle is a major differentiator for technician development.*
@@ -369,7 +376,7 @@
 ### Multi-Tenancy & SaaS
 | # | Feature | Status | Notes |
 |---|---------|--------|-------|
-| 1 | Organization isolation (org_id on every record) | 🔴 | |
+| 1 | Organization isolation (org_id on every record) | 🟢 | All Prisma queries scoped to organization_id |
 | 2 | Tenant provisioning | 🔴 | |
 | 3 | Plan/tier management | 🔴 | |
 | 4 | Public API documentation | 🔴 | Open like MaintainX |
