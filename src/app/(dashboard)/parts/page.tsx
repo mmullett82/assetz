@@ -231,6 +231,32 @@ function PartsPageContent() {
         onApplySaved={setFilters}
       />
 
+      {/* Bulk action bar — shown when items are selected */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+          <span className="text-sm font-semibold text-blue-800">
+            {selectedIds.size} selected
+          </span>
+          <div className="h-4 w-px bg-blue-200" />
+          <button
+            type="button"
+            onClick={() => setPrintOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          >
+            <Printer className="h-4 w-4" />
+            Print Labels
+          </button>
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={() => setSelectedIds(new Set())}
+            className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            Clear selection
+          </button>
+        </div>
+      )}
+
       {/* Results */}
       {isLoading ? (
         <div className="space-y-3">
@@ -352,32 +378,6 @@ function PartsPageContent() {
           onConfirm={handleReserve}
           onCancel={() => setReserving(null)}
         />
-      )}
-
-      {/* Bulk action bar */}
-      {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
-          <span className="text-sm font-semibold text-blue-800">
-            {selectedIds.size} selected
-          </span>
-          <div className="h-4 w-px bg-blue-200" />
-          <button
-            type="button"
-            onClick={() => setPrintOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-          >
-            <Printer className="h-4 w-4" />
-            Print Labels
-          </button>
-          <div className="flex-1" />
-          <button
-            type="button"
-            onClick={() => setSelectedIds(new Set())}
-            className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            Clear selection
-          </button>
-        </div>
       )}
 
       <ConfirmModal
