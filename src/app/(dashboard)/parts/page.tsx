@@ -11,7 +11,9 @@ import ConfirmModal from '@/components/ui/ConfirmModal'
 import PrintLabelsModal, { type LabelItem } from '@/components/ui/PrintLabelsModal'
 import { showToast } from '@/hooks/useToast'
 import { MOCK_ASSETS } from '@/lib/mock-data'
-import PartTable from '@/components/parts/PartTable'
+import PartTable, { COLUMN_DEFS as PART_COL_DEFS, COLUMN_DEFAULTS as PART_COL_DEFAULTS } from '@/components/parts/PartTable'
+import ColumnChooser from '@/components/ui/ColumnChooser'
+import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 import PartPanelDetail from '@/components/parts/PartPanelDetail'
 import PartStockBadge, { availableQty } from '@/components/parts/PartStockBadge'
 import ReserveModal from '@/components/parts/ReserveModal'
@@ -79,6 +81,8 @@ function PartsPageContent() {
   const [reserving, setReserving]     = useState<Part | null>(null)
 
   const { parts, isLoading, mutate } = useParts()
+  const [colVis, setCol] = useColumnVisibility('parts-columns', PART_COL_DEFAULTS)
+  function resetCols() { PART_COL_DEFS.forEach((c) => setCol(c.key, PART_COL_DEFAULTS[c.key])) }
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [printOpen, setPrintOpen] = useState(false)
@@ -209,6 +213,7 @@ function PartsPageContent() {
         </div>
         <div className="flex items-center gap-2">
           <SortDropdown options={SORT_OPTIONS} value={sortState} onChange={setSortState} />
+          <ColumnChooser columns={PART_COL_DEFS} visibility={colVis} onChange={setCol} onReset={resetCols} />
           <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={false} />
         </div>
       </div>
@@ -365,6 +370,7 @@ function PartsPageContent() {
         /* ── Table view ── */
         <PartTable
           parts={sorted}
+          visibility={colVis}
           onReserve={setReserving}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}

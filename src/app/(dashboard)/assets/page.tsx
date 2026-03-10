@@ -10,7 +10,9 @@ import ConfirmModal from '@/components/ui/ConfirmModal'
 import PrintLabelsModal, { type LabelItem } from '@/components/ui/PrintLabelsModal'
 import { showToast } from '@/hooks/useToast'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
-import AssetTable from '@/components/assets/AssetTable'
+import AssetTable, { COLUMN_DEFS as ASSET_COL_DEFS, COLUMN_DEFAULTS as ASSET_COL_DEFAULTS } from '@/components/assets/AssetTable'
+import ColumnChooser from '@/components/ui/ColumnChooser'
+import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 import AssetPanelDetail from '@/components/assets/AssetPanelDetail'
 import AssetStatusBadge from '@/components/ui/AssetStatusBadge'
 import DependencyBadge from '@/components/assets/DependencyBadge'
@@ -81,6 +83,8 @@ export default function AssetsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const { assets, isLoading, mutate } = useAssets()
+  const [colVis, setCol] = useColumnVisibility('assets-columns', ASSET_COL_DEFAULTS)
+  function resetCols() { ASSET_COL_DEFS.forEach((c) => setCol(c.key, ASSET_COL_DEFAULTS[c.key])) }
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [printOpen, setPrintOpen] = useState(false)
@@ -164,6 +168,7 @@ export default function AssetsPage() {
         </div>
         <div className="flex items-center gap-2">
           <SortDropdown options={SORT_OPTIONS} value={sortState} onChange={setSortState} />
+          <ColumnChooser columns={ASSET_COL_DEFS} visibility={colVis} onChange={setCol} onReset={resetCols} />
           <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={false} />
         </div>
       </div>
@@ -316,6 +321,7 @@ export default function AssetsPage() {
         /* ── Table view ── */
         <AssetTable
           assets={sorted}
+          visibility={colVis}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
         />

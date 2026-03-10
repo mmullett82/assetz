@@ -14,12 +14,11 @@ import PMFrequencyBadge from './PMFrequencyBadge'
 import { daysUntilDue, formatDueDate } from '@/lib/pm-utils'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import DotsMenu from '@/components/ui/DotsMenu'
-import ColumnChooser, { type ColumnDef } from '@/components/ui/ColumnChooser'
-import { useColumnVisibility } from '@/hooks/useColumnVisibility'
+import type { ColumnDef } from '@/components/ui/ColumnChooser'
 
-type PMCol = 'title' | 'asset' | 'frequency' | 'next_due' | 'last_done' | 'status'
+export type PMCol = 'title' | 'asset' | 'frequency' | 'next_due' | 'last_done' | 'status'
 
-const COLUMN_DEFS: ColumnDef<PMCol>[] = [
+export const COLUMN_DEFS: ColumnDef<PMCol>[] = [
   { key: 'title',     label: 'Schedule',   required: true },
   { key: 'asset',     label: 'Asset',      required: true },
   { key: 'frequency', label: 'Frequency',  required: true },
@@ -28,7 +27,7 @@ const COLUMN_DEFS: ColumnDef<PMCol>[] = [
   { key: 'last_done', label: 'Last Done'                  },
 ]
 
-const COLUMN_DEFAULTS: Record<PMCol, boolean> = {
+export const COLUMN_DEFAULTS: Record<PMCol, boolean> = {
   title:     true,
   asset:     true,
   frequency: true,
@@ -39,14 +38,14 @@ const COLUMN_DEFAULTS: Record<PMCol, boolean> = {
 
 interface PMTableProps {
   pmSchedules: PMSchedule[]
+  visibility: Record<PMCol, boolean>
   onComplete: (pm: PMSchedule) => void
   selectedIds?: Set<string>
   onSelectionChange?: (ids: Set<string>) => void
 }
 
-export default function PMTable({ pmSchedules, onComplete, selectedIds = new Set(), onSelectionChange }: PMTableProps) {
+export default function PMTable({ pmSchedules, visibility, onComplete, selectedIds = new Set(), onSelectionChange }: PMTableProps) {
   const router = useRouter()
-  const [visibility, setColumn] = useColumnVisibility('pm-columns', COLUMN_DEFAULTS)
   const headerCheckRef = useRef<HTMLInputElement>(null)
   const { mutate } = usePMSchedules()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
@@ -77,10 +76,6 @@ export default function PMTable({ pmSchedules, onComplete, selectedIds = new Set
     }
   }
 
-  function resetColumns() {
-    COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
-  }
-
   const allSelected  = pmSchedules.length > 0 && pmSchedules.every((p) => selectedIds.has(p.id))
   const someSelected = pmSchedules.some((p) => selectedIds.has(p.id)) && !allSelected
 
@@ -104,16 +99,6 @@ export default function PMTable({ pmSchedules, onComplete, selectedIds = new Set
 
   return (
     <>
-      {/* Column chooser toolbar */}
-      <div className="flex justify-end mb-2">
-        <ColumnChooser
-          columns={COLUMN_DEFS}
-          visibility={visibility}
-          onChange={setColumn}
-          onReset={resetColumns}
-        />
-      </div>
-
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-100 text-sm">
           <thead>

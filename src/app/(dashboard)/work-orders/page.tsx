@@ -9,7 +9,9 @@ import { useLocalStorage } from '@/hooks/useLocalStorage'
 import apiClient from '@/lib/api-client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import { showToast } from '@/hooks/useToast'
-import WorkOrderTable from '@/components/work-orders/WorkOrderTable'
+import WorkOrderTable, { COLUMN_DEFS as WO_COL_DEFS, COLUMN_DEFAULTS as WO_COL_DEFAULTS } from '@/components/work-orders/WorkOrderTable'
+import ColumnChooser from '@/components/ui/ColumnChooser'
+import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 import WorkOrderPanelDetail from '@/components/work-orders/WorkOrderPanelDetail'
 import WorkOrderStatusBadge from '@/components/work-orders/WorkOrderStatusBadge'
 import WorkOrderPriorityBadge from '@/components/work-orders/WorkOrderPriorityBadge'
@@ -123,6 +125,8 @@ function WorkOrdersPageContent() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const { workOrders, isLoading, mutate } = useWorkOrders()
+  const [colVis, setCol] = useColumnVisibility('wo-columns', WO_COL_DEFAULTS)
+  function resetCols() { WO_COL_DEFS.forEach((c) => setCol(c.key, WO_COL_DEFAULTS[c.key])) }
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -220,6 +224,7 @@ function WorkOrdersPageContent() {
         </div>
         <div className="flex items-center gap-2">
           <SortDropdown options={SORT_OPTIONS} value={sortState} onChange={setSortState} />
+          <ColumnChooser columns={WO_COL_DEFS} visibility={colVis} onChange={setCol} onReset={resetCols} />
           <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={true} />
         </div>
       </div>
@@ -349,6 +354,7 @@ function WorkOrdersPageContent() {
         /* ── Table view ── */
         <WorkOrderTable
           workOrders={sorted}
+          visibility={colVis}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
         />

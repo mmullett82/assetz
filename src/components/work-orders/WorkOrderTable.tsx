@@ -15,12 +15,11 @@ import DueStatusBadge from '@/components/ui/DueStatusBadge'
 import { computeDueStatus, formatDate } from '@/lib/due-status'
 import { MOCK_ASSETS } from '@/lib/mock-data'
 import DotsMenu from '@/components/ui/DotsMenu'
-import ColumnChooser, { type ColumnDef } from '@/components/ui/ColumnChooser'
-import { useColumnVisibility } from '@/hooks/useColumnVisibility'
+import type { ColumnDef } from '@/components/ui/ColumnChooser'
 
-type WOCol = 'wo_number' | 'title' | 'asset' | 'priority' | 'status' | 'due'
+export type WOCol = 'wo_number' | 'title' | 'asset' | 'priority' | 'status' | 'due'
 
-const COLUMN_DEFS: ColumnDef<WOCol>[] = [
+export const COLUMN_DEFS: ColumnDef<WOCol>[] = [
   { key: 'wo_number', label: 'WO #',     required: true },
   { key: 'title',     label: 'Title',    required: true },
   { key: 'priority',  label: 'Priority', required: true },
@@ -29,7 +28,7 @@ const COLUMN_DEFS: ColumnDef<WOCol>[] = [
   { key: 'due',       label: 'Due Date'                 },
 ]
 
-const COLUMN_DEFAULTS: Record<WOCol, boolean> = {
+export const COLUMN_DEFAULTS: Record<WOCol, boolean> = {
   wo_number: true,
   title:     true,
   priority:  true,
@@ -40,13 +39,13 @@ const COLUMN_DEFAULTS: Record<WOCol, boolean> = {
 
 interface WorkOrderTableProps {
   workOrders: WorkOrder[]
+  visibility: Record<WOCol, boolean>
   selectedIds?: Set<string>
   onSelectionChange?: (ids: Set<string>) => void
 }
 
-export default function WorkOrderTable({ workOrders, selectedIds = new Set(), onSelectionChange }: WorkOrderTableProps) {
+export default function WorkOrderTable({ workOrders, visibility, selectedIds = new Set(), onSelectionChange }: WorkOrderTableProps) {
   const router = useRouter()
-  const [visibility, setColumn] = useColumnVisibility('wo-columns', COLUMN_DEFAULTS)
   const headerCheckRef = useRef<HTMLInputElement>(null)
   const { mutate } = useWorkOrders()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
@@ -65,10 +64,6 @@ export default function WorkOrderTable({ workOrders, selectedIds = new Set(), on
       setDeleting(false)
       setDeleteTarget(null)
     }
-  }
-
-  function resetColumns() {
-    COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
   }
 
   const allSelected  = workOrders.length > 0 && workOrders.every((w) => selectedIds.has(w.id))
@@ -94,16 +89,6 @@ export default function WorkOrderTable({ workOrders, selectedIds = new Set(), on
 
   return (
     <>
-      {/* Column chooser toolbar */}
-      <div className="flex justify-end mb-2">
-        <ColumnChooser
-          columns={COLUMN_DEFS}
-          visibility={visibility}
-          onChange={setColumn}
-          onReset={resetColumns}
-        />
-      </div>
-
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-100 text-sm">
           <thead>

@@ -15,12 +15,11 @@ import { useAssets } from '@/hooks/useAssets'
 import AssetStatusBadge from '@/components/ui/AssetStatusBadge'
 import DependencyBadge from './DependencyBadge'
 import DotsMenu from '@/components/ui/DotsMenu'
-import ColumnChooser, { type ColumnDef } from '@/components/ui/ColumnChooser'
-import { useColumnVisibility } from '@/hooks/useColumnVisibility'
+import type { ColumnDef } from '@/components/ui/ColumnChooser'
 
-type AssetCol = 'name' | 'facility_id' | 'barcode' | 'department' | 'type' | 'status'
+export type AssetCol = 'name' | 'facility_id' | 'barcode' | 'department' | 'type' | 'status'
 
-const COLUMN_DEFS: ColumnDef<AssetCol>[] = [
+export const COLUMN_DEFS: ColumnDef<AssetCol>[] = [
   { key: 'name',        label: 'Asset Name',  required: true  },
   { key: 'facility_id', label: 'Facility ID', required: true  },
   { key: 'status',      label: 'Status',      required: true  },
@@ -29,7 +28,7 @@ const COLUMN_DEFS: ColumnDef<AssetCol>[] = [
   { key: 'type',        label: 'Dep. Type'                    },
 ]
 
-const COLUMN_DEFAULTS: Record<AssetCol, boolean> = {
+export const COLUMN_DEFAULTS: Record<AssetCol, boolean> = {
   name:        true,
   facility_id: true,
   status:      true,
@@ -40,13 +39,13 @@ const COLUMN_DEFAULTS: Record<AssetCol, boolean> = {
 
 interface AssetTableProps {
   assets: Asset[]
+  visibility: Record<AssetCol, boolean>
   selectedIds?: Set<string>
   onSelectionChange?: (ids: Set<string>) => void
 }
 
-export default function AssetTable({ assets, selectedIds = new Set(), onSelectionChange }: AssetTableProps) {
+export default function AssetTable({ assets, visibility, selectedIds = new Set(), onSelectionChange }: AssetTableProps) {
   const router = useRouter()
-  const [visibility, setColumn] = useColumnVisibility('assets-columns', COLUMN_DEFAULTS)
   const headerCheckRef = useRef<HTMLInputElement>(null)
   const { mutate } = useAssets()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
@@ -65,10 +64,6 @@ export default function AssetTable({ assets, selectedIds = new Set(), onSelectio
       setDeleting(false)
       setDeleteTarget(null)
     }
-  }
-
-  function resetColumns() {
-    COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
   }
 
   // Selection helpers
@@ -99,16 +94,6 @@ export default function AssetTable({ assets, selectedIds = new Set(), onSelectio
 
   return (
     <>
-      {/* Column chooser toolbar */}
-      <div className="flex justify-end mb-2">
-        <ColumnChooser
-          columns={COLUMN_DEFS}
-          visibility={visibility}
-          onChange={setColumn}
-          onReset={resetColumns}
-        />
-      </div>
-
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-100 text-sm">
           <thead>

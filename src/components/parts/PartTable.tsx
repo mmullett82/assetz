@@ -11,12 +11,11 @@ import { showToast } from '@/hooks/useToast'
 import { useParts } from '@/hooks/useParts'
 import PartStockBadge, { availableQty } from './PartStockBadge'
 import DotsMenu from '@/components/ui/DotsMenu'
-import ColumnChooser, { type ColumnDef } from '@/components/ui/ColumnChooser'
-import { useColumnVisibility } from '@/hooks/useColumnVisibility'
+import type { ColumnDef } from '@/components/ui/ColumnChooser'
 
-type PartCol = 'part_number' | 'name' | 'manufacturer' | 'on_hand' | 'reserved' | 'available' | 'reorder_pt' | 'location' | 'vendor' | 'status'
+export type PartCol = 'part_number' | 'name' | 'manufacturer' | 'on_hand' | 'reserved' | 'available' | 'reorder_pt' | 'location' | 'vendor' | 'status'
 
-const COLUMN_DEFS: ColumnDef<PartCol>[] = [
+export const COLUMN_DEFS: ColumnDef<PartCol>[] = [
   { key: 'part_number',  label: 'Part Number',  required: true },
   { key: 'name',         label: 'Name',         required: true },
   { key: 'on_hand',      label: 'On Hand',      required: true },
@@ -29,7 +28,7 @@ const COLUMN_DEFS: ColumnDef<PartCol>[] = [
   { key: 'vendor',       label: 'Vendor'                       },
 ]
 
-const COLUMN_DEFAULTS: Record<PartCol, boolean> = {
+export const COLUMN_DEFAULTS: Record<PartCol, boolean> = {
   part_number:  true,
   name:         true,
   on_hand:      true,
@@ -44,14 +43,14 @@ const COLUMN_DEFAULTS: Record<PartCol, boolean> = {
 
 interface PartTableProps {
   parts: Part[]
+  visibility: Record<PartCol, boolean>
   onReserve: (part: Part) => void
   selectedIds?: Set<string>
   onSelectionChange?: (ids: Set<string>) => void
 }
 
-export default function PartTable({ parts, onReserve, selectedIds = new Set(), onSelectionChange }: PartTableProps) {
+export default function PartTable({ parts, visibility, onReserve, selectedIds = new Set(), onSelectionChange }: PartTableProps) {
   const router = useRouter()
-  const [visibility, setColumn] = useColumnVisibility('parts-columns', COLUMN_DEFAULTS)
   const headerCheckRef = useRef<HTMLInputElement>(null)
   const { mutate } = useParts()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
@@ -70,10 +69,6 @@ export default function PartTable({ parts, onReserve, selectedIds = new Set(), o
       setDeleting(false)
       setDeleteTarget(null)
     }
-  }
-
-  function resetColumns() {
-    COLUMN_DEFS.forEach((col) => setColumn(col.key, COLUMN_DEFAULTS[col.key]))
   }
 
   const allSelected  = parts.length > 0 && parts.every((p) => selectedIds.has(p.id))
@@ -99,16 +94,6 @@ export default function PartTable({ parts, onReserve, selectedIds = new Set(), o
 
   return (
     <>
-      {/* Column chooser toolbar */}
-      <div className="flex justify-end mb-2">
-        <ColumnChooser
-          columns={COLUMN_DEFS}
-          visibility={visibility}
-          onChange={setColumn}
-          onReset={resetColumns}
-        />
-      </div>
-
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-100 text-sm">
           <thead>

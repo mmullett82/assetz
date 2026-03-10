@@ -9,7 +9,9 @@ import { useLocalStorage } from '@/hooks/useLocalStorage'
 import apiClient from '@/lib/api-client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import { showToast } from '@/hooks/useToast'
-import PMTable from '@/components/pm/PMTable'
+import PMTable, { COLUMN_DEFS as PM_COL_DEFS, COLUMN_DEFAULTS as PM_COL_DEFAULTS } from '@/components/pm/PMTable'
+import ColumnChooser from '@/components/ui/ColumnChooser'
+import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 import PMPanelDetail from '@/components/pm/PMPanelDetail'
 import CompleteModal from '@/components/pm/CompleteModal'
 import PMFrequencyBadge from '@/components/pm/PMFrequencyBadge'
@@ -74,6 +76,8 @@ export default function PMPage() {
   const [completing, setCompleting]   = useState<PMSchedule | null>(null)
 
   const { pmSchedules, isLoading, mutate } = usePMSchedules()
+  const [colVis, setCol] = useColumnVisibility('pm-columns', PM_COL_DEFAULTS)
+  function resetCols() { PM_COL_DEFS.forEach((c) => setCol(c.key, PM_COL_DEFAULTS[c.key])) }
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -180,6 +184,7 @@ export default function PMPage() {
       {/* Sort + view controls */}
       <div className="flex justify-end gap-2">
         <SortDropdown options={SORT_OPTIONS} value={sortState} onChange={setSortState} />
+        <ColumnChooser columns={PM_COL_DEFS} visibility={colVis} onChange={setCol} onReset={resetCols} />
         <ViewToggle mode={viewMode} onChange={setViewMode} showCalendar={true} />
       </div>
 
@@ -305,6 +310,7 @@ export default function PMPage() {
         /* ── Table view ── */
         <PMTable
           pmSchedules={sorted}
+          visibility={colVis}
           onComplete={setCompleting}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
