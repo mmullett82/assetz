@@ -32,9 +32,27 @@ assetZ is a Computerized Maintenance Management System (CMMS) built by chaiT, de
 - **Auth:** JWT tokens, role-based access (admin, manager, technician, requester)
 - **Multi-Tenancy:** organization_id on every record, all queries scoped
 
-### Hosting
-- Frontend: Vercel
-- Backend: Railway or AWS (Grant's decision)
+### Hosting & Deployment
+- **Frontend:** Vercel — https://assetz-i9pa.vercel.app
+- **Backend:** Railway or AWS (Grant's decision)
+- **Production Database:** Neon PostgreSQL
+  - Connection string: `postgresql://neondb_owner:npg_ZhY8OWTjRqb4@ep-wild-cake-akxz0l5i.c-3.us-west-2.aws.neon.tech/neondb?sslmode=require`
+  - Set as `DATABASE_URL` environment variable in Vercel
+- **Local Database:** Docker PostgreSQL (`localhost:5432/assetz`)
+
+### ⚠️ CRITICAL: After ANY Prisma Migration
+**Every time a Prisma migration is created locally, it MUST also be applied to Neon production.**
+Otherwise the deployed site will break (API queries fail on missing tables/columns, cascading into empty lists and "not found" errors on all pages).
+
+```bash
+# Apply pending migrations to Neon production:
+DATABASE_URL="postgresql://neondb_owner:npg_ZhY8OWTjRqb4@ep-wild-cake-akxz0l5i.c-3.us-west-2.aws.neon.tech/neondb?sslmode=require" npx prisma migrate deploy
+
+# Re-seed Neon with latest data (if seed.ts was updated):
+DATABASE_URL="postgresql://neondb_owner:npg_ZhY8OWTjRqb4@ep-wild-cake-akxz0l5i.c-3.us-west-2.aws.neon.tech/neondb?sslmode=require" npx tsx prisma/seed.ts
+```
+
+**DO NOT** run `git add .`, `git commit`, or `git push` — Matt handles all git operations.
 
 ## Project Structure
 

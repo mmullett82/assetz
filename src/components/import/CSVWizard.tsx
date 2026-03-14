@@ -449,37 +449,170 @@ const ENTITY_PATHS: Record<ImportEntityType, string> = {
   users: '/settings',
 }
 
+// Transform a raw CSV row using column mappings into an API-compatible payload
+function buildPayload(
+  row: Record<string, string>,
+  mappings: FieldMapping[],
+  entityType: ImportEntityType
+): Record<string, unknown> {
+  const data: Record<string, string> = {}
+  const activeMappings = mappings.filter(m => m.targetField && !m.skip)
+
+  // Map columns
+  activeMappings.forEach(m => {
+    data[m.targetField!] = (row[m.sourceColumn] ?? '').trim()
+  })
+
+  // Concatenate first + last → full_name if needed
+  if (data.first_name && data.last_name && !data.full_name) {
+    data.full_name = `${data.first_name} ${data.last_name}`.trim()
+  }
+
+  // Entity-specific field transforms
+  if (entityType === 'assets') {
+    return {
+      name: data.name,
+      facility_asset_id: data.facility_asset_id || undefined,
+      asset_number: data.asset_number || data.facility_asset_id || undefined,
+      serial_number: data.serial_number || undefined,
+      model: data.model || undefined,
+      manufacturer: data.manufacturer || undefined,
+      description: data.notes || undefined,
+      location_notes: data.location || undefined,
+      status: data.status?.toLowerCase() || 'operational',
+      category: data.category || undefined,
+      electrical_panel_specs: data.electrical_panel_specs || undefined,
+      imported_photo_ref: data.imported_photo_ref || undefined,
+      imported_document_ref: data.imported_document_ref || undefined,
+      date_placed_in_service: data.install_date || undefined,
+      purchase_price: data.purchase_cost ? parseFloat(data.purchase_cost) || undefined : undefined,
+    }
+  }
+  if (entityType === 'work_orders') {
+    return {
+      title: data.title,
+      description: data.description || data.notes || undefined,
+      status: data.status?.toLowerCase() || 'open',
+      priority: data.priority?.toLowerCase() || 'medium',
+      type: data.type?.toLowerCase() || 'corrective',
+      due_date: data.due_date || undefined,
+    }
+  }
+  if (entityType === 'parts') {
+    return {
+      name: data.name,
+      part_number: data.part_number,
+      description: data.description || undefined,
+      manufacturer: data.manufacturer || undefined,
+      vendor: data.vendor || undefined,
+      unit_of_measure: data.unit_of_measure || 'each',
+      unit_cost: data.unit_cost ? parseFloat(data.unit_cost) || 0 : undefined,
+      quantity_on_hand: data.quantity_on_hand ? parseInt(data.quantity_on_hand) || 0 : 0,
+      reorder_point: data.reorder_point ? parseInt(data.reorder_point) || 0 : undefined,
+      location: data.location || undefined,
+    }
+  }
+  if (entityType === 'pm_schedules') {
+    return {
+      title: data.title,
+      description: data.description || undefined,
+      frequency: data.frequency?.toLowerCase() || 'monthly',
+      estimated_hours: data.estimated_hours ? parseFloat(data.estimated_hours) || undefined : undefined,
+      instructions: data.instructions || undefined,
+      next_due_at: data.next_due_at || undefined,
+      is_active: true,
+    }
+  }
+  // Generic fallback
+  return data
+}
+
 function ImportResultStep({
   entityType,
-  rawRowCount,
+  rawRows,
+  mappings,
 }: {
   entityType: ImportEntityType
-  rawRowCount: number
+  rawRows: Record<string, string>[]
+  mappings: FieldMapping[]
 }) {
   const [progress, setProgress] = useState(0)
   const [done, setDone] = useState(false)
   const [counts, setCounts] = useState({ imported: 0, skipped: 0 })
+  const [errors, setErrors] = useState<string[]>([])
+  const [started, setStarted] = useState(false)
 
   useEffect(() => {
-    let current = 0
-    const interval = setInterval(() => {
-      current += 5
-      setProgress(Math.min(current, 100))
-      if (current >= 100) {
-        clearInterval(interval)
-        const skipped = Math.floor(rawRowCount * 0.04)
-        setCounts({ imported: rawRowCount - skipped, skipped })
-        setDone(true)
-      }
-    }, 100)
-    return () => clearInterval(interval)
-  }, [rawRowCount])
+    if (started) return
+    setStarted(true)
 
-  const MOCK_ERRORS = [
-    `Row 12: Missing required field "name" — skipped`,
-    `Row 47: Invalid date format in "install_date" — skipped`,
-    `Row 91: Duplicate serial number "SN-2019-0042" — skipped`,
-  ]
+    async function runImport() {
+      let imported = 0
+      let skipped = 0
+      const errs: string[] = []
+      const total = rawRows.length
+
+      // Determine API method based on entity type
+      const apiMap: Record<string, (payload: Record<string, unknown>) => Promise<unknown>> = {
+        assets: (p) => fetch('/api/assets', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(typeof window !== 'undefined' && localStorage.getItem('assetz_token') ? { Authorization: `Bearer ${localStorage.getItem('assetz_token')}` } : {}) }, body: JSON.stringify(p) }).then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json() }),
+        work_orders: (p) => fetch('/api/work-orders', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(typeof window !== 'undefined' && localStorage.getItem('assetz_token') ? { Authorization: `Bearer ${localStorage.getItem('assetz_token')}` } : {}) }, body: JSON.stringify(p) }).then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json() }),
+        parts: (p) => fetch('/api/parts', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(typeof window !== 'undefined' && localStorage.getItem('assetz_token') ? { Authorization: `Bearer ${localStorage.getItem('assetz_token')}` } : {}) }, body: JSON.stringify(p) }).then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json() }),
+        pm_schedules: (p) => fetch('/api/pm-schedules', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(typeof window !== 'undefined' && localStorage.getItem('assetz_token') ? { Authorization: `Bearer ${localStorage.getItem('assetz_token')}` } : {}) }, body: JSON.stringify(p) }).then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json() }),
+      }
+
+      const createFn = apiMap[entityType]
+
+      // Process in batches of 5 for performance
+      const BATCH_SIZE = 5
+      for (let i = 0; i < total; i += BATCH_SIZE) {
+        const batch = rawRows.slice(i, i + BATCH_SIZE)
+        const results = await Promise.allSettled(
+          batch.map((row, batchIdx) => {
+            const rowIdx = i + batchIdx + 1
+            try {
+              const payload = buildPayload(row, mappings, entityType)
+              // Check required field
+              const requiredFields = entityType === 'assets' ? ['name'] :
+                entityType === 'parts' ? ['name', 'part_number'] :
+                entityType === 'work_orders' ? ['title'] :
+                entityType === 'pm_schedules' ? ['title'] : []
+              for (const f of requiredFields) {
+                if (!payload[f]) throw new Error(`Missing required field "${f}"`)
+              }
+              if (createFn) {
+                return createFn(payload)
+              }
+              return Promise.reject(new Error('Unsupported entity type'))
+            } catch (err) {
+              return Promise.reject(new Error(`Row ${rowIdx}: ${err instanceof Error ? err.message : 'Unknown error'}`))
+            }
+          })
+        )
+
+        results.forEach((r, batchIdx) => {
+          const rowIdx = i + batchIdx + 1
+          if (r.status === 'fulfilled') {
+            imported++
+          } else {
+            skipped++
+            const msg = r.reason instanceof Error ? r.reason.message : `Row ${rowIdx}: Failed`
+            errs.push(msg.startsWith('Row') ? msg : `Row ${rowIdx}: ${msg}`)
+          }
+        })
+
+        setProgress(Math.round(((i + batch.length) / total) * 100))
+        setCounts({ imported, skipped })
+        setErrors([...errs])
+      }
+
+      setProgress(100)
+      setCounts({ imported, skipped })
+      setErrors(errs)
+      setDone(true)
+    }
+
+    runImport()
+  }, [rawRows, mappings, entityType, started])
 
   const entityLabel = ENTITY_OPTIONS.find(e => e.type === entityType)?.label ?? entityType
   const path = ENTITY_PATHS[entityType]
@@ -518,7 +651,7 @@ function ImportResultStep({
                 <p className="text-sm font-semibold text-slate-700">Skipped Rows ({counts.skipped})</p>
               </div>
               <ul className="divide-y divide-slate-100">
-                {MOCK_ERRORS.slice(0, counts.skipped).map((err, i) => (
+                {errors.slice(0, 20).map((err: string, i: number) => (
                   <li key={i} className="px-4 py-2.5 text-xs text-red-600 font-mono">{err}</li>
                 ))}
               </ul>
@@ -712,7 +845,8 @@ export default function CSVWizard() {
         {step === 5 && entityType && (
           <ImportResultStep
             entityType={entityType}
-            rawRowCount={rawRows.length || 100}
+            rawRows={rawRows}
+            mappings={mappings}
           />
         )}
       </div>
