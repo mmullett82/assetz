@@ -17,10 +17,39 @@ export const MOCK_FACILITY: Facility = {
 }
 
 export const MOCK_DEPARTMENTS: Department[] = [
-  { id: 'dep-mil', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Millwork',  code: 'MIL', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
-  { id: 'dep-fin', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Finishing',  code: 'FIN', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
-  { id: 'dep-fac', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Facilities', code: 'FAC', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
-  { id: 'dep-join', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Joinery',   code: 'JOIN', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  // Production
+  { id: 'dep-mil', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Mill',                           code: 'MIL', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-kit', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Kitting',                        code: 'KIT', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-asm', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Assembly',                       code: 'ASM', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-fin', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Finishing',                      code: 'FIN', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-wht', organization_id: 'org-solid', facility_id: 'fac-001', name: 'White Wood',                     code: 'WHT', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-wpr', organization_id: 'org-solid', facility_id: 'fac-001', name: 'White Wood Prep & Touch-Up',     code: 'WPR', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-rpg', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Repair & Glazing',               code: 'RPG', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  // Facility & Utility
+  { id: 'dep-mnt', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Maintenance',                    code: 'MNT', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-fac', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Facility',                       code: 'FAC', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-air', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Air Compressor & Chiller Room',  code: 'AIR', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-dst', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Dust Collector Storage',         code: 'DST', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-wld', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Welding',                        code: 'WLD', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-fkr', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Forklift Repair',                code: 'FKR', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-pnt', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Paint/Lacquer Storage',          code: 'PNT', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  // Logistics
+  { id: 'dep-rec', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Receiving',                      code: 'REC', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-shp', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Shipping',                       code: 'SHP', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-wsr', organization_id: 'org-solid', facility_id: 'fac-001', name: 'West Storage & Racking',         code: 'WSR', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-esr', organization_id: 'org-solid', facility_id: 'fac-001', name: 'East End Storage & Racking',     code: 'ESR', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-vsi', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Value Series Inventory',         code: 'VSI', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-lam', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Laminate Inventory',             code: 'LAM', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-fgs', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Finished Good Storage',          code: 'FGS', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  // Administrative
+  { id: 'dep-shw', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Showroom',                       code: 'SHW', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-lby', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Lobby',                          code: 'LBY', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-ops', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Operations Offices & Cubicles',  code: 'OPS', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-bth', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Bathrooms & Storage',            code: 'BTH', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-brk', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Breakroom & Food',               code: 'BRK', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-sls', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Sales Tools',                    code: 'SLS', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-grl', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Grill Patio',                    code: 'GRL', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
+  { id: 'dep-cnf', organization_id: 'org-solid', facility_id: 'fac-001', name: 'Conference Room',                code: 'CNF', created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z' },
 ]
 
 // facility_asset_id format: [Company]-[Building]-[Dept]-[SystemType]-[UnitType]-[DepCode][Group]-[Seq]
@@ -142,8 +171,8 @@ export const MOCK_ASSETS: Asset[] = [
     id: 'ast-005',
     organization_id: 'org-solid',
     facility_id: 'fac-001',
-    department_id: 'dep-join',
-    facility_asset_id: 'SC-B1-JOIN-JOIN-DOVETAILER-C6-01',
+    department_id: 'dep-mil',
+    facility_asset_id: 'SC-B1-MIL-JOIN-DOVETAILER-C6-01',
     asset_number: 'SLD-DVT-0001',
     name: 'Dovetailer #1',
     description: 'Casadei dovetail joinery machine',
@@ -153,7 +182,7 @@ export const MOCK_ASSETS: Asset[] = [
     year_installed: 2017,
     company_code: 'SC',
     building_code: 'B1',
-    department_code: 'JOIN',
+    department_code: 'MIL',
     system_type: 'JOIN',
     unit_type: 'DOVETAILER',
     dependency_code: 'C',

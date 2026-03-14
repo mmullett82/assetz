@@ -323,8 +323,7 @@ The map uses a blueprint-style grid, NOT raw DXF coordinates:
 - **Click:** Label turns blue AND zone boundary appears as subtle dashed outline; filters to show only that department's assets
 - Department zones should NOT be visible colored boxes that obscure the blueprint
 
-**All departments for SOLLiD (from DXF + annotated screenshot):**
-Mill, Kitting, Assembly, Finishing, White Wood, Maintenance, Receiving, Shipping Docks, West Storage & Racking, East End Storage & Racking, Showroom, Lobby, Operations Offices & Cubicles, Bathrooms & Storage, Breakroom & Food, Sales Tools, Grill Patio, Conference Room, Forklift Repair, Welding, Paint/Lacquer Storage, Dust Collector Storage, Air Compressor & Chiller Room, Laminate Inventory, Color Room, Face Frame Manufacturing, WW Prep, Repair & Glazing, Value Series Inventory, Flatstock Incoming, LTL, Finished Good Storage
+**All departments for SOLLiD — see "Official Department Registry" section below for the complete list with 3-letter codes.**
 
 ### Layer Toggles (Layers Panel)
 - Building Structure (walls, columns, doors)
@@ -434,3 +433,58 @@ All Phase 1 items shipped with real PostgreSQL backend (40+ API routes, Prisma 7
 This product is being dogfooded at SOLLiD Cabinetry (cabinet manufacturing) as the first production deployment. The maintenance team will use this daily. Manufacturing floor conditions apply — the mobile experience must work with gloves, in poor lighting, and under time pressure. Fast, clear, scannable.
 
 SOLLiD is a ~690' × 330' cabinet manufacturing facility with Biesse CNC machines, HOMAG boring centers, Cefla finishing lines, edge banders, panel saws, and extensive racking/storage. Matt is actively implementing Asset Essentials there and using that hands-on experience to identify pain points that assetZ solves.
+
+---
+
+## Official Department Registry (SOLLiD Cabinetry)
+
+**All department codes are EXACTLY 3 letters.** The department code occupies position 3 in the Facility Asset ID (e.g., `SC-B1-MIL-...`). `FAC` is a special code for facility-wide assets that serve the entire plant (air compressors, dust collectors, HVAC, etc.) rather than belonging to a specific physical department.
+
+When a new department is needed (via import or user entry), the system should auto-suggest a 3-letter code. If no obvious abbreviation exists, AI generates one.
+
+### Production Departments
+| Code | Department Name | Seed ID |
+|------|----------------|---------|
+| MIL | Mill | dep-mil |
+| KIT | Kitting | dep-kit |
+| ASM | Assembly | dep-asm |
+| FIN | Finishing | dep-fin |
+| WHT | White Wood | dep-wht |
+| WPR | White Wood Prep & Touch-Up | dep-wpr |
+| RPG | Repair & Glazing | dep-rpg |
+
+### Facility & Utility
+| Code | Department Name | Seed ID |
+|------|----------------|---------|
+| MNT | Maintenance | dep-mnt |
+| FAC | Facility (virtual — plant-wide assets) | dep-fac |
+| AIR | Air Compressor & Chiller Room | dep-air |
+| DST | Dust Collector Storage | dep-dst |
+| WLD | Welding | dep-wld |
+| FKR | Forklift Repair | dep-fkr |
+| PNT | Paint/Lacquer Storage | dep-pnt |
+
+### Logistics & Storage
+| Code | Department Name | Seed ID |
+|------|----------------|---------|
+| REC | Receiving | dep-rec |
+| SHP | Shipping | dep-shp |
+| WSR | West Storage & Racking | dep-wsr |
+| ESR | East End Storage & Racking | dep-esr |
+| VSI | Value Series Inventory | dep-vsi |
+| LAM | Laminate Inventory | dep-lam |
+| FGS | Finished Good Storage | dep-fgs |
+
+### Administrative
+| Code | Department Name | Seed ID |
+|------|----------------|---------|
+| SHW | Showroom | dep-shw |
+| LBY | Lobby | dep-lby |
+| OPS | Operations Offices & Cubicles | dep-ops |
+| BTH | Bathrooms & Storage | dep-bth |
+| BRK | Breakroom & Food | dep-brk |
+| SLS | Sales Tools | dep-sls |
+| GRL | Grill Patio | dep-grl |
+| CNF | Conference Room | dep-cnf |
+
+**Total: 29 departments** (seeded in `prisma/seed.ts`)

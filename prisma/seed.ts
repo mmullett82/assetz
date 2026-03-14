@@ -60,12 +60,41 @@ async function main() {
   })
   console.log('  Created facility:', facility.name)
 
-  // 3. Departments
+  // 3. Departments — Complete SOLLiD facility (all 3-letter codes)
   const departments = [
-    { id: 'dep-mil', name: 'Millwork', code: 'MIL' },
-    { id: 'dep-fin', name: 'Finishing', code: 'FIN' },
-    { id: 'dep-fac', name: 'Facilities', code: 'FAC' },
-    { id: 'dep-join', name: 'Joinery', code: 'JOIN' },
+    // Production departments
+    { id: 'dep-mil', name: 'Mill',                           code: 'MIL' },
+    { id: 'dep-kit', name: 'Kitting',                        code: 'KIT' },
+    { id: 'dep-asm', name: 'Assembly',                       code: 'ASM' },
+    { id: 'dep-fin', name: 'Finishing',                       code: 'FIN' },
+    { id: 'dep-wht', name: 'White Wood',                     code: 'WHT' },
+    { id: 'dep-wpr', name: 'White Wood Prep & Touch-Up',     code: 'WPR' },
+    { id: 'dep-rpg', name: 'Repair & Glazing',               code: 'RPG' },
+    // Facility & Utility
+    { id: 'dep-mnt', name: 'Maintenance',                    code: 'MNT' },
+    { id: 'dep-fac', name: 'Facility',                       code: 'FAC' },
+    { id: 'dep-air', name: 'Air Compressor & Chiller Room',  code: 'AIR' },
+    { id: 'dep-dst', name: 'Dust Collector Storage',         code: 'DST' },
+    { id: 'dep-wld', name: 'Welding',                        code: 'WLD' },
+    { id: 'dep-fkr', name: 'Forklift Repair',                code: 'FKR' },
+    { id: 'dep-pnt', name: 'Paint/Lacquer Storage',          code: 'PNT' },
+    // Logistics
+    { id: 'dep-rec', name: 'Receiving',                      code: 'REC' },
+    { id: 'dep-shp', name: 'Shipping',                       code: 'SHP' },
+    { id: 'dep-wsr', name: 'West Storage & Racking',         code: 'WSR' },
+    { id: 'dep-esr', name: 'East End Storage & Racking',     code: 'ESR' },
+    { id: 'dep-vsi', name: 'Value Series Inventory',         code: 'VSI' },
+    { id: 'dep-lam', name: 'Laminate Inventory',             code: 'LAM' },
+    { id: 'dep-fgs', name: 'Finished Good Storage',          code: 'FGS' },
+    // Administrative
+    { id: 'dep-shw', name: 'Showroom',                       code: 'SHW' },
+    { id: 'dep-lby', name: 'Lobby',                          code: 'LBY' },
+    { id: 'dep-ops', name: 'Operations Offices & Cubicles',  code: 'OPS' },
+    { id: 'dep-bth', name: 'Bathrooms & Storage',            code: 'BTH' },
+    { id: 'dep-brk', name: 'Breakroom & Food',               code: 'BRK' },
+    { id: 'dep-sls', name: 'Sales Tools',                    code: 'SLS' },
+    { id: 'dep-grl', name: 'Grill Patio',                    code: 'GRL' },
+    { id: 'dep-cnf', name: 'Conference Room',                code: 'CNF' },
   ]
   for (const dept of departments) {
     await prisma.department.create({
@@ -147,13 +176,13 @@ async function main() {
       status: 'operational', location_notes: 'Receiving end, Millwork bay A',
     },
     {
-      id: 'ast-005', department_id: 'dep-join',
-      facility_asset_id: 'SC-B1-JOIN-JOIN-DOVETAILER-C6-01', asset_number: 'SLD-DVT-0001',
+      id: 'ast-005', department_id: 'dep-mil',
+      facility_asset_id: 'SC-B1-MIL-JOIN-DOVETAILER-C6-01', asset_number: 'SLD-DVT-0001',
       name: 'Dovetailer #1', description: 'Casadei dovetail joinery machine', category: 'Boring Machines',
       manufacturer: 'Casadei', model: 'DT-500', serial_number: 'CSD-2017-33901', year_installed: 2017,
-      company_code: 'SC', building_code: 'B1', department_code: 'JOIN',
+      company_code: 'SC', building_code: 'B1', department_code: 'MIL',
       system_type: 'JOIN', unit_type: 'DOVETAILER', dependency_code: 'C', dependency_group: 6, sequence: 1,
-      status: 'operational', location_notes: 'Joinery bay',
+      status: 'operational', location_notes: 'Mill department, south bay',
     },
     {
       id: 'ast-006', department_id: 'dep-fac',
