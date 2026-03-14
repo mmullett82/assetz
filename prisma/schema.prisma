@@ -102,6 +102,8 @@ model User {
   created_ref_cards    ReferenceCard[] @relation("RCCreatedBy")
   updated_ref_cards    ReferenceCard[] @relation("RCUpdatedBy")
   ref_card_versions    ReferenceCardVersion[] @relation("RCVersionChangedBy")
+  uploaded_asset_photos    AssetPhoto[]    @relation("AssetPhotoUploadedBy")
+  uploaded_asset_documents AssetDocument[] @relation("AssetDocUploadedBy")
 
   @@map("users")
 }
@@ -137,6 +139,12 @@ model Asset {
   status         String @default("operational") // operational, down, maintenance, decommissioned
   location_notes String?
   sub_location   String? // structured sub-location within the department (e.g. "Bay A", "Row 3")
+
+  // Import / enrichment fields
+  category                String?   // Equipment category (e.g. "CNC Routers", "Edge Banders")
+  electrical_panel_specs  String?   // Free text: "Panel: HM10 | Circuits: 3, 5, 7"
+  imported_photo_ref      String?   // Raw xlsx cell value — reference only, not actual files
+  imported_document_ref   String?   // Raw xlsx cell value — reference only, not actual files
 
   // Floor plan positioning
   floor_plan_x    Float?
@@ -206,6 +214,8 @@ model Asset {
   work_requests   WorkRequest[]
   reference_cards ReferenceCard[]
   asset_tags    AssetTag[]
+  photos        AssetPhoto[]
+  documents     AssetDocument[]
 
   @@map("assets")
 }
@@ -248,6 +258,39 @@ model AssetDependency {
 
   @@unique([dependent_id, provider_id, type])
   @@map("asset_dependencies")
+}
+
+model AssetPhoto {
+  id             String   @id @default(cuid())
+  asset_id       String
+  url            String
+  caption        String?
+  file_name      String?
+  file_size      Int?
+  uploaded_by_id String
+  created_at     DateTime @default(now())
+
+  asset       Asset @relation(fields: [asset_id], references: [id], onDelete: Cascade)
+  uploaded_by User  @relation("AssetPhotoUploadedBy", fields: [uploaded_by_id], references: [id])
+
+  @@map("asset_photos")
+}
+
+model AssetDocument {
+  id             String   @id @default(cuid())
+  asset_id       String
+  url            String
+  file_name      String
+  file_type      String?
+  file_size      Int?
+  caption        String?
+  uploaded_by_id String
+  created_at     DateTime @default(now())
+
+  asset       Asset @relation(fields: [asset_id], references: [id], onDelete: Cascade)
+  uploaded_by User  @relation("AssetDocUploadedBy", fields: [uploaded_by_id], references: [id])
+
+  @@map("asset_documents")
 }
 
 // ─── Work Order ───────────────────────────────────────────────────────────────

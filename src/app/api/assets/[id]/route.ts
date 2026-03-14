@@ -16,6 +16,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
         department: true,
         depends_on_edges: { select: { provider_id: true, type: true } },
         provider_edges: { select: { dependent_id: true, type: true } },
+        photos: { orderBy: { created_at: 'desc' } },
+        documents: { orderBy: { created_at: 'desc' } },
       },
     })
 
@@ -45,7 +47,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (!existing) return errorResponse('Asset not found', 404)
 
     // Remove relational fields from update
-    const { depends_on, feeds, dependents, asset, department, ...updateData } = body
+    const { depends_on, feeds, dependents, asset, department, photos, documents, ...updateData } = body
 
     // Convert date strings to Date objects where needed
     const dateFields = ['purchase_date', 'warranty_expiration_date', 'date_of_manufacture', 'date_placed_in_service', 'date_removed', 'out_of_service_begin', 'out_of_service_end', 'condition_date', 'estimated_replace_date', 'last_meter_update']

@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     if (sp.get('status')) where.status = sp.get('status')!
     if (sp.get('department_id')) where.department_id = sp.get('department_id')!
     if (sp.get('sub_location')) where.sub_location = sp.get('sub_location')!
+    if (sp.get('category')) where.category = sp.get('category')!
     if (sp.get('tag_id')) where.asset_tags = { some: { tag_id: sp.get('tag_id')! } }
     if (sp.get('search')) {
       const q = sp.get('search')!
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
         { facility_asset_id: { contains: q, mode: 'insensitive' } },
         { asset_number: { contains: q, mode: 'insensitive' } },
         { manufacturer: { contains: q, mode: 'insensitive' } },
+        { category: { contains: q, mode: 'insensitive' } },
       ]
     }
 
@@ -99,6 +101,10 @@ export async function POST(request: NextRequest) {
         sequence: body.sequence,
         status: body.status || 'operational',
         sub_location: body.sub_location,
+        category: body.category,
+        electrical_panel_specs: body.electrical_panel_specs,
+        imported_photo_ref: body.imported_photo_ref,
+        imported_document_ref: body.imported_document_ref,
         location_notes: body.location_notes,
         floor_plan_x: body.floor_plan_x,
         floor_plan_y: body.floor_plan_y,

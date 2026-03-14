@@ -10,7 +10,8 @@ import { buildFacilityAssetId, buildAssetNumber } from '@/lib/asset-id'
 import { useDepartments } from '@/hooks/useDepartments'
 import { useTags } from '@/hooks/useTags'
 import { MOCK_USERS } from '@/lib/mock-settings'
-import { RefreshCw, AlertTriangle, Camera, Paperclip, ChevronDown } from 'lucide-react'
+import type { AssetPhoto, AssetDocument } from '@/types'
+import { RefreshCw, AlertTriangle, Camera, Paperclip, ChevronDown, X, FileText, Download, Upload, Loader2 } from 'lucide-react'
 import { TextareaWithVoice } from '@/components/ui/VoiceInput'
 import InfoTooltip from '@/components/ui/InfoTooltip'
 import apiClient from '@/lib/api-client'
@@ -70,6 +71,9 @@ type AssetFormData = {
   shutdown_procedure_note: string
   loto_procedure_note: string
   emergency_note: string
+  // Category & Electrical
+  category: string
+  electrical_panel_specs: string
   // Sub-location
   sub_location: string
   // Tag IDs (system labels)
@@ -127,6 +131,8 @@ const DEFAULT_FORM: AssetFormData = {
   shutdown_procedure_note: '',
   loto_procedure_note: '',
   emergency_note: '',
+  category: '',
+  electrical_panel_specs: '',
   sub_location: '',
   tag_ids: [],
   assigned_to_id: '',
@@ -182,6 +188,8 @@ function assetToFormData(asset: Asset): AssetFormData {
     shutdown_procedure_note: asset.shutdown_procedure_note ?? '',
     loto_procedure_note: asset.loto_procedure_note ?? '',
     emergency_note: asset.emergency_note ?? '',
+    category: asset.category ?? '',
+    electrical_panel_specs: asset.electrical_panel_specs ?? '',
     sub_location: asset.sub_location ?? '',
     tag_ids: asset.tags?.map((t) => t.id) ?? [],
     assigned_to_id: asset.assigned_to_id ?? '',
@@ -219,6 +227,10 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof AssetFormData, string>>>({})
   const [quickCreate, setQuickCreate] = useState(!asset && !duplicateId)
+  const [assetPhotos, setAssetPhotos] = useState<AssetPhoto[]>(asset?.photos ?? [])
+  const [assetDocuments, setAssetDocuments] = useState<AssetDocument[]>(asset?.documents ?? [])
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [uploadingDoc, setUploadingDoc] = useState(false)
 
   // Load duplicate data
   useEffect(() => {
@@ -293,6 +305,56 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
     if (!form.type_code.trim())      errs.type_code = 'Type code is required'
     setErrors(errs)
     return Object.keys(errs).length === 0
+  }
+
+  async function handlePhotoUpload(files: FileList) {
+    if (!asset) return
+    setUploadingPhoto(true)
+    for (const file of Array.from(files)) {
+      try {
+        const fd = new FormData()
+        fd.append('file', file)
+        const photo = await apiClient.assets.uploadPhoto(asset.id, fd)
+        setAssetPhotos((prev) => [photo, ...prev])
+      } catch { /* ignore individual failures */ }
+    }
+    setUploadingPhoto(false)
+  }
+
+  async function handlePhotoDelete(photoId: string) {
+    if (!asset) return
+    try {
+      await apiClient.assets.deletePhoto(asset.id, photoId)
+      setAssetPhotos((prev) => prev.filter((p) => p.id !== photoId))
+    } catch { /* ignore */ }
+  }
+
+  async function handleDocUpload(files: FileList) {
+    if (!asset) return
+    setUploadingDoc(true)
+    for (const file of Array.from(files)) {
+      try {
+        const fd = new FormData()
+        fd.append('file', file)
+        const doc = await apiClient.assets.uploadDocument(asset.id, fd)
+        setAssetDocuments((prev) => [doc, ...prev])
+      } catch { /* ignore individual failures */ }
+    }
+    setUploadingDoc(false)
+  }
+
+  async function handleDocDelete(docId: string) {
+    if (!asset) return
+    try {
+      await apiClient.assets.deleteDocument(asset.id, docId)
+      setAssetDocuments((prev) => prev.filter((d) => d.id !== docId))
+    } catch { /* ignore */ }
+  }
+
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -437,6 +499,13 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
             placeholder="West wall, Bay A"
           />
         </div>
+
+        <Input
+          label="Category"
+          value={form.category}
+          onChange={(e) => set('category', e.target.value)}
+          placeholder="e.g. CNC Routers, Edge Banders, Dust Collectors"
+        />
       </fieldset>
 
       {/* 2. Facility Asset ID builder */}
@@ -704,6 +773,22 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
               />
             </div>
           </div>
+        </div>
+      </fieldset>
+
+      {/* 5b. Electrical Panel & Specs */}
+      <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <legend className="text-xs font-semibold uppercase tracking-wide text-slate-400 pb-3 px-1">
+          Electrical / Panel Info
+        </legend>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Electrical Panel &amp; Specs</label>
+          <TextareaWithVoice
+            value={form.electrical_panel_specs}
+            onChange={(e) => set('electrical_panel_specs', e.target.value)}
+            rows={3}
+            placeholder="Panel: HM10 | Circuits: 3, 5, 7 | Voltage: 480V 3-Phase"
+          />
         </div>
       </fieldset>
 
@@ -985,33 +1070,134 @@ export default function AssetForm({ asset, duplicateId }: AssetFormProps) {
         )}
       </fieldset>
 
-      {/* 11. Photos (placeholder) */}
-      <div className="rounded-xl border-2 border-dashed border-slate-200 p-8 text-center bg-white">
-        <Camera className="mx-auto h-10 w-10 text-slate-300 mb-3" aria-hidden="true" />
-        <p className="text-sm font-medium text-slate-600 mb-1">Upload photos</p>
-        <p className="text-xs text-slate-400 mb-4">JPG, PNG up to 10MB</p>
-        <button
-          type="button"
-          onClick={() => console.log('TODO: photo upload')}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-        >
-          Choose Files
-        </button>
-      </div>
+      {/* 11. Photos */}
+      <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <legend className="text-xs font-semibold uppercase tracking-wide text-slate-400 pb-3 px-1">
+          Photos
+        </legend>
+        {isEditing && asset ? (
+          <>
+            {assetPhotos.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {assetPhotos.map((photo) => (
+                  <div key={photo.id} className="relative group rounded-lg overflow-hidden border border-slate-200">
+                    <img
+                      src={photo.url}
+                      alt={photo.caption || photo.file_name || 'Asset photo'}
+                      className="w-full h-24 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handlePhotoDelete(photo.id)}
+                      className="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="Delete photo"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                    {photo.file_name && (
+                      <p className="text-[10px] text-slate-400 truncate px-1 py-0.5">{photo.file_name}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <label className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
+                {uploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                {uploadingPhoto ? 'Uploading…' : 'Upload Photos'}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="sr-only"
+                  onChange={(e) => e.target.files && handlePhotoUpload(e.target.files)}
+                  disabled={uploadingPhoto}
+                />
+              </label>
+              <span className="text-xs text-slate-400">JPG, PNG, WEBP up to 10MB</span>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-lg border-2 border-dashed border-slate-200 p-6 text-center">
+            <Camera className="mx-auto h-8 w-8 text-slate-300 mb-2" aria-hidden="true" />
+            <p className="text-sm text-slate-500">Save the asset first, then add photos</p>
+          </div>
+        )}
+      </fieldset>
 
-      {/* 12. Documents (placeholder) */}
-      <div className="rounded-xl border-2 border-dashed border-slate-200 p-8 text-center bg-white">
-        <Paperclip className="mx-auto h-10 w-10 text-slate-300 mb-3" aria-hidden="true" />
-        <p className="text-sm font-medium text-slate-600 mb-1">Attach documents</p>
-        <p className="text-xs text-slate-400 mb-4">PDF, DOCX, XLSX</p>
-        <button
-          type="button"
-          onClick={() => console.log('TODO: document upload')}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-        >
-          Attach Files
-        </button>
-      </div>
+      {/* 12. Documents */}
+      <fieldset className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <legend className="text-xs font-semibold uppercase tracking-wide text-slate-400 pb-3 px-1">
+          Documents
+        </legend>
+        {isEditing && asset ? (
+          <>
+            {assetDocuments.length > 0 && (
+              <ul className="divide-y divide-slate-100">
+                {assetDocuments.map((doc) => (
+                  <li key={doc.id} className="flex items-center justify-between py-2.5 gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-4 w-4 text-slate-400 shrink-0" />
+                      <div className="min-w-0">
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-blue-600 hover:underline truncate block"
+                        >
+                          {doc.file_name}
+                        </a>
+                        <p className="text-xs text-slate-400">
+                          {doc.file_size ? formatFileSize(doc.file_size) : ''}
+                          {doc.file_type ? ` · ${doc.file_type.split('/').pop()?.toUpperCase()}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <a
+                        href={doc.url}
+                        download={doc.file_name}
+                        className="rounded-md p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                        aria-label="Download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleDocDelete(doc.id)}
+                        className="rounded-md p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        aria-label="Delete document"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex items-center gap-3">
+              <label className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
+                {uploadingDoc ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {uploadingDoc ? 'Uploading…' : 'Attach Files'}
+                <input
+                  type="file"
+                  accept=".pdf,.docx,.xlsx,.doc,.xls"
+                  multiple
+                  className="sr-only"
+                  onChange={(e) => e.target.files && handleDocUpload(e.target.files)}
+                  disabled={uploadingDoc}
+                />
+              </label>
+              <span className="text-xs text-slate-400">PDF, DOCX, XLSX up to 25MB</span>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-lg border-2 border-dashed border-slate-200 p-6 text-center">
+            <Paperclip className="mx-auto h-8 w-8 text-slate-300 mb-2" aria-hidden="true" />
+            <p className="text-sm text-slate-500">Save the asset first, then attach documents</p>
+          </div>
+        )}
+      </fieldset>
 
       </>}
 

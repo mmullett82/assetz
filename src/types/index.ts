@@ -109,6 +109,12 @@ export interface Asset {
   status: AssetStatus
   location_notes?: string
   sub_location?: string    // structured sub-location within the department (e.g. "Bay A")
+  category?: string                // Equipment category (e.g. "CNC Routers", "Edge Banders")
+  electrical_panel_specs?: string  // Free text: "Panel: HM10 | Circuits: 3, 5, 7"
+  imported_photo_ref?: string      // Raw xlsx cell value — reference only
+  imported_document_ref?: string   // Raw xlsx cell value — reference only
+  photos?: AssetPhoto[]
+  documents?: AssetDocument[]
   tags?: Tag[]             // populated tags (when included in API response)
 
   // Graph relationships (populated from Kuzu graph DB)
@@ -167,6 +173,29 @@ export interface Asset {
 
   created_at: string
   updated_at: string
+}
+
+export interface AssetPhoto {
+  id: string
+  asset_id: string
+  url: string
+  caption?: string
+  file_name?: string
+  file_size?: number
+  uploaded_by_id: string
+  created_at: string
+}
+
+export interface AssetDocument {
+  id: string
+  asset_id: string
+  url: string
+  file_name: string
+  file_type?: string
+  file_size?: number
+  caption?: string
+  uploaded_by_id: string
+  created_at: string
 }
 
 // ─── Work Order ───────────────────────────────────────────────────────────────

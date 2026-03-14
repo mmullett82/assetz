@@ -8,6 +8,8 @@
 
 import type {
   Asset,
+  AssetPhoto,
+  AssetDocument,
   WorkOrder,
   PMSchedule,
   Part,
@@ -120,6 +122,7 @@ export interface AssetsQuery {
   sub_location?: string
   tag_id?: string
   status?: string
+  category?: string
   search?: string
 }
 
@@ -146,6 +149,28 @@ export const assets = {
     apiFetch<{ depends_on: Asset[]; feeds: Asset[]; dependents: Asset[] }>(
       `/assets/${id}/dependencies`
     ),
+
+  // Photo uploads
+  uploadPhoto: (id: string, formData: FormData) =>
+    apiFetch<AssetPhoto>(`/assets/${id}/photos`, {
+      method: 'POST',
+      body: formData,
+      headers: {},  // Let browser set Content-Type for multipart
+    }),
+
+  deletePhoto: (assetId: string, photoId: string) =>
+    apiFetch<void>(`/assets/${assetId}/photos/${photoId}`, { method: 'DELETE' }),
+
+  // Document uploads
+  uploadDocument: (id: string, formData: FormData) =>
+    apiFetch<AssetDocument>(`/assets/${id}/documents`, {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    }),
+
+  deleteDocument: (assetId: string, docId: string) =>
+    apiFetch<void>(`/assets/${assetId}/documents/${docId}`, { method: 'DELETE' }),
 }
 
 // ─── Work Orders ──────────────────────────────────────────────────────────────

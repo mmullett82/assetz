@@ -26,6 +26,8 @@ async function main() {
   await prisma.laborEntry.deleteMany()
   await prisma.workOrder.deleteMany()
   await prisma.pMSchedule.deleteMany()
+  await prisma.assetPhoto.deleteMany()
+  await prisma.assetDocument.deleteMany()
   await prisma.assetDependency.deleteMany()
   await prisma.asset.deleteMany()
   await prisma.department.deleteMany()
@@ -111,7 +113,7 @@ async function main() {
     {
       id: 'ast-001', department_id: 'dep-mil',
       facility_asset_id: 'SC-B1-MIL-EDGE-EDGE_BANDER-C1-01', asset_number: 'SLD-EB-0001',
-      name: 'Edge Bander #1', description: 'Homag Edgeteq S-500 edge banding machine',
+      name: 'Edge Bander #1', description: 'Homag Edgeteq S-500 edge banding machine', category: 'Edge Banders',
       manufacturer: 'Homag', model: 'Edgeteq S-500', serial_number: 'HMG-2019-44821', year_installed: 2019,
       company_code: 'SC', building_code: 'B1', department_code: 'MIL',
       system_type: 'EDGE', unit_type: 'EDGE_BANDER', dependency_code: 'C', dependency_group: 1, sequence: 1,
@@ -120,7 +122,7 @@ async function main() {
     {
       id: 'ast-002', department_id: 'dep-mil',
       facility_asset_id: 'SC-B1-MIL-CNC-ROVER-C2-01', asset_number: 'SLD-ROV-0001',
-      name: 'Rover CNC #1', description: 'Biesse Rover A CNC machining center',
+      name: 'Rover CNC #1', description: 'Biesse Rover A CNC machining center', category: 'CNC Routers',
       manufacturer: 'Biesse', model: 'Rover A 1532', serial_number: 'BSS-2021-88231', year_installed: 2021,
       company_code: 'SC', building_code: 'B1', department_code: 'MIL',
       system_type: 'CNC', unit_type: 'ROVER', dependency_code: 'C', dependency_group: 2, sequence: 1,
@@ -129,7 +131,7 @@ async function main() {
     {
       id: 'ast-003', department_id: 'dep-mil',
       facility_asset_id: 'SC-B1-MIL-CNC-SKILL-C3-01', asset_number: 'SLD-SKL-0001',
-      name: 'Skill CNC Router #1', description: 'SCM Skill 1200 CNC router',
+      name: 'Skill CNC Router #1', description: 'SCM Skill 1200 CNC router', category: 'CNC Routers',
       manufacturer: 'SCM', model: 'Skill 1200', serial_number: 'SCM-2018-55102', year_installed: 2018,
       company_code: 'SC', building_code: 'B1', department_code: 'MIL',
       system_type: 'CNC', unit_type: 'SKILL', dependency_code: 'C', dependency_group: 3, sequence: 1,
@@ -138,7 +140,7 @@ async function main() {
     {
       id: 'ast-004', department_id: 'dep-mil',
       facility_asset_id: 'SC-B1-MIL-CNC-BEAM_SAW-C5-01', asset_number: 'SLD-BSW-0001',
-      name: 'Beam Saw #1', description: 'Selco WNT 660 beam saw',
+      name: 'Beam Saw #1', description: 'Selco WNT 660 beam saw', category: 'Panel Saws',
       manufacturer: 'Selco', model: 'WNT 660', serial_number: 'SLC-2020-77340', year_installed: 2020,
       company_code: 'SC', building_code: 'B1', department_code: 'MIL',
       system_type: 'CNC', unit_type: 'BEAM_SAW', dependency_code: 'C', dependency_group: 5, sequence: 1,
@@ -147,7 +149,7 @@ async function main() {
     {
       id: 'ast-005', department_id: 'dep-join',
       facility_asset_id: 'SC-B1-JOIN-JOIN-DOVETAILER-C6-01', asset_number: 'SLD-DVT-0001',
-      name: 'Dovetailer #1', description: 'Casadei dovetail joinery machine',
+      name: 'Dovetailer #1', description: 'Casadei dovetail joinery machine', category: 'Boring Machines',
       manufacturer: 'Casadei', model: 'DT-500', serial_number: 'CSD-2017-33901', year_installed: 2017,
       company_code: 'SC', building_code: 'B1', department_code: 'JOIN',
       system_type: 'JOIN', unit_type: 'DOVETAILER', dependency_code: 'C', dependency_group: 6, sequence: 1,
@@ -156,7 +158,7 @@ async function main() {
     {
       id: 'ast-006', department_id: 'dep-fac',
       facility_asset_id: 'SC-B1-FAC-AIR-COMPRESSOR-U1-01', asset_number: 'SLD-CMP-0001',
-      name: 'Air Compressor #1', description: 'Kaeser SK 25 rotary screw compressor',
+      name: 'Air Compressor #1', description: 'Kaeser SK 25 rotary screw compressor', category: 'Air Compressors',
       manufacturer: 'Kaeser', model: 'SK 25', serial_number: 'KSR-2016-12044', year_installed: 2016,
       company_code: 'SC', building_code: 'B1', department_code: 'FAC',
       system_type: 'AIR', unit_type: 'COMPRESSOR', dependency_code: 'U', dependency_group: 1, sequence: 1,
@@ -166,7 +168,7 @@ async function main() {
     {
       id: 'ast-007', department_id: 'dep-fin',
       facility_asset_id: 'SC-B1-FIN-SPRAY-AUTO_SPRAYBOOTH-C1-01', asset_number: 'SLD-SPB-0001',
-      name: 'Auto Spray Booth #1', description: 'Giardina automated spray finishing system',
+      name: 'Auto Spray Booth #1', description: 'Giardina automated spray finishing system', category: 'Spray Booths',
       manufacturer: 'Giardina', model: 'G-Tech 2000', serial_number: 'GRD-2022-90011', year_installed: 2022,
       company_code: 'SC', building_code: 'B1', department_code: 'FIN',
       system_type: 'SPRAY', unit_type: 'AUTO_SPRAYBOOTH', dependency_code: 'C', dependency_group: 1, sequence: 1,
@@ -175,7 +177,7 @@ async function main() {
     {
       id: 'ast-008', department_id: 'dep-mil',
       facility_asset_id: 'SC-B1-MIL-CNC-DRILLTEQ-C4-01', asset_number: 'SLD-DTQ-0001',
-      name: 'Drillteq CNC #1', description: 'Biesse Drillteq H-650W CNC drilling and dowel insertion center',
+      name: 'Drillteq CNC #1', description: 'Biesse Drillteq H-650W CNC drilling and dowel insertion center', category: 'Boring Machines',
       manufacturer: 'Biesse', model: 'Drillteq H-650W', serial_number: 'BSS-2023-11045', year_installed: 2023,
       company_code: 'SC', building_code: 'B1', department_code: 'MIL',
       system_type: 'CNC', unit_type: 'DRILLTEQ', dependency_code: 'C', dependency_group: 4, sequence: 1,
@@ -184,7 +186,7 @@ async function main() {
     {
       id: 'ast-009', department_id: 'dep-fac',
       facility_asset_id: 'SC-B1-FAC-DUST-COLLECTOR-U2-01', asset_number: 'SLD-DCL-0001',
-      name: 'Dust Collector #1', description: 'Camfil Gold Series industrial dust collector',
+      name: 'Dust Collector #1', description: 'Camfil Gold Series industrial dust collector', category: 'Dust Collectors',
       manufacturer: 'Camfil', model: 'Gold Series GS-6', serial_number: 'CMF-2019-30218', year_installed: 2019,
       company_code: 'SC', building_code: 'B1', department_code: 'FAC',
       system_type: 'DUST', unit_type: 'COLLECTOR', dependency_code: 'U', dependency_group: 2, sequence: 1,

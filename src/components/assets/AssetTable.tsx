@@ -17,7 +17,7 @@ import DependencyBadge from './DependencyBadge'
 import DotsMenu from '@/components/ui/DotsMenu'
 import type { ColumnDef } from '@/components/ui/ColumnChooser'
 
-export type AssetCol = 'name' | 'facility_id' | 'barcode' | 'department' | 'type' | 'status'
+export type AssetCol = 'name' | 'facility_id' | 'barcode' | 'department' | 'type' | 'status' | 'category'
 
 export const COLUMN_DEFS: ColumnDef<AssetCol>[] = [
   { key: 'name',        label: 'Asset Name',  required: true  },
@@ -26,6 +26,7 @@ export const COLUMN_DEFS: ColumnDef<AssetCol>[] = [
   { key: 'barcode',     label: 'Barcode #'                    },
   { key: 'department',  label: 'Department'                   },
   { key: 'type',        label: 'Dep. Type'                    },
+  { key: 'category',    label: 'Category'                     },
 ]
 
 export const COLUMN_DEFAULTS: Record<AssetCol, boolean> = {
@@ -35,6 +36,7 @@ export const COLUMN_DEFAULTS: Record<AssetCol, boolean> = {
   barcode:     true,
   department:  true,
   type:        true,
+  category:    false,
 }
 
 interface AssetTableProps {
@@ -138,6 +140,11 @@ export default function AssetTable({ assets, visibility, selectedIds = new Set()
                   Status
                 </th>
               )}
+              {visibility.category && (
+                <th scope="col" className="hidden lg:table-cell px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Category
+                </th>
+              )}
               <th scope="col" className="px-4 py-3">
                 <span className="sr-only">Actions</span>
               </th>
@@ -198,6 +205,11 @@ export default function AssetTable({ assets, visibility, selectedIds = new Set()
                 {visibility.status && (
                   <td className="px-4 py-3">
                     <AssetStatusBadge status={asset.status} />
+                  </td>
+                )}
+                {visibility.category && (
+                  <td className="hidden lg:table-cell px-4 py-3 text-sm text-slate-600">
+                    {asset.category || '—'}
                   </td>
                 )}
                 <td className="px-4 py-3 text-right">

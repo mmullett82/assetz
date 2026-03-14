@@ -103,6 +103,7 @@ export default function AssetPanelDetail({ assetId, onEdit, onCreateWO, onClose 
               ['Model',        asset.model],
               ['Serial No.',   asset.serial_number],
               ['Year',         asset.year_installed],
+              ['Category',     asset.category],
               ['Department',   asset.department_code],
               ['Building',     asset.building_code],
             ].map(([label, value]) =>

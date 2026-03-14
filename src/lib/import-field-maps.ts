@@ -20,6 +20,11 @@ export const ENTITY_FIELDS: Record<ImportEntityType, AssetZField[]> = {
     { field: 'install_date',      label: 'Install Date',      required: false, type: 'date'   },
     { field: 'purchase_cost',     label: 'Purchase Cost',     required: false, type: 'number' },
     { field: 'notes',             label: 'Notes',             required: false, type: 'string' },
+    { field: 'asset_number',      label: 'Barcode / Asset Number', required: false, type: 'string' },
+    { field: 'category',          label: 'Category',          required: false, type: 'string' },
+    { field: 'electrical_panel_specs', label: 'Electrical Panel & Specs', required: false, type: 'string' },
+    { field: 'imported_photo_ref',     label: 'Photos (reference)',      required: false, type: 'string' },
+    { field: 'imported_document_ref',  label: 'Documents (reference)',   required: false, type: 'string' },
   ],
   work_orders: [
     { field: 'title',             label: 'Title',             required: true,  type: 'string' },
@@ -89,6 +94,11 @@ const COLUMN_PATTERNS: Record<ImportEntityType, Record<string, string[]>> = {
     install_date:      ['install date', 'installation date', 'commissioned', 'placed in service', 'purchase date'],
     purchase_cost:     ['purchase cost', 'cost', 'price', 'value', 'acquisition cost', 'original cost'],
     notes:             ['notes', 'comments', 'description', 'remarks'],
+    asset_number:      ['barcode', 'barcode number', 'barcode #', 'asset barcode', 'asset number', 'asset #', 'asset no'],
+    category:          ['category', 'asset category', 'equipment category', 'equipment type', 'class', 'classification', 'asset type'],
+    electrical_panel_specs: ['electrical', 'electrical panel', 'panel', 'circuit', 'circuits', 'panel specs', 'electrical specs'],
+    imported_photo_ref:     ['photo', 'photos', 'image', 'images', 'picture', 'photo url'],
+    imported_document_ref:  ['document', 'documents', 'doc', 'docs', 'manual', 'manuals', 'attachment', 'attachments'],
   },
   work_orders: {
     title:             ['title', 'description', 'subject', 'work order', 'issue', 'problem', 'task name'],

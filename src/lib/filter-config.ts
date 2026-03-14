@@ -51,6 +51,18 @@ export const ASSET_FILTER_ATTRIBUTES: FilterAttribute[] = [
     key: 'assigned_to_id', label: 'Assigned To', operator: 'eq',
     options: MOCK_USERS.filter((u) => u.is_active).map((u) => ({ value: u.id, label: u.full_name })),
   },
+  {
+    key: 'category', label: 'Category', operator: 'eq',
+    options: [
+      { value: 'Air Compressors',  label: 'Air Compressors'  },
+      { value: 'CNC Routers',      label: 'CNC Routers'      },
+      { value: 'Edge Banders',     label: 'Edge Banders'     },
+      { value: 'Dust Collectors',  label: 'Dust Collectors'  },
+      { value: 'Spray Booths',     label: 'Spray Booths'     },
+      { value: 'Panel Saws',       label: 'Panel Saws'       },
+      { value: 'Boring Machines',  label: 'Boring Machines'  },
+    ],
+  },
 ]
 
 export const ASSET_SAVED_FILTERS: SavedFilter[] = [

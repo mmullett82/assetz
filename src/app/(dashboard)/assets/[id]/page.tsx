@@ -12,6 +12,10 @@ import {
   Gauge,
   AlertTriangle,
   Package,
+  Zap,
+  Camera,
+  FileText,
+  Download,
 } from 'lucide-react'
 import { useAsset } from '@/hooks/useAsset'
 import { useAssetDependencies } from '@/hooks/useAssetDependencies'
@@ -119,6 +123,7 @@ export default function AssetDetailPage({ params }: Props) {
                 ['Model',        asset.model],
                 ['Serial No.',   asset.serial_number],
                 ['Year Installed', asset.year_installed],
+                ['Category',     asset.category],
                 ['Department',   asset.department_code],
                 ['Building',     asset.building_code],
               ].map(([label, value]) =>
@@ -148,6 +153,13 @@ export default function AssetDetailPage({ params }: Props) {
                   </p>
                 )}
               </div>
+            </Section>
+          )}
+
+          {/* Electrical / Panel Info */}
+          {asset.electrical_panel_specs && (
+            <Section title="Electrical / Panel Info" icon={<Zap className="h-4 w-4" />}>
+              <p className="text-sm text-slate-600 py-2 whitespace-pre-wrap">{asset.electrical_panel_specs}</p>
             </Section>
           )}
 
@@ -315,6 +327,70 @@ export default function AssetDetailPage({ params }: Props) {
               View All Work Orders →
             </Link>
           </Section>
+
+          {/* Photos */}
+          {(asset.photos && asset.photos.length > 0) || asset.imported_photo_ref ? (
+            <Section title="Photos" icon={<Camera className="h-4 w-4" />}>
+              {asset.photos && asset.photos.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2 py-2">
+                  {asset.photos.map((photo) => (
+                    <a
+                      key={photo.id}
+                      href={photo.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-lg overflow-hidden border border-slate-200 hover:border-blue-300 transition-colors"
+                    >
+                      <img
+                        src={photo.url}
+                        alt={photo.caption || photo.file_name || 'Asset photo'}
+                        className="w-full h-20 object-cover"
+                      />
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+              {asset.imported_photo_ref && (
+                <p className="text-xs text-slate-400 italic mt-1">
+                  Import ref: {asset.imported_photo_ref}
+                </p>
+              )}
+            </Section>
+          ) : null}
+
+          {/* Documents */}
+          {(asset.documents && asset.documents.length > 0) || asset.imported_document_ref ? (
+            <Section title="Documents" icon={<FileText className="h-4 w-4" />}>
+              {asset.documents && asset.documents.length > 0 ? (
+                <ul className="divide-y divide-slate-100 py-1">
+                  {asset.documents.map((doc) => (
+                    <li key={doc.id} className="flex items-center justify-between py-2 gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-700 truncate">{doc.file_name}</p>
+                        <p className="text-xs text-slate-400">
+                          {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)} KB` : ''}
+                          {doc.file_type ? ` · ${doc.file_type.split('/').pop()?.toUpperCase()}` : ''}
+                        </p>
+                      </div>
+                      <a
+                        href={doc.url}
+                        download={doc.file_name}
+                        className="rounded-md p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors shrink-0"
+                        aria-label={`Download ${doc.file_name}`}
+                      >
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {asset.imported_document_ref && (
+                <p className="text-xs text-slate-400 italic mt-1">
+                  Import ref: {asset.imported_document_ref}
+                </p>
+              )}
+            </Section>
+          ) : null}
 
           {/* Reference Card */}
           <ReferenceCardCollapsible
