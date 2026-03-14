@@ -76,29 +76,58 @@ export async function POST(request: NextRequest) {
       facilityId = facility.id
     }
 
+    // Auto-derive department_id if not provided (use first dept in org)
+    let departmentId = body.department_id
+    if (!departmentId) {
+      const dept = await prisma.department.findFirst({
+        where: { organization_id: user.organization_id },
+        select: { id: true, code: true },
+      })
+      if (dept) departmentId = dept.id
+    }
+
+    // For imports: auto-generate unique facility_asset_id and asset_number if missing
+    let facilityAssetId = body.facility_asset_id
+    let assetNumber = body.asset_number
+    if (!facilityAssetId || !assetNumber) {
+      // Use timestamp + random to guarantee uniqueness across concurrent requests
+      const uid = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+      if (!facilityAssetId) {
+        const cc = body.company_code || 'SC'
+        const bc = body.building_code || 'B1'
+        const dc = body.department_code || 'IMP'
+        const st = body.system_type || 'GEN'
+        const ut = body.unit_type || 'EQUIPMENT'
+        facilityAssetId = `${cc}-${bc}-${dc}-${st}-${ut}-C1-${uid}`
+      }
+      if (!assetNumber) {
+        assetNumber = `IMP-${uid}`
+      }
+    }
+
     const dateField = (v: unknown) => (v ? new Date(v as string) : undefined)
 
     const asset = await prisma.asset.create({
       data: {
         organization_id: user.organization_id,
         facility_id: facilityId,
-        department_id: body.department_id,
-        facility_asset_id: body.facility_asset_id,
-        asset_number: body.asset_number,
+        department_id: departmentId,
+        facility_asset_id: facilityAssetId,
+        asset_number: assetNumber,
         name: body.name,
         description: body.description,
         manufacturer: body.manufacturer,
         model: body.model,
         serial_number: body.serial_number,
         year_installed: body.year_installed,
-        company_code: body.company_code,
-        building_code: body.building_code,
-        department_code: body.department_code,
-        system_type: body.system_type,
-        unit_type: body.unit_type,
-        dependency_code: body.dependency_code,
-        dependency_group: body.dependency_group,
-        sequence: body.sequence,
+        company_code: body.company_code || 'SC',
+        building_code: body.building_code || 'B1',
+        department_code: body.department_code || 'IMP',
+        system_type: body.system_type || 'GEN',
+        unit_type: body.unit_type || 'EQUIPMENT',
+        dependency_code: body.dependency_code || 'C',
+        dependency_group: body.dependency_group ?? 1,
+        sequence: body.sequence ?? 1,
         status: body.status || 'operational',
         sub_location: body.sub_location,
         category: body.category,
