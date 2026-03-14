@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, Plus, Cpu, ArrowLeft, Printer } from 'lucide-react'
+import { Search, Plus, Cpu, ArrowLeft, Printer, Trash2 } from 'lucide-react'
 import { useAssets } from '@/hooks/useAssets'
 import apiClient from '@/lib/api-client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
@@ -23,6 +23,7 @@ import SortDropdown from '@/components/ui/SortDropdown'
 import DotsMenu from '@/components/ui/DotsMenu'
 import { ASSET_FILTER_ATTRIBUTES, ASSET_SAVED_FILTERS } from '@/lib/filter-config'
 import StatusTabBar, { type TabDef } from '@/components/ui/StatusTabBar'
+import Pagination from '@/components/ui/Pagination'
 import type { ListViewMode, SortState, ActiveFilter, Asset } from '@/types'
 
 const DEFAULT_SORT: SortState = { field: 'name', direction: 'asc' }
@@ -81,11 +82,14 @@ export default function AssetsPage() {
   const [activeFilters, setFilters]   = useState<ActiveFilter[]>([])
   const [selectedId, setSelectedId]   = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [page, setPage]               = useState(1)
+  const [pageSize, setPageSize]       = useState(50)
 
-  const { assets, isLoading, mutate } = useAssets()
+  const { assets, total, totalPages, isLoading, mutate } = useAssets({ page, page_size: pageSize })
   const [colVis, setCol] = useColumnVisibility('assets-columns', ASSET_COL_DEFAULTS)
   function resetCols() { ASSET_COL_DEFS.forEach((c) => setCol(c.key, ASSET_COL_DEFAULTS[c.key])) }
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [printOpen, setPrintOpen] = useState(false)
 
@@ -112,6 +116,26 @@ export default function AssetsPage() {
       setDeleting(false)
       setDeleteTarget(null)
     }
+  }
+
+  async function handleBulkDelete() {
+    setDeleting(true)
+    let deleted = 0
+    let failed = 0
+    const ids = Array.from(selectedIds)
+    for (const id of ids) {
+      try {
+        await apiClient.assets.delete(id)
+        deleted++
+      } catch {
+        failed++
+      }
+    }
+    await mutate()
+    setSelectedIds(new Set())
+    setBulkDeleteOpen(false)
+    setDeleting(false)
+    showToast('success', `${deleted} asset${deleted !== 1 ? 's' : ''} deleted${failed > 0 ? `, ${failed} failed` : ''}`)
   }
 
   const searched = useMemo(() => assets.filter((a) => matchesSearch(a, search)), [assets, search])
@@ -142,7 +166,7 @@ export default function AssetsPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Assets</h1>
           <p className="text-sm text-slate-500">
-            {isLoading ? 'Loading…' : `${sorted.length} asset${sorted.length !== 1 ? 's' : ''}`}
+            {isLoading ? 'Loading…' : `${total.toLocaleString()} asset${total !== 1 ? 's' : ''}`}
           </p>
         </div>
         <Link
@@ -205,6 +229,14 @@ export default function AssetsPage() {
           >
             <Printer className="h-4 w-4" />
             Print Labels
+          </button>
+          <button
+            type="button"
+            onClick={() => setBulkDeleteOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete Selected
           </button>
           <div className="flex-1" />
           <button
@@ -327,6 +359,18 @@ export default function AssetsPage() {
         />
       )}
 
+      {/* Pagination */}
+      {!isLoading && total > 0 && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          pageSize={pageSize}
+          onPageChange={(p) => { setPage(p); setSelectedIds(new Set()) }}
+          onPageSizeChange={(s) => { setPageSize(s); setPage(1); setSelectedIds(new Set()) }}
+        />
+      )}
+
       <ConfirmModal
         open={!!deleteTarget}
         title="Delete Asset"
@@ -336,6 +380,17 @@ export default function AssetsPage() {
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmModal
+        open={bulkDeleteOpen}
+        title={`Delete ${selectedIds.size} Assets`}
+        message={`Are you sure you want to delete ${selectedIds.size} selected asset${selectedIds.size !== 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmLabel={`Delete ${selectedIds.size}`}
+        destructive
+        loading={deleting}
+        onConfirm={handleBulkDelete}
+        onCancel={() => setBulkDeleteOpen(false)}
       />
 
       <PrintLabelsModal

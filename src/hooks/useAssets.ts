@@ -53,6 +53,9 @@ export function useAssets(query?: AssetsQuery) {
   return {
     assets: data?.data ?? [],
     total: data?.total ?? 0,
+    page: data?.page ?? 1,
+    pageSize: data?.page_size ?? 50,
+    totalPages: data?.total_pages ?? 1,
     isLoading,
     error,
     mutate,
