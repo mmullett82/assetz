@@ -4,6 +4,116 @@ import { requireAuth, requireRole } from '@/lib/auth'
 import { handleApiError, errorResponse, paginate, parsePagination, computeDueStatus } from '@/lib/api-helpers'
 import type { Prisma } from '@prisma/client'
 
+// ─── Smart ID derivation helpers ──────────────────────────────────────────────
+
+const SYSTEM_TYPE_MAP: Record<string, string> = {
+  'cnc':          'CNC',
+  'router':       'CNC',
+  'nesting':      'CNC',
+  'drill':        'CNC',
+  'boring':       'CNC',
+  'edge bander':  'EDGE',
+  'edgebander':   'EDGE',
+  'edge band':    'EDGE',
+  'panel saw':    'SAW',
+  'beam saw':     'SAW',
+  'saw':          'SAW',
+  'miter':        'SAW',
+  'spray':        'SPRAY',
+  'spraybooth':   'SPRAY',
+  'finishing':    'SPRAY',
+  'paint':        'SPRAY',
+  'lacquer':      'SPRAY',
+  'sander':       'SAND',
+  'sanding':      'SAND',
+  'press':        'PRESS',
+  'clamp':        'PRESS',
+  'conveyor':     'CONV',
+  'compressor':   'AIR',
+  'air':          'AIR',
+  'dust':         'DUST',
+  'collector':    'DUST',
+  'hvac':         'HVAC',
+  'chiller':      'HVAC',
+  'forklift':     'FORK',
+  'lift':         'LIFT',
+  'pallet':       'LIFT',
+  'pump':         'PUMP',
+  'planer':       'PLAN',
+  'jointer':      'JOIN',
+  'dovetail':     'JOIN',
+  'mortise':      'JOIN',
+  'tenon':        'JOIN',
+  'laser':        'LASER',
+  'welder':       'WELD',
+  'welding':      'WELD',
+  'generator':    'GEN',
+  'power':        'PWR',
+  'desk':         'FURN',
+  'table':        'WORK',
+  'workbench':    'WORK',
+}
+
+const UNIT_TYPE_MAP: Record<string, string> = {
+  'rover':        'ROVER',
+  'beam saw':     'BEAM_SAW',
+  'beam_saw':     'BEAM_SAW',
+  'holzma':       'BEAM_SAW',
+  'panel saw':    'PANEL_SAW',
+  'edge bander':  'EDGE_BANDER',
+  'edgebander':   'EDGE_BANDER',
+  'akron':        'EDGE_BANDER',
+  'spraybooth':   'SPRAYBOOTH',
+  'spray booth':  'SPRAYBOOTH',
+  'sander':       'SANDER',
+  'dovetail':     'DOVETAILER',
+  'dovetailer':   'DOVETAILER',
+  'drill':        'DRILL',
+  'drillteq':     'DRILLTEQ',
+  'bhx':          'DRILL',
+  'boring':       'BORING',
+  'pocket':       'POCKET_BORING',
+  'conveyor':     'CONVEYOR',
+  'compressor':   'COMPRESSOR',
+  'dust collector': 'DUST_COLLECTOR',
+  'collector':    'DUST_COLLECTOR',
+  'forklift':     'FORKLIFT',
+  'raymond':      'FORKLIFT',
+  'lift':         'LIFT',
+  'pump':         'PUMP',
+  'planer':       'PLANER',
+  'press':        'PRESS',
+  'clamp':        'CLAMP',
+  'laser':        'LASER',
+  'notcher':      'NOTCHER',
+  'welder':       'WELDER',
+  'generator':    'GENERATOR',
+  'desk':         'DESK',
+}
+
+/** Try to derive a system type code from a descriptive string (e.g. category, name) */
+function deriveSystemType(text: string): string | null {
+  const lower = text.toLowerCase()
+  for (const [keyword, code] of Object.entries(SYSTEM_TYPE_MAP)) {
+    if (lower.includes(keyword)) return code
+  }
+  return null
+}
+
+/** Try to derive a unit type code from a descriptive string (e.g. name, model) */
+function deriveUnitType(text: string): string | null {
+  const lower = text.toLowerCase()
+  for (const [keyword, code] of Object.entries(UNIT_TYPE_MAP)) {
+    if (lower.includes(keyword)) return code
+  }
+  // If we can't match, try to create a reasonable code from the first significant word
+  const words = text.trim().split(/\s+/).filter(w => w.length > 2)
+  if (words.length > 0) {
+    return words[0].toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12)
+  }
+  return null
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth(request)
@@ -76,32 +186,123 @@ export async function POST(request: NextRequest) {
       facilityId = facility.id
     }
 
-    // Auto-derive department_id if not provided (use first dept in org)
+    // Smart department matching: if department_id not provided, try to match by name/code
     let departmentId = body.department_id
+    let departmentCode = body.department_code
     if (!departmentId) {
-      const dept = await prisma.department.findFirst({
+      const allDepts = await prisma.department.findMany({
         where: { organization_id: user.organization_id },
-        select: { id: true, code: true },
+        select: { id: true, name: true, code: true },
       })
-      if (dept) departmentId = dept.id
+      const rawDept = (body.department || '').trim().toLowerCase()
+      if (rawDept && allDepts.length > 0) {
+        // Try exact match on code or name (case-insensitive)
+        const match = allDepts.find(
+          (d) => d.code.toLowerCase() === rawDept || d.name.toLowerCase() === rawDept
+        )
+        // Try partial/contains match
+        const partial = !match
+          ? allDepts.find(
+              (d) => d.name.toLowerCase().includes(rawDept) || rawDept.includes(d.name.toLowerCase())
+            )
+          : null
+        const dept = match || partial
+        if (dept) {
+          departmentId = dept.id
+          departmentCode = departmentCode || dept.code
+        }
+      }
+      // Fallback to first department
+      if (!departmentId && allDepts.length > 0) {
+        departmentId = allDepts[0].id
+        departmentCode = departmentCode || allDepts[0].code
+      }
     }
 
-    // For imports: auto-generate unique facility_asset_id and asset_number if missing
+    // ─── Smart ID auto-generation ─────────────────────────────────────────────
+    // Facility Asset ID format: SC-B1-MIL-CNC-ROUTER-C3-01
+    // Asset Number format: SLD-CNC-0001
     let facilityAssetId = body.facility_asset_id
     let assetNumber = body.asset_number
-    if (!facilityAssetId || !assetNumber) {
-      // Use timestamp + random to guarantee uniqueness across concurrent requests
-      const uid = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
-      if (!facilityAssetId) {
-        const cc = body.company_code || 'SC'
-        const bc = body.building_code || 'B1'
-        const dc = body.department_code || 'IMP'
-        const st = body.system_type || 'GEN'
-        const ut = body.unit_type || 'EQUIPMENT'
-        facilityAssetId = `${cc}-${bc}-${dc}-${st}-${ut}-C1-${uid}`
+
+    const cc = body.company_code || 'SC'
+    const bc = body.building_code || 'B1'
+    const dc = departmentCode || body.department_code || 'GEN'
+    // Derive system type from category, or body field, or default
+    const st = body.system_type || deriveSystemType(body.category || body.name || '') || 'GEN'
+    // Derive unit type from name/model, or body field, or default
+    const ut = body.unit_type || deriveUnitType(body.name || body.model || '') || 'EQUIPMENT'
+    const depCode = body.dependency_code || 'C'
+
+    if (!facilityAssetId) {
+      // Find the next available cell group and sequence for this dept+system+unit combo
+      const existing = await prisma.asset.findMany({
+        where: {
+          organization_id: user.organization_id,
+          department_code: dc,
+          system_type: st,
+          unit_type: ut,
+        },
+        select: { dependency_group: true, sequence: true },
+        orderBy: [{ dependency_group: 'desc' }, { sequence: 'desc' }],
+      })
+
+      let group = 1
+      let seq = 1
+      if (existing.length > 0) {
+        // Use the highest existing group for this dept+system+unit combo
+        group = existing[0].dependency_group
+        // Find the max sequence in that group
+        const maxSeq = Math.max(...existing.filter(e => e.dependency_group === group).map(e => e.sequence))
+        seq = maxSeq + 1
       }
-      if (!assetNumber) {
-        assetNumber = `IMP-${uid}`
+
+      const seqStr = String(seq).padStart(2, '0')
+      facilityAssetId = `${cc}-${bc}-${dc}-${st}-${ut}-${depCode}${group}-${seqStr}`
+
+      // Check for uniqueness — if collision, increment sequence
+      let collision = await prisma.asset.findUnique({ where: { facility_asset_id: facilityAssetId }, select: { id: true } })
+      while (collision) {
+        seq++
+        const newSeqStr = String(seq).padStart(2, '0')
+        facilityAssetId = `${cc}-${bc}-${dc}-${st}-${ut}-${depCode}${group}-${newSeqStr}`
+        collision = await prisma.asset.findUnique({ where: { facility_asset_id: facilityAssetId }, select: { id: true } })
+      }
+
+      // Update body values for storage
+      body.dependency_group = group
+      body.sequence = seq
+    }
+
+    if (!assetNumber) {
+      // Asset Number format: SLD-{TYPE}-{0001}
+      const prefix = `SLD-${st}`
+      const existingBarcodes = await prisma.asset.findMany({
+        where: {
+          organization_id: user.organization_id,
+          asset_number: { startsWith: prefix },
+        },
+        select: { asset_number: true },
+        orderBy: { asset_number: 'desc' },
+      })
+
+      let nextNum = 1
+      if (existingBarcodes.length > 0) {
+        // Extract the numeric suffix from the highest existing barcode
+        const last = existingBarcodes[0].asset_number
+        const numPart = last.split('-').pop()
+        const parsed = parseInt(numPart || '0')
+        if (!isNaN(parsed)) nextNum = parsed + 1
+      }
+
+      assetNumber = `${prefix}-${String(nextNum).padStart(4, '0')}`
+
+      // Check uniqueness
+      let bcCollision = await prisma.asset.findUnique({ where: { asset_number: assetNumber }, select: { id: true } })
+      while (bcCollision) {
+        nextNum++
+        assetNumber = `${prefix}-${String(nextNum).padStart(4, '0')}`
+        bcCollision = await prisma.asset.findUnique({ where: { asset_number: assetNumber }, select: { id: true } })
       }
     }
 
@@ -122,9 +323,9 @@ export async function POST(request: NextRequest) {
         year_installed: body.year_installed,
         company_code: body.company_code || 'SC',
         building_code: body.building_code || 'B1',
-        department_code: body.department_code || 'IMP',
-        system_type: body.system_type || 'GEN',
-        unit_type: body.unit_type || 'EQUIPMENT',
+        department_code: departmentCode || body.department_code || 'GEN',
+        system_type: st,
+        unit_type: ut,
         dependency_code: body.dependency_code || 'C',
         dependency_group: body.dependency_group ?? 1,
         sequence: body.sequence ?? 1,

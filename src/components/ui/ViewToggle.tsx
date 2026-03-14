@@ -26,6 +26,7 @@ export default function ViewToggle({ mode, onChange, showCalendar = false }: Vie
           type="button"
           onClick={() => onChange(key)}
           aria-label={label}
+          title={label}
           className={[
             'flex items-center justify-center rounded-md p-2 transition-colors',
             mode === key

@@ -3,10 +3,10 @@
 import { X, Pencil, ClipboardList, MapPin, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { useAsset } from '@/hooks/useAsset'
+import { useAssetDependencies } from '@/hooks/useAssetDependencies'
 import AssetStatusBadge from '@/components/ui/AssetStatusBadge'
 import DependencyBadge from './DependencyBadge'
 import BarcodeDisplay from './BarcodeDisplay'
-import { MOCK_ASSETS } from '@/lib/mock-data'
 
 interface AssetPanelDetailProps {
   assetId: string
@@ -17,6 +17,7 @@ interface AssetPanelDetailProps {
 
 export default function AssetPanelDetail({ assetId, onEdit, onCreateWO, onClose }: AssetPanelDetailProps) {
   const { asset, isLoading, error } = useAsset(assetId)
+  const { dependencies } = useAssetDependencies(assetId)
 
   if (isLoading) {
     return (
@@ -37,9 +38,9 @@ export default function AssetPanelDetail({ assetId, onEdit, onCreateWO, onClose 
     )
   }
 
-  const dependsOnAssets = (asset.depends_on ?? []).map((aid) => MOCK_ASSETS.find((a) => a.id === aid)).filter(Boolean)
-  const feedsAssets     = (asset.feeds ?? []).map((aid) => MOCK_ASSETS.find((a) => a.id === aid)).filter(Boolean)
-  const dependentAssets = (asset.dependents ?? []).map((aid) => MOCK_ASSETS.find((a) => a.id === aid)).filter(Boolean)
+  const dependsOnAssets = dependencies?.depends_on ?? []
+  const feedsAssets     = dependencies?.feeds ?? []
+  const dependentAssets = dependencies?.dependents ?? []
 
   return (
     <div className="h-full flex flex-col overflow-hidden">

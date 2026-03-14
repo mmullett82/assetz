@@ -478,6 +478,7 @@ function buildPayload(
       model: data.model || undefined,
       manufacturer: data.manufacturer || undefined,
       description: data.notes || undefined,
+      department: data.department || undefined, // passed to API for smart matching
       location_notes: data.location || undefined,
       status: data.status?.toLowerCase() || 'operational',
       category: data.category || undefined,
